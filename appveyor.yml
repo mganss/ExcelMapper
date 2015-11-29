@@ -6,8 +6,8 @@ platform: Any CPU
 build:
   project: ExcelMapper.sln
   verbosity: minimal
-#  publish_nuget: true
-#  publish_nuget_symbols: true
+  publish_nuget: true
+  publish_nuget_symbols: true
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'
@@ -19,5 +19,5 @@ test_script:
   - nuget.exe install NUnit.Runners -ExcludeVersion
   - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[*]* -[NUnit*]* -[*Tests*]* -[*Sample*]*" -target:"NUnit.Console\tools\nunit3-console.exe" -targetargs:"ExcelMapper.Tests\bin\release\ExcelMapper.Tests.dll" -returntargetcode -hideskipped:All -output:coverage.xml
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
-#  - pip install codecov
-#  - codecov -f "coverage.xml"
+  - pip install codecov
+  - codecov -f "coverage.xml"
