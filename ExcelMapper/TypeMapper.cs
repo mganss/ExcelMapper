@@ -43,7 +43,15 @@ namespace Ganss.Excel
         {
             if (type == typeof(DateTime))
             {
-                return (c, o) => c.SetCellValue(Convert.ToDateTime(o));
+                return (c, o) =>
+                {
+                    var d = Convert.ToDateTime(o);
+                    c.SetCellValue(d);
+                    var wb = c.Row.Sheet.Workbook;
+                    var cs = wb.CreateCellStyle();
+                    cs.DataFormat = 0x16; // "m/d/yy h:mm"
+                    c.CellStyle = cs;
+                };
             }
             else if (type == typeof(bool))
             {

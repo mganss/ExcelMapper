@@ -178,6 +178,18 @@ namespace Ganss.Excel.Tests
             public decimal Price { get; set; }
             public bool Offer { get; set; }
             public DateTime OfferEnd { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                var o = obj as IgnoreProduct;
+                if (o == null) return false;
+                return o.Name == Name && o.Number == Number && o.Price == Price && o.Offer == Offer && o.OfferEnd == OfferEnd;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name + Number + Price + Offer + OfferEnd).GetHashCode();
+            }
         }
 
         [Test]
@@ -196,6 +208,14 @@ namespace Ganss.Excel.Tests
             var halloren = products[1];
             Assert.IsTrue(halloren.Offer);
             Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
+
+            var file = "productsignored.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file).Fetch<IgnoreProduct>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
         }
     }
 }
