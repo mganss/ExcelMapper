@@ -1,5 +1,9 @@
 # ExcelMapper
 
+[![NuGet version](https://badge.fury.io/nu/ExcelMapper.svg)](http://badge.fury.io/nu/ExcelMapper)
+[![Build status](https://ci.appveyor.com/api/projects/status/tyyg8905i24qv9pg/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/excelmapper/branch/master)
+[![codecov.io](https://codecov.io/github/mganss/ExcelMapper/coverage.svg?branch=master)](https://codecov.io/github/mganss/ExcelMapper?branch=master)
+
 A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) objects to Excel files.
 
 ## Features
