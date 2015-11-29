@@ -1,0 +1,23 @@
+version: 1.0.{build}
+install:
+  - nuget restore
+configuration: Release
+platform: Any CPU
+build:
+  project: ExcelMapper.sln
+  verbosity: minimal
+#  publish_nuget: true
+#  publish_nuget_symbols: true
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: "{version}"
+  assembly_file_version: "{version}"
+  assembly_informational_version: "{version}"
+test_script:
+  - nuget.exe install OpenCover -ExcludeVersion
+  - nuget.exe install NUnit.Runners -ExcludeVersion
+  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[*]* -[NUnit*]* -[*Tests*]* -[*Sample*]*" -target:"NUnit.Runners\tools\nunit-console.exe" -targetargs:"ExcelMapper.Tests\bin\release\ExcelMapper.Tests.dll -noshadow" -returntargetcode -hideskipped:All -output:coverage.xml
+  - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
+#  - pip install codecov
+#  - codecov -f "coverage.xml"
