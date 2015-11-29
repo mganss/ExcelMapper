@@ -169,5 +169,26 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
+
+        public class IgnoreProduct
+        {
+            public string Name { get; set; }
+            [Ignore]
+            public int Number { get; set; }
+            public decimal Price { get; set; }
+        }
+
+        [Test]
+        public void IgnoreTest()
+        {
+            var excel = new ExcelMapper(@"..\..\products.xlsx");
+            excel.Ignore<IgnoreProduct>(p => p.Price);
+            var products = excel.Fetch<IgnoreProduct>().ToList();
+
+            var nudossi = products[0];
+            Assert.AreEqual("Nudossi", nudossi.Name);
+            Assert.AreEqual(0, nudossi.Number);
+            Assert.AreEqual(0m, nudossi.Price);
+        }
     }
 }

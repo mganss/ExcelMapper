@@ -44,7 +44,6 @@ namespace Ganss.Excel
         /// </value>
         public bool TrackObjects { get; set; } = true;
 
-
         /// <summary>
         /// Gets or sets a value indicating whether to skip blank rows when reading from Excel files. Default is true.
         /// </summary>
@@ -85,6 +84,58 @@ namespace Ganss.Excel
         /// Fetches objects from the specified sheet name.
         /// </summary>
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable<T> Fetch<T>(string file, string sheetName) where T : new()
+        {
+            Workbook = WorkbookFactory.Create(file);
+            return Fetch<T>(sheetName);
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable<T> Fetch<T>(string file, int sheetIndex) where T : new()
+        {
+            Workbook = WorkbookFactory.Create(file);
+            return Fetch<T>(sheetIndex);
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable<T> Fetch<T>(Stream stream, string sheetName) where T : new()
+        {
+            Workbook = WorkbookFactory.Create(stream);
+            return Fetch<T>(sheetName);
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex) where T : new()
+        {
+            Workbook = WorkbookFactory.Create(stream);
+            return Fetch<T>(sheetIndex);
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(string sheetName) where T : new()
@@ -110,8 +161,9 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var columns = sheet.GetRow(0).Cells
                 .Where(c => !HeaderRow || !string.IsNullOrWhiteSpace(c.StringCellValue))
-                .ToDictionary(c => c.ColumnIndex,
-                    c => HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex));
+                .Select(c => new { ColumnIndex = c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
+                .Where(c => c.ColumnInfo != null)
+                .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
             var i = HeaderRow ? 1 : 0;
             IRow row = null;
 
@@ -337,8 +389,9 @@ namespace Ganss.Excel
                 {
                     columnsByIndex = headerRow.Cells
                         .Where(c => !string.IsNullOrWhiteSpace(c.StringCellValue))
-                        .ToDictionary(c => c.ColumnIndex,
-                            c => typeMapper.GetColumnByName(c.StringCellValue));
+                        .Select(c => new { ColumnIndex = c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
+                        .Where(c => c.ColumnInfo != null)
+                        .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
                 }
             }
             else
@@ -428,6 +481,32 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
             typeMapper.ColumnsByIndex[columnIndex] = new ColumnInfo(prop);
+        }
+
+        /// <summary>
+        /// Ignores a property.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="propertyExpression">The property expression.</param>
+        public void Ignore<T>(Expression<Func<T, object>> propertyExpression)
+        {
+            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            var prop = GetPropertyInfo(propertyExpression);
+            var kvp = typeMapper.ColumnsByName.FirstOrDefault(c => c.Value.Property == prop);
+            if (kvp.Key != null) typeMapper.ColumnsByName.Remove(kvp.Key);
+        }
+
+        /// <summary>
+        /// Ignores a property.
+        /// </summary>
+        /// <param name="t">The type that contains the property to map to.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        public void Ignore(Type t, string propertyName)
+        {
+            var typeMapper = TypeMapperFactory.Create(t);
+            var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            var kvp = typeMapper.ColumnsByName.FirstOrDefault(c => c.Value.Property == prop);
+            if (kvp.Key != null) typeMapper.ColumnsByName.Remove(kvp.Key);
         }
     }
 }

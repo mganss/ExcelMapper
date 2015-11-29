@@ -130,16 +130,22 @@ namespace Ganss.Excel
         {
             foreach (var prop in Type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
-                var columnAttribute = Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) as ColumnAttribute;
-                if (columnAttribute != null)
+                var ignoreAttribute = Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) as IgnoreAttribute;
+
+                if (ignoreAttribute == null)
                 {
-                    if (!string.IsNullOrEmpty(columnAttribute.Name))
-                        ColumnsByName[columnAttribute.Name] = new ColumnInfo(prop);
+                    var columnAttribute = Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) as ColumnAttribute;
+
+                    if (columnAttribute != null)
+                    {
+                        if (!string.IsNullOrEmpty(columnAttribute.Name))
+                            ColumnsByName[columnAttribute.Name] = new ColumnInfo(prop);
+                        else
+                            ColumnsByIndex[columnAttribute.Index - 1] = new ColumnInfo(prop);
+                    }
                     else
-                        ColumnsByIndex[columnAttribute.Index - 1] = new ColumnInfo(prop);
+                        ColumnsByName[prop.Name] = new ColumnInfo(prop);
                 }
-                else
-                    ColumnsByName[prop.Name] = new ColumnInfo(prop);
             }
         }
 
@@ -147,13 +153,11 @@ namespace Ganss.Excel
         /// Gets the <see cref="ColumnInfo"/> for the specified column name.
         /// </summary>
         /// <param name="name">The column name.</param>
-        /// <returns>A <see cref="ColumnInfo"/> object.</returns>
-        /// <exception cref="System.ArgumentException">No property exists for the specified column name</exception>
+        /// <returns>A <see cref="ColumnInfo"/> object or null if no <see cref="ColumnInfo"/> exists for the specified column name.</returns>
         public ColumnInfo GetColumnByName(string name)
         {
             ColumnInfo col;
-            if (!ColumnsByName.TryGetValue(name, out col))
-                throw new ArgumentException($"No property for column name {name} on type {Type.Name}");
+            ColumnsByName.TryGetValue(name, out col);
             return col;
         }
 
@@ -161,13 +165,11 @@ namespace Ganss.Excel
         /// Gets the <see cref="ColumnInfo"/> for the specified column index.
         /// </summary>
         /// <param name="index">The column index.</param>
-        /// <returns>A <see cref="ColumnInfo"/> object.</returns>
-        /// <exception cref="System.ArgumentException">No property for the specified column index</exception>
+        /// <returns>A <see cref="ColumnInfo"/> object or null if no <see cref="ColumnInfo"/> exists for the specified column index.</returns>
         public ColumnInfo GetColumnByIndex(int index)
         {
             ColumnInfo col;
-            if (!ColumnsByIndex.TryGetValue(index, out col))
-                throw new ArgumentException($"No property for column index {index} on type {Type.Name}");
+            ColumnsByIndex.TryGetValue(index, out col);
             return col;
         }
     }
