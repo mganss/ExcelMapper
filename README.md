@@ -84,3 +84,20 @@ var products = new ExcelMapper("products.xlsx").Fetch<Product>().ToList();
 products[1].Price += 1.0m;
 excel.Save("products.out.xlsx");
 ```
+
+## Ignore properties
+
+```C#
+public class Product
+{
+    public string Name { get; set; }
+    [Ignore]
+    public int Number { get; set; }
+    public decimal Price { get; set; }
+}
+
+// or
+
+var excel = new ExcelMapper("products.xlsx");
+excel.Ignore<Product>(p => p.Price);
+```
