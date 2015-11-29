@@ -407,7 +407,10 @@ namespace Ganss.Excel
             switch (cell.CellType)
             {
                 case CellType.Numeric:
-                    return cell.NumericCellValue;
+                    if (DateUtil.IsCellDateFormatted(cell))
+                        return cell.DateCellValue;
+                    else
+                        return cell.NumericCellValue;
                 case CellType.Formula:
                     return cell.CellFormula;
                 case CellType.Boolean:

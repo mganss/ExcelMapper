@@ -176,6 +176,8 @@ namespace Ganss.Excel.Tests
             [Ignore]
             public int Number { get; set; }
             public decimal Price { get; set; }
+            public bool Offer { get; set; }
+            public DateTime OfferEnd { get; set; }
         }
 
         [Test]
@@ -189,6 +191,11 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual("Nudossi", nudossi.Name);
             Assert.AreEqual(0, nudossi.Number);
             Assert.AreEqual(0m, nudossi.Price);
+            Assert.IsFalse(nudossi.Offer);
+
+            var halloren = products[1];
+            Assert.IsTrue(halloren.Offer);
+            Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
         }
     }
 }
