@@ -65,6 +65,22 @@ namespace Ganss.Excel
         /// </value>
         public Action<ICell, object> SetCell { get; set; }
 
+        /// <summary>
+        /// Gets or sets the builtin format.
+        /// </summary>
+        /// <value>
+        /// The builtin format.
+        /// </value>
+        public short BuiltinFormat { get; set; }
+
+        /// <summary>
+        /// Gets or sets the custom format.
+        /// </summary>
+        /// <value>
+        /// The custom format.
+        /// </value>
+        public string CustomFormat { get; set; }
+
         static HashSet<Type> NumericTypes = new HashSet<Type>
         {
             typeof(decimal),
@@ -87,10 +103,9 @@ namespace Ganss.Excel
                     {
                         var d = (DateTime)o;
                         c.SetCellValue(d);
-                        var wb = c.Row.Sheet.Workbook;
-                        var cs = wb.CreateCellStyle();
-                        cs.DataFormat = 0x16; // "m/d/yy h:mm"
-                        c.CellStyle = cs;
+
+                        if (BuiltinFormat != 0 || CustomFormat != null || c.CellStyle.DataFormat == 0)
+                            SetCellFormat(c, 0x16); // "m/d/yy h:mm"
                     }
                 };
             }
@@ -109,10 +124,19 @@ namespace Ganss.Excel
                 if (IsNullable)
                     return (c, o) =>
                     {
-                        if (o == null) c.SetCellValue((string)null); else c.SetCellValue(Convert.ToDouble(o));
+                        if (o == null) c.SetCellValue((string)null);
+                        else
+                        {
+                            c.SetCellValue(Convert.ToDouble(o));
+                            SetCellFormat(c);
+                        }
                     };
                 else
-                    return (c, o) => c.SetCellValue(Convert.ToDouble(o));
+                    return (c, o) =>
+                    {
+                        c.SetCellValue(Convert.ToDouble(o));
+                        SetCellFormat(c);
+                    };
             }
             else
             {
@@ -121,6 +145,14 @@ namespace Ganss.Excel
                     if (o == null) c.SetCellValue((string)null); else c.SetCellValue(o.ToString());
                 };
             }
+        }
+
+        private void SetCellFormat(ICell c, short defaultFormat = 0)
+        {
+            var wb = c.Row.Sheet.Workbook;
+            var cs = wb.CreateCellStyle();
+            cs.DataFormat = CustomFormat != null ? wb.CreateDataFormat().GetFormat(CustomFormat) : BuiltinFormat != 0 ? BuiltinFormat : defaultFormat;
+            c.CellStyle = cs;
         }
 
         /// <summary>
@@ -198,17 +230,26 @@ namespace Ganss.Excel
 
                 if (ignoreAttribute == null)
                 {
+                    ColumnInfo ci;
                     var columnAttribute = Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) as ColumnAttribute;
 
                     if (columnAttribute != null)
                     {
                         if (!string.IsNullOrEmpty(columnAttribute.Name))
-                            ColumnsByName[columnAttribute.Name] = new ColumnInfo(prop);
+                            ColumnsByName[columnAttribute.Name] = ci = new ColumnInfo(prop);
                         else
-                            ColumnsByIndex[columnAttribute.Index - 1] = new ColumnInfo(prop);
+                            ColumnsByIndex[columnAttribute.Index - 1] = ci = new ColumnInfo(prop);
                     }
                     else
-                        ColumnsByName[prop.Name] = new ColumnInfo(prop);
+                        ColumnsByName[prop.Name] = ci = new ColumnInfo(prop);
+
+                    var dataFormatAttribute = Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) as DataFormatAttribute;
+
+                    if (dataFormatAttribute != null)
+                    {
+                        ci.BuiltinFormat = dataFormatAttribute.BuiltinFormat;
+                        ci.CustomFormat = dataFormatAttribute.CustomFormat;
+                    }
                 }
             }
         }

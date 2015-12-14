@@ -266,5 +266,28 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
+
+        public class DataFormatProduct
+        {
+            [DataFormat(0xf)]
+            public DateTime Date { get; set; }
+
+            [DataFormat("0%")]
+            public decimal Number { get; set; }
+        }
+
+        [Test]
+        public void DataFormatTest()
+        {
+            var p = new DataFormatProduct { Date = new DateTime(2015, 12, 31), Number = 0.47m };
+            var file = "productsdataformat.xlsx";
+            new ExcelMapper().Save(file, new[] { p });
+            var pfs = new ExcelMapper(file).Fetch<DataFormatProduct>().ToList();
+
+            Assert.AreEqual(1, pfs.Count);
+            var pf = pfs[0];
+            Assert.AreEqual(p.Date, pf.Date);
+            Assert.AreEqual(p.Number, pf.Number);
+        }
     }
 }

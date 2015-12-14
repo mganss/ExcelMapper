@@ -248,8 +248,11 @@ namespace Ganss.Excel
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
-            var sheet = Workbook.GetSheetAt(sheetIndex);
-            if (sheet == null) sheet = Workbook.CreateSheet();
+            ISheet sheet;
+            if (Workbook.NumberOfSheets > sheetIndex)
+                sheet = Workbook.GetSheetAt(sheetIndex);
+            else
+                sheet = Workbook.CreateSheet();
             Save(stream, sheet, objects);
         }
 
