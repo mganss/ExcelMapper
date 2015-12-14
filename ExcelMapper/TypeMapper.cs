@@ -13,13 +13,49 @@ namespace Ganss.Excel
     /// </summary>
     public class ColumnInfo
     {
+        private PropertyInfo property;
+
         /// <summary>
         /// Gets or sets the property.
         /// </summary>
         /// <value>
         /// The property.
         /// </value>
-        public PropertyInfo Property { get; set; }
+        public PropertyInfo Property
+        {
+            get { return property; }
+            set
+            {
+                property = value;
+                if (property != null)
+                {
+                    var underlyingType = Nullable.GetUnderlyingType(property.PropertyType);
+                    IsNullable = underlyingType != null;
+                    PropertyType = underlyingType ?? property.PropertyType;
+                }
+                else
+                {
+                    PropertyType = null;
+                    IsNullable = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the property is nullable.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the property is nullable; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsNullable { get; private set; }
+
+        /// <summary>
+        /// Gets the type of the property.
+        /// </summary>
+        /// <value>
+        /// The type of the property.
+        /// </value>
+        public Type PropertyType { get; private set; }
 
         /// <summary>
         /// Gets or sets the cell setter.
@@ -39,31 +75,51 @@ namespace Ganss.Excel
             typeof(float), typeof(double)
         };
 
-        Action<ICell, object> GenerateCellSetter(Type type)
+        Action<ICell, object> GenerateCellSetter()
         {
-            if (type == typeof(DateTime))
+            if (PropertyType == typeof(DateTime))
             {
                 return (c, o) =>
                 {
-                    var d = Convert.ToDateTime(o);
-                    c.SetCellValue(d);
-                    var wb = c.Row.Sheet.Workbook;
-                    var cs = wb.CreateCellStyle();
-                    cs.DataFormat = 0x16; // "m/d/yy h:mm"
-                    c.CellStyle = cs;
+                    if (o == null)
+                        c.SetCellValue((string)null);
+                    else
+                    {
+                        var d = (DateTime)o;
+                        c.SetCellValue(d);
+                        var wb = c.Row.Sheet.Workbook;
+                        var cs = wb.CreateCellStyle();
+                        cs.DataFormat = 0x16; // "m/d/yy h:mm"
+                        c.CellStyle = cs;
+                    }
                 };
             }
-            else if (type == typeof(bool))
+            else if (PropertyType == typeof(bool))
             {
-                return (c, o) => c.SetCellValue(Convert.ToBoolean(o));
+                if (IsNullable)
+                    return (c, o) =>
+                    {
+                        if (o == null) c.SetCellValue((string)null); else c.SetCellValue((bool)o);
+                    };
+                else
+                    return (c, o) => c.SetCellValue((bool)o);
             }
-            else if (NumericTypes.Contains(type))
+            else if (NumericTypes.Contains(PropertyType))
             {
-                return (c, o) => c.SetCellValue(Convert.ToDouble(o));
+                if (IsNullable)
+                    return (c, o) =>
+                    {
+                        if (o == null) c.SetCellValue((string)null); else c.SetCellValue(Convert.ToDouble(o));
+                    };
+                else
+                    return (c, o) => c.SetCellValue(Convert.ToDouble(o));
             }
             else
             {
-                return (c, o) => c.SetCellValue(o.ToString());
+                return (c, o) =>
+                {
+                    if (o == null) c.SetCellValue((string)null); else c.SetCellValue(o.ToString());
+                };
             }
         }
 
@@ -74,7 +130,7 @@ namespace Ganss.Excel
         /// <param name="val">The value.</param>
         public void SetProperty(object o, object val)
         {
-            var v = Convert.ChangeType(val, Property.PropertyType, CultureInfo.InvariantCulture);
+            var v = IsNullable && (val == null || (val as string) == "") ? null : Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
             Property.SetValue(o, v, null);
         }
 
@@ -95,7 +151,7 @@ namespace Ganss.Excel
         public ColumnInfo(PropertyInfo propertyInfo)
         {
             Property = propertyInfo;
-            SetCell = GenerateCellSetter(propertyInfo.PropertyType);
+            SetCell = GenerateCellSetter();
         }
     }
 

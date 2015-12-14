@@ -217,5 +217,54 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
+
+        public class NullableProduct
+        {
+            public string Name { get; set; }
+            public int? Number { get; set; }
+            public decimal? Price { get; set; }
+            public bool? Offer { get; set; }
+            public DateTime? OfferEnd { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                var o = obj as NullableProduct;
+                if (o == null) return false;
+                return o.Name == Name && o.Number == Number && o.Price == Price && o.Offer == Offer && o.OfferEnd == OfferEnd;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name + Number + Price + Offer + OfferEnd).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void NullableTest()
+        {
+            var excel = new ExcelMapper(@"..\..\products.xlsx");
+            var products = excel.Fetch<NullableProduct>().ToList();
+
+            var nudossi = products[0];
+            Assert.AreEqual("Nudossi", nudossi.Name);
+            Assert.AreEqual(60, nudossi.Number);
+            Assert.AreEqual(1.99m, nudossi.Price);
+            Assert.IsFalse(nudossi.Offer.Value);
+            nudossi.OfferEnd = null;
+
+            var halloren = products[1];
+            Assert.IsTrue(halloren.Offer.Value);
+            Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
+            halloren.Number = null;
+            halloren.Offer = null;
+
+            var file = "productsnullable.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file).Fetch<NullableProduct>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
     }
 }
