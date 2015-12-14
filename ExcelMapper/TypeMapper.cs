@@ -128,14 +128,16 @@ namespace Ganss.Excel
                         else
                         {
                             c.SetCellValue(Convert.ToDouble(o));
-                            SetCellFormat(c);
+                            if (BuiltinFormat != 0 || CustomFormat != null)
+                                SetCellFormat(c);
                         }
                     };
                 else
                     return (c, o) =>
                     {
                         c.SetCellValue(Convert.ToDouble(o));
-                        SetCellFormat(c);
+                        if (BuiltinFormat != 0 || CustomFormat != null)
+                            SetCellFormat(c);
                     };
             }
             else
