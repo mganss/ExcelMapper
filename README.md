@@ -15,6 +15,7 @@ A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) obje
 * Preserve formatting when saving back files
 * Optionally let the mapper track objects
 * Map columns to properties through convention, attributes or method calls
+* Use custom or builtin data formats for numeric and DateTime columns
 
 ## Read objects from an Excel file
 
@@ -105,3 +106,18 @@ public class Product
 var excel = new ExcelMapper("products.xlsx");
 excel.Ignore<Product>(p => p.Price);
 ```
+
+## Use specific data formats
+
+```C#
+public class Product
+{
+    [DataFormat(0xf)]
+    public DateTime Date { get; set; }
+
+    [DataFormat("0%")]
+    public decimal Number { get; set; }
+}
+```
+
+You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi/ss/usermodel/BuiltinFormats.html) and [custom formats](https://support.office.com/en-nz/article/Create-or-delete-a-custom-number-format-78f2a361-936b-4c03-8772-09fab54be7f4). The default format for DateTime cells is 0x16 ("m/d/yy h:mm").
