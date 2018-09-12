@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes></releaseNotes>
-    <copyright>Copyright 2015 Michael Ganss</copyright>
+    <copyright>Copyright 2015-2018 Michael Ganss</copyright>
     <tags>excel mapper map poco orm linq</tags>
   </metadata>
 </package>
