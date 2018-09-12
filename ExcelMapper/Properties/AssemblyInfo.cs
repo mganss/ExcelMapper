@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Michael Ganss")]
 [assembly: AssemblyProduct("ExcelMapper")]
-[assembly: AssemblyCopyright("Copyright © 2015 Michael Ganss")]
+[assembly: AssemblyCopyright("Copyright © 2015-2018 Michael Ganss")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

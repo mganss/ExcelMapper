@@ -228,14 +228,11 @@ namespace Ganss.Excel
         {
             foreach (var prop in Type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
-                var ignoreAttribute = Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) as IgnoreAttribute;
-
-                if (ignoreAttribute == null)
+                if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute ignoreAttribute))
                 {
                     ColumnInfo ci;
-                    var columnAttribute = Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) as ColumnAttribute;
 
-                    if (columnAttribute != null)
+                    if (Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) is ColumnAttribute columnAttribute)
                     {
                         if (!string.IsNullOrEmpty(columnAttribute.Name))
                             ColumnsByName[columnAttribute.Name] = ci = new ColumnInfo(prop);
@@ -245,9 +242,7 @@ namespace Ganss.Excel
                     else
                         ColumnsByName[prop.Name] = ci = new ColumnInfo(prop);
 
-                    var dataFormatAttribute = Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) as DataFormatAttribute;
-
-                    if (dataFormatAttribute != null)
+                    if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
                     {
                         ci.BuiltinFormat = dataFormatAttribute.BuiltinFormat;
                         ci.CustomFormat = dataFormatAttribute.CustomFormat;
@@ -263,8 +258,7 @@ namespace Ganss.Excel
         /// <returns>A <see cref="ColumnInfo"/> object or null if no <see cref="ColumnInfo"/> exists for the specified column name.</returns>
         public ColumnInfo GetColumnByName(string name)
         {
-            ColumnInfo col;
-            ColumnsByName.TryGetValue(name, out col);
+            ColumnsByName.TryGetValue(name, out ColumnInfo col);
             return col;
         }
 
@@ -275,8 +269,7 @@ namespace Ganss.Excel
         /// <returns>A <see cref="ColumnInfo"/> object or null if no <see cref="ColumnInfo"/> exists for the specified column index.</returns>
         public ColumnInfo GetColumnByIndex(int index)
         {
-            ColumnInfo col;
-            ColumnsByIndex.TryGetValue(index, out col);
+            ColumnsByIndex.TryGetValue(index, out ColumnInfo col);
             return col;
         }
     }

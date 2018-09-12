@@ -8,23 +8,29 @@ namespace Ganss.Excel.Tests
 {
     public class Tests
     {
+        [SetUp]
+        public void Setup()
+        {
+            Environment.CurrentDirectory = TestContext.CurrentContext.TestDirectory;
+        }
+
         public class Product
         {
             public string Name { get; set; }
             [Column("Number")]
             public int NumberInStock { get; set; }
             public decimal Price { get; set; }
+            public string Value { get; set; }
 
             public override bool Equals(object obj)
             {
-                var o = obj as Product;
-                if (o == null) return false;
-                return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price;
+                if (!(obj is Product o)) return false;
+                return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price && o.Value == Value;
             }
 
             public override int GetHashCode()
             {
-                return (Name + NumberInStock + Price).GetHashCode();
+                return (Name + NumberInStock + Price + Value).GetHashCode();
             }
         }
 
@@ -34,9 +40,9 @@ namespace Ganss.Excel.Tests
             var products = new ExcelMapper(@"..\..\products.xlsx").Fetch<Product>().ToList();
             CollectionAssert.AreEqual(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
 
@@ -51,8 +57,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                var o = obj as ProductNoHeader;
-                if (o == null) return false;
+                if (!(obj is ProductNoHeader o)) return false;
                 return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price;
             }
 
@@ -79,9 +84,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
             };
 
             var file = "productssave.xlsx";
@@ -137,8 +142,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                var o = obj as ProductMapped;
-                if (o == null) return false;
+                if (!(obj is ProductMapped o)) return false;
                 return o.NameX == NameX && o.NumberX == NumberX && o.PriceX == PriceX;
             }
 
@@ -181,8 +185,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                var o = obj as IgnoreProduct;
-                if (o == null) return false;
+                if (!(obj is IgnoreProduct o)) return false;
                 return o.Name == Name && o.Number == Number && o.Price == Price && o.Offer == Offer && o.OfferEnd == OfferEnd;
             }
 
@@ -228,8 +231,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                var o = obj as NullableProduct;
-                if (o == null) return false;
+                if (!(obj is NullableProduct o)) return false;
                 return o.Name == Name && o.Number == Number && o.Price == Price && o.Offer == Offer && o.OfferEnd == OfferEnd;
             }
 

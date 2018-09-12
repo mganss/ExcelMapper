@@ -55,7 +55,7 @@ namespace Ganss.Excel
         Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new Dictionary<string, Dictionary<int, object>>();
         IWorkbook Workbook { get; set; }
 
-        static TypeMapperFactory DefaultTypeMapperFactory = new TypeMapperFactory();
+        static readonly TypeMapperFactory DefaultTypeMapperFactory = new TypeMapperFactory();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExcelMapper"/> class.
@@ -160,8 +160,8 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var columns = sheet.GetRow(0).Cells
-                .Where(c => !HeaderRow || !string.IsNullOrWhiteSpace(c.StringCellValue))
-                .Select(c => new { ColumnIndex = c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
+                .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
+                .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
                 .Where(c => c.ColumnInfo != null)
                 .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
             var i = HeaderRow ? 1 : 0;
@@ -391,8 +391,8 @@ namespace Ganss.Excel
                 else
                 {
                     columnsByIndex = headerRow.Cells
-                        .Where(c => !string.IsNullOrWhiteSpace(c.StringCellValue))
-                        .Select(c => new { ColumnIndex = c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
+                        .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
+                        .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
                         .Where(c => c.ColumnInfo != null)
                         .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
                 }

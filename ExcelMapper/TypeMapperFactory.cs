@@ -19,9 +19,7 @@ namespace Ganss.Excel
         /// <returns>A <see cref="TypeMapper"/> for the specified type.</returns>
         public TypeMapper Create(Type type)
         {
-            TypeMapper typeMapper;
-
-            if (!TypeMappers.TryGetValue(type, out typeMapper))
+            if (!TypeMappers.TryGetValue(type, out TypeMapper typeMapper))
                 typeMapper = TypeMappers[type] = TypeMapper.Create(type);
 
             return typeMapper;
