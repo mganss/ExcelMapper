@@ -18,7 +18,7 @@ assembly_info:
 test_script:
   - nuget.exe install OpenCover -ExcludeVersion
   - nuget.exe install NUnit.Runners -ExcludeVersion
-  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[*]* -[NUnit*]* -[*Tests*]* -[*Sample*]*" -target:"NUnit.Console\tools\nunit3-console.exe" -targetargs:"ExcelMapper.Tests\bin\release\ExcelMapper.Tests.dll" -returntargetcode -hideskipped:All -output:coverage.xml
+  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[*]* -[NUnit*]* -[*Tests*]* -[*Sample*]*" -target:"NUnit.ConsoleRunner\tools\nunit3-console.exe" -targetargs:"ExcelMapper.Tests\bin\release\ExcelMapper.Tests.dll" -returntargetcode -hideskipped:All -output:coverage.xml
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
   - codecov -f "coverage.xml"
