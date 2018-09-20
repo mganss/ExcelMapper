@@ -179,7 +179,7 @@ namespace Ganss.Excel
                     {
                         var cell = row.GetCell(col.Key);
                         if (cell != null)
-                            col.Value.SetProperty(o, GetCellValue(cell));
+                            col.Value.SetProperty(o, GetCellValue(cell, col.Value));
                     }
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
@@ -405,9 +405,11 @@ namespace Ganss.Excel
             return columnsByIndex;
         }
 
-        object GetCellValue(ICell cell)
+        object GetCellValue(ICell cell, ColumnInfo targetColumn)
         {
-            switch (cell.CellType)
+            var cellType = cell.CellType == CellType.Formula && targetColumn.PropertyType != typeof(string) ? cell.CachedFormulaResultType : cell.CellType;
+
+            switch (cellType)
             {
                 case CellType.Numeric:
                     if (DateUtil.IsCellDateFormatted(cell))

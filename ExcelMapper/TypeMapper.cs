@@ -230,17 +230,17 @@ namespace Ganss.Excel
             {
                 if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute ignoreAttribute))
                 {
-                    ColumnInfo ci;
+                    var ci = new ColumnInfo(prop);
 
                     if (Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) is ColumnAttribute columnAttribute)
                     {
                         if (!string.IsNullOrEmpty(columnAttribute.Name))
-                            ColumnsByName[columnAttribute.Name] = ci = new ColumnInfo(prop);
+                            ColumnsByName[columnAttribute.Name] = ci;
                         else
-                            ColumnsByIndex[columnAttribute.Index - 1] = ci = new ColumnInfo(prop);
+                            ColumnsByIndex[columnAttribute.Index - 1] = ci;
                     }
                     else
-                        ColumnsByName[prop.Name] = ci = new ColumnInfo(prop);
+                        ColumnsByName[prop.Name] = ci;
 
                     if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
                     {

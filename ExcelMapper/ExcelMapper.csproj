@@ -13,7 +13,7 @@
     <PackageLicenseUrl>https://github.com/mganss/ExcelMapper/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/mganss/ExcelMapper</RepositoryUrl>
-	  <RootNamespace>ExcelMapper</RootNamespace>
+	  <RootNamespace>Ganss.Excel</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\ExcelMapper.xml</DocumentationFile>
   </PropertyGroup>

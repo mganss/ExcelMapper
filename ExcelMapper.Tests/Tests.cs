@@ -34,6 +34,11 @@ namespace Ganss.Excel.Tests
             }
         }
 
+        public class ProductValue
+        {
+            public decimal Value { get; set; }
+        }
+
         [Test]
         public void FetchTest()
         {
@@ -44,6 +49,13 @@ namespace Ganss.Excel.Tests
                 new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
                 new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
+        }
+
+        [Test]
+        public void FetchValueTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductValue>().ToList();
+            CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
         }
 
         public class ProductNoHeader
