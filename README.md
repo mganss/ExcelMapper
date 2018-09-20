@@ -121,3 +121,7 @@ public class Product
 ```
 
 You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi/ss/usermodel/BuiltinFormats.html) and [custom formats](https://support.office.com/en-nz/article/Create-or-delete-a-custom-number-format-78f2a361-936b-4c03-8772-09fab54be7f4). The default format for DateTime cells is 0x16 ("m/d/yy h:mm").
+
+## Formulas
+
+Formula columns are mapped according to the type of the property they are mapped to: For string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped.
