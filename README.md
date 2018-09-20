@@ -124,4 +124,4 @@ You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi
 
 ## Formulas
 
-Formula columns are mapped according to the type of the property they are mapped to: For string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped.
+Formula columns are mapped according to the type of the property they are mapped to: for string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped.
