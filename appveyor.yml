@@ -1,24 +1,30 @@
-version: 1.0.{build}
+version: 4.0.{build}
+skip_tags: true
 image: Visual Studio 2017
-install:
-  - nuget restore
-configuration: Release
-platform: Any CPU
-build:
-  project: ExcelMapper.sln
-  verbosity: minimal
-  publish_nuget: true
-  publish_nuget_symbols: true
-assembly_info:
-  patch: true
-  file: '**\AssemblyInfo.*'
-  assembly_version: "{version}"
-  assembly_file_version: "{version}"
-  assembly_informational_version: "{version}"
+environment:
+  access_token:
+    secure: Eq6BjtZ80BXKLwFMg76IjuQAvbLjbojIF/X/ARouGVhxPneJtgDfCXMPNgJ7KBKq
+nuget:
+  disable_publish_on_pr: true
+build_script:
+  - ps: (Get-Content ExcelMapper\ExcelMapper.csproj).Replace("1.0.0-VERSION", $env:APPVEYOR_BUILD_VERSION) | Set-Content ExcelMapper\ExcelMapper.csproj
+  - dotnet --info
+  - dotnet restore
+  - dotnet build -c Release
+  - dotnet pack --include-symbols --include-source -c Release ExcelMapper
 test_script:
-  - nuget.exe install OpenCover -ExcludeVersion
-  - nuget.exe install NUnit.Runners -ExcludeVersion
-  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[*]* -[NUnit*]* -[*Tests*]* -[*Sample*]*" -target:"NUnit.ConsoleRunner\tools\nunit3-console.exe" -targetargs:"ExcelMapper.Tests\bin\release\ExcelMapper.Tests.dll" -returntargetcode -hideskipped:All -output:coverage.xml
-  - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
+  - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="..\coverage.xml" ExcelMapper.Tests\ExcelMapper.Tests.csproj /p:Include="[ExcelMapper]*"
   - pip install codecov
   - codecov -f "coverage.xml"
+artifacts:
+  - path: 'ExcelMapper\**\*.nupkg'
+on_success:
+  - ps: |
+      if (-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
+          git config --global credential.helper store
+          Add-Content "$HOME\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+          git config --global user.email "michael@ganss.org"
+          git config --global user.name "Michael Ganss"
+          git tag v$env:APPVEYOR_BUILD_VERSION
+          git push origin --tags --porcelain
+      }

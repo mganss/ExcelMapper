@@ -37,7 +37,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchTest()
         {
-            var products = new ExcelMapper(@"..\..\products.xlsx").Fetch<Product>().ToList();
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<Product>().ToList();
             CollectionAssert.AreEqual(new List<Product>
             {
                 new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
@@ -70,7 +70,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchNoHeaderTest()
         {
-            var products = new ExcelMapper(@"..\..\productsnoheader.xlsx") { HeaderRow = false }.Fetch<ProductNoHeader>("Products").ToList();
+            var products = new ExcelMapper(@"..\..\..\productsnoheader.xlsx") { HeaderRow = false }.Fetch<ProductNoHeader>("Products").ToList();
             CollectionAssert.AreEqual(new List<ProductNoHeader>
             {
                 new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
@@ -120,7 +120,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void SaveFetchedTest()
         {
-            var excel = new ExcelMapper(@"..\..\products.xlsx");
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
             var products = excel.Fetch<Product>().ToList();
 
             products[2].Price += 1.0m;
@@ -155,7 +155,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void SaveTrackedObjectsTest()
         {
-            var excel = new ExcelMapper(@"..\..\products.xlsx") { TrackObjects = true };
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx") { TrackObjects = true };
 
             excel.AddMapping(typeof(ProductMapped), "Name", "NameX");
             excel.AddMapping<ProductMapped>("Number", p => p.NumberX);
@@ -198,7 +198,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void IgnoreTest()
         {
-            var excel = new ExcelMapper(@"..\..\products.xlsx");
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
             excel.Ignore<IgnoreProduct>(p => p.Price);
             var products = excel.Fetch<IgnoreProduct>().ToList();
 
@@ -244,7 +244,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NullableTest()
         {
-            var excel = new ExcelMapper(@"..\..\products.xlsx");
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
             var products = excel.Fetch<NullableProduct>().ToList();
 
             var nudossi = products[0];
