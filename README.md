@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/tyyg8905i24qv9pg/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/excelmapper/branch/master)
 [![codecov.io](https://codecov.io/github/mganss/ExcelMapper/coverage.svg?branch=master)](https://codecov.io/github/mganss/ExcelMapper?branch=master)
 [![netstandard2.0](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)
-[![net](https://img.shields.io/badge/net-45-brightgreen.svg)](https://img.shields.io/badge/net-45-brightgreen.svg)
+[![net45](https://img.shields.io/badge/net-45-brightgreen.svg)](https://img.shields.io/badge/net-45-brightgreen.svg)
 
 A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) objects to Excel files.
 
