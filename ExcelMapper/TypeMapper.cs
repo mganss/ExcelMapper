@@ -153,7 +153,10 @@ namespace Ganss.Excel
         {
             var wb = c.Row.Sheet.Workbook;
             var cs = wb.CreateCellStyle();
-            cs.DataFormat = CustomFormat != null ? wb.CreateDataFormat().GetFormat(CustomFormat) : BuiltinFormat != 0 ? BuiltinFormat : defaultFormat;
+            if (CustomFormat != null)
+                cs.DataFormat = wb.CreateDataFormat().GetFormat(CustomFormat);
+            else
+                cs.DataFormat = BuiltinFormat != 0 ? BuiltinFormat : defaultFormat;
             c.CellStyle = cs;
         }
 
