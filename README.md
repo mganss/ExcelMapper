@@ -3,19 +3,22 @@
 [![NuGet version](https://badge.fury.io/nu/ExcelMapper.svg)](http://badge.fury.io/nu/ExcelMapper)
 [![Build status](https://ci.appveyor.com/api/projects/status/tyyg8905i24qv9pg/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/excelmapper/branch/master)
 [![codecov.io](https://codecov.io/github/mganss/ExcelMapper/coverage.svg?branch=master)](https://codecov.io/github/mganss/ExcelMapper?branch=master)
+[![netstandard2.0](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)
+[![net45](https://img.shields.io/badge/net-45-brightgreen.svg)](https://img.shields.io/badge/net-45-brightgreen.svg)
 
 A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) objects to Excel files.
 
 ## Features
 
 * Read and write Excel files
-* Uses the pure managed [NPOI](https://github.com/tonyqus/npoi) library instead of the [Jet](https://en.wikipedia.org/wiki/Microsoft_Jet_Database_Engine) database engine for Excel access, thus enabling use in AnyCPU configurations
+* Uses the pure managed [NPOI](https://github.com/tonyqus/npoi) library instead of the [Jet](https://en.wikipedia.org/wiki/Microsoft_Jet_Database_Engine) database engine for Excel access
 * Map to Excel files using header rows (column names) or column indexes (no header row)
 * Optionally skip blank lines when reading
 * Preserve formatting when saving back files
 * Optionally let the mapper track objects
 * Map columns to properties through convention, attributes or method calls
 * Use custom or builtin data formats for numeric and DateTime columns
+* Map formulas or formula results depending on property type
 
 ## Read objects from an Excel file
 
@@ -121,3 +124,7 @@ public class Product
 ```
 
 You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi/ss/usermodel/BuiltinFormats.html) and [custom formats](https://support.office.com/en-nz/article/Create-or-delete-a-custom-number-format-78f2a361-936b-4c03-8772-09fab54be7f4). The default format for DateTime cells is 0x16 ("m/d/yy h:mm").
+
+## Map formulas or results
+
+Formula columns are mapped according to the type of the property they are mapped to: for string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped.
