@@ -17,10 +17,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\ExcelMapper.xml</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <PackageReference Include="NPOI" Version="2.3.0" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="DotNetCore.NPOI" Version="1.2.1" />
+  <ItemGroup>
+    <PackageReference Include="NPOI" Version="2.4.0" />
   </ItemGroup>
 </Project>
