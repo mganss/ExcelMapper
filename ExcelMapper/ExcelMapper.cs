@@ -65,6 +65,15 @@ namespace Ganss.Excel
         /// <summary>
         /// Initializes a new instance of the <see cref="ExcelMapper"/> class.
         /// </summary>
+        /// <param name="workbook">The workbook.</param>
+        public ExcelMapper(IWorkbook workbook)
+        {
+            Workbook = workbook;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExcelMapper"/> class.
+        /// </summary>
         /// <param name="file">The path to the Excel file.</param>
         public ExcelMapper(string file)
         {

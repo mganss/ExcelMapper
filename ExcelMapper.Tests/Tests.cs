@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using NPOI.SS.UserModel;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -256,7 +257,8 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NullableTest()
         {
-            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+            var workbook = WorkbookFactory.Create(@"..\..\..\products.xlsx");
+            var excel = new ExcelMapper(workbook);
             var products = excel.Fetch<NullableProduct>().ToList();
 
             var nudossi = products[0];
