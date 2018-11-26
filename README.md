@@ -128,3 +128,25 @@ You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi
 ## Map formulas or results
 
 Formula columns are mapped according to the type of the property they are mapped to: for string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped.
+
+## Custom mapping
+
+If you have specific requirements for mapping between cells and objects, you can use custom conversion methods. Here, cells that contain the string "NULL" are mapped to null:
+
+```C#
+public class Product
+{
+    public DateTime? Date { get; set; }
+}
+
+excel.AddMapping<Product>("Date", p => p.Date)
+    .SetCellUsing((c, o) =>
+    {
+        if (o == null) c.SetCellValue("NULL"); else c.SetCellValue((DateTime)o);
+    })
+    .SetPropertyUsing(v =>
+    {
+        if ((v as string) == "NULL") return null;
+        return Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+    });
+```
