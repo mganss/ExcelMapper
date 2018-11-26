@@ -66,6 +66,14 @@ namespace Ganss.Excel
         public Action<ICell, object> SetCell { get; set; }
 
         /// <summary>
+        /// Gets or sets the property setter.
+        /// </summary>
+        /// <value>
+        /// The property setter.
+        /// </value>
+        public Func<object, object> SetProp { get; set; }
+
+        /// <summary>
         /// Gets or sets the builtin format.
         /// </summary>
         /// <value>
@@ -167,7 +175,14 @@ namespace Ganss.Excel
         /// <param name="val">The value.</param>
         public void SetProperty(object o, object val)
         {
-            var v = IsNullable && (val == null || (val as string) == "") ? null : Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
+            object v;
+            if (SetProp != null)
+                v = SetProp(val);
+            else if (IsNullable && (val == null || (val as string) == ""))
+                v = null;
+            else
+                v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
+
             Property.SetValue(o, v, null);
         }
 
@@ -179,6 +194,24 @@ namespace Ganss.Excel
         public object GetProperty(object o)
         {
             return Property.GetValue(o, null);
+        }
+
+        /// <summary>Specifies a method to use when setting the cell value from an object.</summary>
+        /// <param name="setCell">The method to use when setting the cell value from an object.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetCellUsing(Action<ICell, object> setCell)
+        {
+            SetCell = setCell;
+            return this;
+        }
+
+        /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
+        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetPropertyUsing(Func<object, object> setProp)
+        {
+            SetProp = setProp;
+            return this;
         }
 
         /// <summary>

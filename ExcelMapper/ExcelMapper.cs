@@ -445,11 +445,14 @@ namespace Ganss.Excel
         /// <typeparam name="T"></typeparam>
         /// <param name="columnName">Name of the column.</param>
         /// <param name="propertyExpression">The property expression.</param>
-        public void AddMapping<T>(string columnName, Expression<Func<T,object>> propertyExpression)
+        public ColumnInfo AddMapping<T>(string columnName, Expression<Func<T,object>> propertyExpression)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
-            typeMapper.ColumnsByName[columnName] = new ColumnInfo(prop);
+            var columnInfo = new ColumnInfo(prop);
+            typeMapper.ColumnsByName[columnName] = columnInfo;
+
+            return columnInfo;
         }
 
         /// <summary>
@@ -458,11 +461,14 @@ namespace Ganss.Excel
         /// <typeparam name="T"></typeparam>
         /// <param name="columnIndex">Index of the column.</param>
         /// <param name="propertyExpression">The property expression.</param>
-        public void AddMapping<T>(int columnIndex, Expression<Func<T,object>> propertyExpression)
+        public ColumnInfo AddMapping<T>(int columnIndex, Expression<Func<T,object>> propertyExpression)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
-            typeMapper.ColumnsByIndex[columnIndex] = new ColumnInfo(prop);
+            var columnInfo = new ColumnInfo(prop);
+            typeMapper.ColumnsByIndex[columnIndex] = columnInfo;
+
+            return columnInfo;
         }
 
         static PropertyInfo GetPropertyInfo<T>(Expression<Func<T, object>> propertyExpression)
@@ -480,11 +486,14 @@ namespace Ganss.Excel
         /// <param name="t">The type that contains the property to map to.</param>
         /// <param name="columnName">Name of the column.</param>
         /// <param name="propertyName">Name of the property.</param>
-        public void AddMapping(Type t, string columnName, string propertyName)
+        public ColumnInfo AddMapping(Type t, string columnName, string propertyName)
         {
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            typeMapper.ColumnsByName[columnName] = new ColumnInfo(prop);
+            var columnInfo = new ColumnInfo(prop);
+            typeMapper.ColumnsByName[columnName] = columnInfo;
+
+            return columnInfo;
         }
 
         /// <summary>
@@ -493,11 +502,14 @@ namespace Ganss.Excel
         /// <param name="t">The type that contains the property to map to.</param>
         /// <param name="columnIndex">Index of the column.</param>
         /// <param name="propertyName">Name of the property.</param>
-        public void AddMapping(Type t, int columnIndex, string propertyName)
+        public ColumnInfo AddMapping(Type t, int columnIndex, string propertyName)
         {
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            typeMapper.ColumnsByIndex[columnIndex] = new ColumnInfo(prop);
+            var columnInfo = new ColumnInfo(prop);
+            typeMapper.ColumnsByIndex[columnIndex] = columnInfo;
+
+            return columnInfo;
         }
 
         /// <summary>
