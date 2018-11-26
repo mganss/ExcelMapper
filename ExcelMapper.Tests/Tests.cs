@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -183,6 +184,51 @@ namespace Ganss.Excel.Tests
             excel.Save(file);
 
             var productsFetched = new ExcelMapper(file).Fetch<ProductMapped>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        public class GetterSetterProduct
+        {
+            public string Name { get; set; }
+            public DateTime? OfferEnd { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is GetterSetterProduct o)) return false;
+                return o.Name == Name && o.OfferEnd == OfferEnd;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name + OfferEnd).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void GetterSetterTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\productsconvert.xlsx") { TrackObjects = true };
+
+            excel.AddMapping<GetterSetterProduct>("Name", p => p.Name);
+            excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEnd)
+                .SetCellUsing((c, o) =>
+                {
+                    if (o == null) c.SetCellValue("NULL"); else c.SetCellValue((DateTime)o);
+                })
+                .SetPropertyUsing(v =>
+                {
+                    if ((v as string) == "NULL") return null;
+                    return Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                });
+
+            var products = excel.Fetch<GetterSetterProduct>().ToList();
+
+            var file = @"productsconverttracked.xlsx";
+
+            excel.Save(file);
+
+            var productsFetched = new ExcelMapper(file).Fetch<GetterSetterProduct>().ToList();
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
