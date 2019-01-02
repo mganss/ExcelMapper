@@ -351,5 +351,51 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(p.Date, pf.Date);
             Assert.AreEqual(p.Number, pf.Number);
         }
+
+        public class DataItem
+        {
+            [Ignore]
+            public string Bql { get; set; }
+
+            [Ignore]
+            public int Id { get; set; }
+
+            [Column(2)]
+            public string OriginalBql { get; set; }
+
+            [Column(1)]
+            public string Title { get; set; }
+
+            [Column(3)]
+            public string TranslatedBql { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is DataItem o)) return false;
+                return o.Bql == Bql && o.Id == Id && o.OriginalBql == OriginalBql && o.Title == Title && o.TranslatedBql == TranslatedBql;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Bql + Id + OriginalBql + Title + TranslatedBql).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void ColumnTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\dataitems.xlsx") { HeaderRow = false };
+            var items = excel.Fetch<DataItem>().ToList();
+
+            var trackedFile = "dataitemstracked.xlsx";
+            excel.Save(trackedFile, "DataItems");
+            var itemsTracked = excel.Fetch<DataItem>(trackedFile, "DataItems").ToList();
+            CollectionAssert.AreEqual(items, itemsTracked);
+
+            var saveFile = "dataitemssave.xlsx";
+            new ExcelMapper() { HeaderRow = false }.Save(saveFile, items, "DataItems");
+            var itemsSaved = excel.Fetch<DataItem>(saveFile, "DataItems").ToList();
+            CollectionAssert.AreEqual(items, itemsSaved);
+        }
     }
 }
