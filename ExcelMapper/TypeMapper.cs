@@ -273,6 +273,9 @@ namespace Ganss.Excel
                         if (!string.IsNullOrEmpty(columnAttribute.Name))
                             ColumnsByName[columnAttribute.Name] = ci;
                         else
+                            ColumnsByName[prop.Name] = ci;
+
+                        if (columnAttribute.Index > 0)
                             ColumnsByIndex[columnAttribute.Index - 1] = ci;
                     }
                     else

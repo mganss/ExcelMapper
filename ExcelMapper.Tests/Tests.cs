@@ -393,8 +393,8 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(items, itemsTracked);
 
             var saveFile = "dataitemssave.xlsx";
-            new ExcelMapper() { HeaderRow = false }.Save(saveFile, items, "DataItems");
-            var itemsSaved = excel.Fetch<DataItem>(saveFile, "DataItems").ToList();
+            new ExcelMapper().Save(saveFile, items, "DataItems");
+            var itemsSaved = new ExcelMapper().Fetch<DataItem>(saveFile, "DataItems").ToList();
             CollectionAssert.AreEqual(items, itemsSaved);
         }
     }

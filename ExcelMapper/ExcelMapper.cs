@@ -377,38 +377,40 @@ namespace Ganss.Excel
 
         Dictionary<int, ColumnInfo> GetColumns(ISheet sheet, TypeMapper typeMapper)
         {
-            Dictionary<int, ColumnInfo> columnsByIndex;
+            var columnsByIndex = typeMapper.ColumnsByIndex;
+
             if (HeaderRow)
             {
                 var columnsByName = typeMapper.ColumnsByName;
                 var headerRow = sheet.GetRow(0);
+                var hasColumnsByIndex = columnsByIndex.Any();
 
                 if (headerRow == null)
                 {
                     var j = 0;
-                    columnsByIndex = new Dictionary<int, ColumnInfo>();
                     headerRow = sheet.CreateRow(0);
 
                     foreach (var getter in columnsByName)
                     {
-                        var cell = headerRow.GetCell(j, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                        var columnIndex = !hasColumnsByIndex ? j : columnsByIndex.First(c => c.Value == getter.Value).Key;
+                        var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+
+                        if (!hasColumnsByIndex)
+                            columnsByIndex[j] = getter.Value;
+
                         cell.SetCellValue(getter.Key);
-                        columnsByIndex[j] = getter.Value;
+
                         j++;
                     }
                 }
-                else
+                else if (!hasColumnsByIndex)
                 {
                     columnsByIndex = headerRow.Cells
                         .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
-                        .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
+                        .Select(c => new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(c.StringCellValue) })
                         .Where(c => c.ColumnInfo != null)
                         .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
                 }
-            }
-            else
-            {
-                columnsByIndex = typeMapper.ColumnsByIndex;
             }
 
             return columnsByIndex;
