@@ -58,7 +58,7 @@ public class Product
 var products = new ExcelMapper("products.xlsx") { HeaderRow = false }.Fetch<Product>();
 ```
 
-Note that column indexes don't need to be consecutive. When mapping to column indexes, every property needs to be explicitly mapped through the `ColumnAttribute` attribute or the `AddMapping()` method.
+Note that column indexes don't need to be consecutive. When mapping to column indexes, every property needs to be explicitly mapped through the `ColumnAttribute` attribute or the `AddMapping()` method. You can combine column indexes with column names to specify an explicit column order while still using a header row.
 
 ## Map through method calls
 
