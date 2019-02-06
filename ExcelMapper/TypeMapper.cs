@@ -174,17 +174,6 @@ namespace Ganss.Excel
                 c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
         }
 
-        private void SetCellFormat(ICell c, short defaultFormat = 0)
-        {
-            var wb = c.Row.Sheet.Workbook;
-            var cs = wb.CreateCellStyle();
-            if (CustomFormat != null)
-                cs.DataFormat = wb.CreateDataFormat().GetFormat(CustomFormat);
-            else
-                cs.DataFormat = BuiltinFormat != 0 ? BuiltinFormat : defaultFormat;
-            c.CellStyle = cs;
-        }
-
         /// <summary>
         /// Sets the property of the specified object to the specified value.
         /// </summary>
