@@ -108,13 +108,7 @@ namespace Ganss.Excel
                     if (o == null)
                         c.SetCellValue((string)null);
                     else
-                    {
-                        var d = (DateTime)o;
-                        c.SetCellValue(d);
-
-                        if (BuiltinFormat != 0 || CustomFormat != null || c.CellStyle.DataFormat == 0)
-                            SetCellFormat(c, 0x16); // "m/d/yy h:mm"
-                    }
+                        c.SetCellValue((DateTime)o);
                 };
             }
             else if (PropertyType == typeof(bool))
@@ -122,7 +116,10 @@ namespace Ganss.Excel
                 if (IsNullable)
                     return (c, o) =>
                     {
-                        if (o == null) c.SetCellValue((string)null); else c.SetCellValue((bool)o);
+                        if (o == null)
+                            c.SetCellValue((string)null);
+                        else
+                            c.SetCellValue((bool)o);
                     };
                 else
                     return (c, o) => c.SetCellValue((bool)o);
@@ -132,29 +129,49 @@ namespace Ganss.Excel
                 if (IsNullable)
                     return (c, o) =>
                     {
-                        if (o == null) c.SetCellValue((string)null);
+                        if (o == null)
+                            c.SetCellValue((string)null);
                         else
-                        {
                             c.SetCellValue(Convert.ToDouble(o));
-                            if (BuiltinFormat != 0 || CustomFormat != null)
-                                SetCellFormat(c);
-                        }
                     };
                 else
-                    return (c, o) =>
-                    {
-                        c.SetCellValue(Convert.ToDouble(o));
-                        if (BuiltinFormat != 0 || CustomFormat != null)
-                            SetCellFormat(c);
-                    };
+                    return (c, o) => c.SetCellValue(Convert.ToDouble(o));
             }
             else
             {
                 return (c, o) =>
                 {
-                    if (o == null) c.SetCellValue((string)null); else c.SetCellValue(o.ToString());
+                    if (o == null)
+                        c.SetCellValue((string)null);
+                    else
+                        c.SetCellValue(o.ToString());
                 };
             }
+        }
+
+        /// <summary>Sets the column style.</summary>
+        /// <param name="sheet">The sheet.</param>
+        /// <param name="columnIndex">Index of the column.</param>
+        public void SetColumnStyle(ISheet sheet, int columnIndex)
+        {
+            if (BuiltinFormat != 0 || CustomFormat != null)
+            {
+                var wb = sheet.Workbook;
+                var cs = wb.CreateCellStyle();
+                if (CustomFormat != null)
+                    cs.DataFormat = wb.CreateDataFormat().GetFormat(CustomFormat);
+                else
+                    cs.DataFormat = BuiltinFormat;
+                sheet.SetDefaultColumnStyle(columnIndex, cs);
+            }
+        }
+
+        /// <summary>Sets the cell style.</summary>
+        /// <param name="c">The cell.</param>
+        public void SetCellStyle(ICell c)
+        {
+            if (BuiltinFormat != 0 || CustomFormat != null)
+                c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
         }
 
         private void SetCellFormat(ICell c, short defaultFormat = 0)
@@ -222,6 +239,8 @@ namespace Ganss.Excel
         {
             Property = propertyInfo;
             SetCell = GenerateCellSetter();
+            if (PropertyType == typeof(DateTime))
+                BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
     }
 

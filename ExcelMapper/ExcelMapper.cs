@@ -334,6 +334,7 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    col.Value.SetCellStyle(cell);
                     col.Value.SetCell(cell, col.Value.GetProperty(o.Value));
                 }
             }
@@ -347,6 +348,8 @@ namespace Ganss.Excel
             var columnsByIndex = GetColumns(sheet, typeMapper);
             var i = HeaderRow ? 1 : 0;
 
+            SetColumnStyles(sheet, columnsByIndex);
+
             foreach (var o in objects)
             {
                 var row = sheet.GetRow(i);
@@ -355,6 +358,7 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    col.Value.SetCellStyle(cell);
                     col.Value.SetCell(cell, col.Value.GetProperty(o));
                 }
 
@@ -375,9 +379,17 @@ namespace Ganss.Excel
             Workbook.Write(stream);
         }
 
+        void SetColumnStyles(ISheet sheet, Dictionary<int, ColumnInfo> columnsByIndex)
+        {
+            foreach (var c in columnsByIndex)
+                c.Value.SetColumnStyle(sheet, c.Key);
+        }
+
         Dictionary<int, ColumnInfo> GetColumns(ISheet sheet, TypeMapper typeMapper)
         {
             var columnsByIndex = typeMapper.ColumnsByIndex;
+
+            SetColumnStyles(sheet, columnsByIndex);
 
             if (HeaderRow)
             {
