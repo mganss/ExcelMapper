@@ -9,7 +9,7 @@ environment:
 nuget:
   disable_publish_on_pr: true
 build_script:
-  - ps: (Get-Content ExcelMapper\ExcelMapper.csproj).Replace("1.0.0-VERSION", $env:APPVEYOR_BUILD_VERSION) | Set-Content ExcelMapper\ExcelMapper.csproj
+  - ps: (Get-Content ExcelMapper\ExcelMapper.csproj).Replace("Version>1.0.0", "Version>$env:APPVEYOR_BUILD_VERSION") | Set-Content ExcelMapper\ExcelMapper.csproj
   - dotnet --info
   - dotnet restore
   - dotnet build -c Release

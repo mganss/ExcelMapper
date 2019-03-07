@@ -4,8 +4,8 @@
     <Copyright>Copyright 2015-2019 Michael Ganss</Copyright>
     <AssemblyTitle>ExcelMapper</AssemblyTitle>
     <AssemblyVersion>5.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0-VERSION.0</FileVersion>
-    <PackageVersion>1.0.0-VERSION</PackageVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <PackageVersion>1.0.0</PackageVersion>
     <Authors>Michael Ganss</Authors>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
     <AssemblyName>ExcelMapper</AssemblyName>
@@ -25,6 +25,6 @@
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NPOI" Version="2.4.0" />
+    <PackageReference Include="NPOI" Version="2.4.1" />
   </ItemGroup>
 </Project>
