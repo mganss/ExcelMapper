@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Map POCOs to Excel files</Description>
-    <Copyright>Copyright 2015-2018 Michael Ganss</Copyright>
+    <Copyright>Copyright 2015-2019 Michael Ganss</Copyright>
     <AssemblyTitle>ExcelMapper</AssemblyTitle>
     <AssemblyVersion>5.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0-VERSION.0</FileVersion>
