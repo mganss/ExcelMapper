@@ -150,3 +150,7 @@ excel.AddMapping<Product>("Date", p => p.Date)
         return Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
     });
 ```
+
+## Header row and data row range
+
+You can specify the row number of the header row using the property `HeaderRowNumber` (default is 0). The range of rows that are considered rows that may contain data can be specified using the properties `MinRowNumber` (default is 0) and `MaxRowNumber` (default is `int.MaxValue`). The header row doesn't have to fall within this range, e.g. you can have the header row in row 5 and the data in rows 10-20.
