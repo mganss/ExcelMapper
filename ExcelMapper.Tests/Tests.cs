@@ -397,5 +397,49 @@ namespace Ganss.Excel.Tests
             var itemsSaved = new ExcelMapper().Fetch<DataItem>(saveFile, "DataItems").ToList();
             CollectionAssert.AreEqual(items, itemsSaved);
         }
+
+        [Test]
+        public void FetchMinMaxTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\ProductsMinMaxRow.xlsx")
+            {
+                HeaderRowNumber = 2,
+                MinRowNumber = 6,
+                MaxRowNumber = 9,
+            }.Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C7*D7" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C8*D8" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C10*D10" },
+            }, products);
+        }
+
+        [Test]
+        public void SaveMinMaxTest()
+        {
+            var products = new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+            };
+
+            var file = "productsminmaxsave.xlsx";
+
+            new ExcelMapper
+            {
+                HeaderRowNumber = 1,
+                MinRowNumber = 3
+            }.Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file)
+            {
+                HeaderRowNumber = 1,
+                MinRowNumber = 3
+            }.Fetch<Product>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
     }
 }

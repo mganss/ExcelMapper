@@ -35,6 +35,31 @@ namespace Ganss.Excel
         public bool HeaderRow { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets the row number of the header row. Default is 0.
+        /// The header row may be outside of the range of <see cref="MinRowNumber"/> and <see cref="MaxRowNumber"/>.
+        /// </summary>
+        /// <value>
+        /// The header row number.
+        /// </value>
+        public int HeaderRowNumber { get; set; } = 0;
+
+        /// <summary>
+        /// Gets or sets the minimum row number of the rows that may contain data. Default is 0.
+        /// </summary>
+        /// <value>
+        /// The minimum row number.
+        /// </value>
+        public int MinRowNumber { get; set; } = 0;
+
+        /// <summary>
+        /// Gets or sets the inclusive maximum row number of the rows that may contain data. Default is <see cref="int.MaxValue"/>.
+        /// </summary>
+        /// <value>
+        /// The maximum row number.
+        /// </value>
+        public int MaxRowNumber { get; set; } = int.MaxValue;
+
+        /// <summary>
         /// Gets or sets a value indicating whether to track objects read from the Excel file. Default is true.
         /// If object tracking is enabled, the <see cref="ExcelMapper"/> object keeps track of objects it yields through the Fetch() methods.
         /// You can then modify these objects and save them back to an Excel file without having to specify the list of objects to save.
@@ -168,19 +193,20 @@ namespace Ganss.Excel
         IEnumerable<T> Fetch<T>(ISheet sheet) where T : new()
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
-            var columns = sheet.GetRow(0).Cells
+            var columns = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber).Cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
                 .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
                 .Where(c => c.ColumnInfo != null)
                 .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
-            var i = HeaderRow ? 1 : 0;
+            var i = MinRowNumber;
             IRow row = null;
 
             if (TrackObjects) Objects[sheet.SheetName] = new Dictionary<int, object>();
 
-            while ((row = sheet.GetRow(i)) != null)
+            while (i <= MaxRowNumber && (row = sheet.GetRow(i)) != null)
             {
-                if (!SkipBlankRows || row.Cells.Any(c => c.CellType != CellType.Blank))
+                // optionally skip header row and blank rows
+                if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => c.CellType != CellType.Blank)))
                 {
                     var o = new T();
 
@@ -346,12 +372,17 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var columnsByIndex = GetColumns(sheet, typeMapper);
-            var i = HeaderRow ? 1 : 0;
+            var i = MinRowNumber;
 
             SetColumnStyles(sheet, columnsByIndex);
 
             foreach (var o in objects)
             {
+                if (i > MaxRowNumber) break;
+
+                if (HeaderRow && i == HeaderRowNumber)
+                    i++;
+
                 var row = sheet.GetRow(i);
                 if (row == null) row = sheet.CreateRow(i);
 
@@ -367,7 +398,7 @@ namespace Ganss.Excel
 
             if (SkipBlankRows)
             {
-                while (i <= sheet.LastRowNum)
+                while (i <= sheet.LastRowNum && i <= MaxRowNumber)
                 {
                     var row = sheet.GetRow(i);
                     while (row.Cells.Any())
@@ -394,13 +425,13 @@ namespace Ganss.Excel
             if (HeaderRow)
             {
                 var columnsByName = typeMapper.ColumnsByName;
-                var headerRow = sheet.GetRow(0);
+                var headerRow = sheet.GetRow(HeaderRowNumber);
                 var hasColumnsByIndex = columnsByIndex.Any();
 
                 if (headerRow == null)
                 {
                     var j = 0;
-                    headerRow = sheet.CreateRow(0);
+                    headerRow = sheet.CreateRow(HeaderRowNumber);
 
                     foreach (var getter in columnsByName)
                     {

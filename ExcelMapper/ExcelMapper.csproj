@@ -3,7 +3,9 @@
     <Description>Map POCOs to Excel files</Description>
     <Copyright>Copyright 2015-2018 Michael Ganss</Copyright>
     <AssemblyTitle>ExcelMapper</AssemblyTitle>
-    <VersionPrefix>1.0.0-VERSION</VersionPrefix>
+    <AssemblyVersion>5.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0-VERSION.0</FileVersion>
+    <PackageVersion>1.0.0-VERSION</PackageVersion>
     <Authors>Michael Ganss</Authors>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
     <AssemblyName>ExcelMapper</AssemblyName>
@@ -16,6 +18,11 @@
 	  <RootNamespace>Ganss.Excel</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\ExcelMapper.xml</DocumentationFile>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NPOI" Version="2.4.0" />
