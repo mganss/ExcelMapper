@@ -12,7 +12,7 @@
     <PackageId>ExcelMapper</PackageId>
     <PackageTags>npoi mapper excel xls xlsx map mapping poco orm linq</PackageTags>
     <PackageProjectUrl>https://github.com/mganss/ExcelMapper</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/mganss/ExcelMapper/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/mganss/ExcelMapper</RepositoryUrl>
 	  <RootNamespace>Ganss.Excel</RootNamespace>
