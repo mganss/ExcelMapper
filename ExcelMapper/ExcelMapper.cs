@@ -433,9 +433,12 @@ namespace Ganss.Excel
                     var j = 0;
                     headerRow = sheet.CreateRow(HeaderRowNumber);
 
+                    if (!hasColumnsByIndex)
+                        columnsByIndex = new Dictionary<int, ColumnInfo>();
+
                     foreach (var getter in columnsByName)
                     {
-                        var columnIndex = !hasColumnsByIndex ? j : columnsByIndex.First(c => c.Value == getter.Value).Key;
+                        var columnIndex = !hasColumnsByIndex ? j : columnsByIndex.First(c => c.Value.Property == getter.Value.Property).Key;
                         var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
                         if (!hasColumnsByIndex)
