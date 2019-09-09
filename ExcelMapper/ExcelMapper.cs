@@ -78,6 +78,8 @@ namespace Ganss.Excel
         /// </value>
         public bool SkipBlankRows { get; set; } = true;
 
+        bool _withDataAttribute { set; get; } = false;
+
         Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new Dictionary<string, Dictionary<int, object>>();
         IWorkbook Workbook { get; set; }
 
@@ -216,14 +218,7 @@ namespace Ganss.Excel
                         var cell = row.GetCell(col.Key);
                         if (cell != null)
                         {
-                            var val = GetCellValue(cell, col.Value);
-
-                            if (Attribute.GetCustomAttribute(col.Value.Property, typeof(DataTypeAttribute)) is DataTypeAttribute dataTypeAttribute && !dataTypeAttribute.IsValid(val))
-                            {
-                                throw new InvalidDataException(string.Format(dataTypeAttribute.ErrorMessage, val));
-                            }
-
-                            col.Value.SetProperty(o, val);
+                            SetPropertyValue(o, col, GetCellValue(cell, col.Value));
                         }
                     }
 
@@ -233,6 +228,19 @@ namespace Ganss.Excel
                 }
 
                 i++;
+            }
+        }
+
+        private void SetPropertyValue<T>(T o, KeyValuePair<int, ColumnInfo> col, object val) where T : new()
+        {
+            if (Attribute.GetCustomAttribute(col.Value.Property, typeof(DataTypeAttribute)) is DataTypeAttribute dataTypeAttribute
+                                            && !dataTypeAttribute.IsValid(val) && _withDataAttribute)
+            {
+                col.Value.SetProperty(o, null);
+            }
+            else
+            {
+                col.Value.SetProperty(o, val);
             }
         }
 
@@ -594,6 +602,17 @@ namespace Ganss.Excel
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
             var kvp = typeMapper.ColumnsByName.FirstOrDefault(c => c.Value.Property == prop);
             if (kvp.Key != null) typeMapper.ColumnsByName.Remove(kvp.Key);
+        }
+
+        /// <summary>
+        /// Validate Against DataTypeAttribute
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public ExcelMapper WithDataAttrbute(bool flag)
+        {
+            _withDataAttribute = flag;
+            return this;
         }
     }
 }
