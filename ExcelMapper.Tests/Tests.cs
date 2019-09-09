@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -440,6 +441,39 @@ namespace Ganss.Excel.Tests
             }.Fetch<Product>().ToList();
 
             CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        public class ProductE
+        {
+            public string Name { get; set; }
+            [Column("Number")]
+            public int NumberInStock { get; set; }
+            public decimal Price { get; set; }
+            public string Value { get; set; }
+            [EmailAddress]
+            public string Email { set; get; }
+            public override bool Equals(object obj)
+            {
+                if (!(obj is ProductE o)) return false;
+                return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price && o.Value == Value && Email == o.Email;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name + NumberInStock + Price + Value + Email).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void FetchProductE()
+        {
+            var products = new ExcelMapper(@"..\..\..\ProductE.xlsx").Fetch<ProductE>().ToList();
+            CollectionAssert.AreEqual(new List<ProductE>
+            {
+                new ProductE { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2", Email="mohamed.alzanaty@mydev.com" },
+                new ProductE { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3", Email ="Ahmed.mohamed@git.com.mg" },
+                new ProductE { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5", Email="aly.said@link.com" },
+            }, products);
         }
     }
 }
