@@ -4,6 +4,7 @@ using NPOI.XSSF.UserModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -214,7 +215,16 @@ namespace Ganss.Excel
                     {
                         var cell = row.GetCell(col.Key);
                         if (cell != null)
-                            col.Value.SetProperty(o, GetCellValue(cell, col.Value));
+                        {
+                            var val = GetCellValue(cell, col.Value);
+
+                            if (Attribute.GetCustomAttribute(col.Value.Property, typeof(DataTypeAttribute)) is DataTypeAttribute dataTypeAttribute && !dataTypeAttribute.IsValid(val))
+                            {
+                                throw new InvalidDataException(string.Format(dataTypeAttribute.ErrorMessage, val));
+                            }
+
+                            col.Value.SetProperty(o, val);
+                        }
                     }
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
