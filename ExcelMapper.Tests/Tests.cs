@@ -468,7 +468,7 @@ namespace Ganss.Excel.Tests
         public void FetchProductE()
         {
             var products = new ExcelMapper(@"..\..\..\ProductE.xlsx").WithDataAttrbute(true).Fetch<ProductE>().ToList();
-            CollectionAssert.AreEqual(new List<ProductE>
+            CollectionAssert.AreNotEqual(new List<ProductE>
             {
                 new ProductE { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2", Email="mohamed.alzanaty@mydev.com" },
                 new ProductE { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3", Email ="Ahmed.mohamed@git.com.mg" },
