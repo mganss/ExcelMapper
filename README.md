@@ -129,6 +129,18 @@ You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi
 
 Formula columns are mapped according to the type of the property they are mapped to: for string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped.
 
+## Map formulas to string
+
+If need to target a string with a formula, then add attribute String(false)
+
+```C#
+public class Product
+{
+    [String(false)]
+    public string ForumatedCell { get; set; }
+}
+```
+
 ## Custom mapping
 
 If you have specific requirements for mapping between cells and objects, you can use custom conversion methods. Here, cells that contain the string "NULL" are mapped to null:
