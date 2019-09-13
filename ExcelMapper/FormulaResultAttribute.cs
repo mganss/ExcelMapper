@@ -6,19 +6,27 @@ using System.Text;
 namespace Ganss.Excel
 {
     /// <summary>
-    /// Attribute that specifies how string type mapping to be handled.
+    /// Enforce that result from formula is desired. Default true.
     /// </summary>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
-    public sealed class StringAttribute : Attribute
+    public sealed class FormulaResultAttribute : Attribute
     {
-        readonly bool asFormula;
+        readonly bool asFormula = true;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StringAttribute"/> class.
+        /// Initializes a new instance of the <see cref="FormulaResultAttribute"/> class.
         /// </summary>
         /// <param asFormula="asFormula">Should formula output to destination</param>
-        public StringAttribute(bool asFormula)
+        public FormulaResultAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FormulaResultAttribute"/> class explicitly setting AsFormula value.
+        /// </summary>
+        /// <param asFormula="asFormula">Should formula output to destination</param>
+        public FormulaResultAttribute(bool asFormula)
         {
             this.asFormula = asFormula;
         }

@@ -466,7 +466,7 @@ namespace Ganss.Excel
         {
             var cellType = cell.CellType == CellType.Formula && targetColumn.PropertyType != typeof(string) ? cell.CachedFormulaResultType : cell.CellType;
 
-            var asString = (StringAttribute)targetColumn.Property.GetCustomAttribute(typeof(StringAttribute), false);
+            var asString = (FormulaResultAttribute)targetColumn.Property.GetCustomAttribute(typeof(FormulaResultAttribute), false);
             if(cellType == CellType.Formula && asString != null && asString.AsFormula == false)
                 cellType = cell.CachedFormulaResultType;
 
