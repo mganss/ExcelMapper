@@ -41,6 +41,16 @@ namespace Ganss.Excel.Tests
             public decimal Value { get; set; }
         }
 
+        public class ProductValueString
+        {
+            public decimal Value { get; set; }
+            public string ValueDefaultAsFormula { get; set; }
+            [FormulaResult]
+            public string ValueAsString { get; set; }
+            [FormulaResult(false)]
+            public string ValueEnforceAsFormula { get; set; }
+        }
+
         [Test]
         public void FetchTest()
         {
@@ -440,6 +450,13 @@ namespace Ganss.Excel.Tests
             }.Fetch<Product>().ToList();
 
             CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        [Test]
+        public void FormulaResultAttributeTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\productsAsString.xlsx").Fetch<ProductValueString>().ToList();
+            CollectionAssert.AreEqual(new List<string> { "119.4", "98.67", "99" }, products.Select(p => p.ValueAsString).ToList());
         }
     }
 }
