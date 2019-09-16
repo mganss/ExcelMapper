@@ -129,15 +129,21 @@ You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi
 
 Formula columns are mapped according to the type of the property they are mapped to: for string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped.
 
-## Map formulas to string
+## Map formulas result for strings
 
-If need to target a string with a formula, then add attribute String(false)
+If need to target a string with a formula, then add attribute FormulaResult. Optional boolean argument.
 
 ```C#
 public class Product
 {
-    [String(false)]
-    public string ForumatedCell { get; set; }
+    [FormulaResult]
+    public string FormulatedCell { get; set; }
+	
+    [FormulaResult(false)]
+    public string IReallyWantFormula { get; set; }
+	
+    [FormulaResult(true)]
+    public string IReallyWantResult { get; set; }
 }
 ```
 
