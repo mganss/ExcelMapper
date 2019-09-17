@@ -90,11 +90,14 @@ namespace Ganss.Excel
         public string CustomFormat { get; set; }
 
         /// <summary>
-        /// Enforce as formula result even for string target types.
+        /// Gets or sets a value indicating whether to map the formula result.
         /// </summary>
-        public bool? FormulaResult { get; set; } = null;
+        /// <value>
+        /// <c>true</c> if the formula result will be mapped; otherwise, <c>false</c>.
+        /// </value>
+        public bool FormulaResult { get; set; }
 
-        static HashSet<Type> NumericTypes = new HashSet<Type>
+        static readonly HashSet<Type> NumericTypes = new HashSet<Type>
         {
             typeof(decimal),
             typeof(byte), typeof(sbyte),
@@ -225,6 +228,14 @@ namespace Ganss.Excel
             return this;
         }
 
+        /// <summary>Selects formula results to be mapped instead of the formula itself.</summary>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo AsFormulaResult()
+        {
+            FormulaResult = true;
+            return this;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ColumnInfo"/> class.
         /// </summary>
@@ -235,10 +246,6 @@ namespace Ganss.Excel
             SetCell = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
-
-            var formulaResult = (FormulaResultAttribute)propertyInfo.GetCustomAttribute(typeof(FormulaResultAttribute), false);
-            if(formulaResult != null)
-                FormulaResult = formulaResult.AsFormula;
         }
     }
 
@@ -303,6 +310,9 @@ namespace Ganss.Excel
                         ci.BuiltinFormat = dataFormatAttribute.BuiltinFormat;
                         ci.CustomFormat = dataFormatAttribute.CustomFormat;
                     }
+
+                    if (Attribute.GetCustomAttribute(prop, typeof(FormulaResultAttribute)) is FormulaResultAttribute formulaResultAttribute)
+                        ci.FormulaResult = true;
                 }
             }
         }

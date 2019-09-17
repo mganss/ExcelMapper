@@ -47,8 +47,6 @@ namespace Ganss.Excel.Tests
             public string ValueDefaultAsFormula { get; set; }
             [FormulaResult]
             public string ValueAsString { get; set; }
-            [FormulaResult(false)]
-            public string ValueEnforceAsFormula { get; set; }
         }
 
         [Test]
@@ -455,8 +453,48 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FormulaResultAttributeTest()
         {
-            var products = new ExcelMapper(@"..\..\..\productsAsString.xlsx").Fetch<ProductValueString>().ToList();
+            var products = new ExcelMapper(@"..\..\..\ProductsAsString.xlsx").Fetch<ProductValueString>().ToList();
             CollectionAssert.AreEqual(new List<string> { "119.4", "98.67", "99" }, products.Select(p => p.ValueAsString).ToList());
+        }
+
+        public class ProductFormulaMapped
+        {
+            public decimal Result { get; set; }
+            public string Formula { get; set; }
+            public string ResultString { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is ProductFormulaMapped o)) return false;
+                return o.Result == Result && o.Formula == Formula && o.ResultString == ResultString;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Formula + ResultString + Result).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void FormulaResultMappedTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\ProductsAsString.xlsx");
+
+            excel.AddMapping<ProductFormulaMapped>("Value", p => p.Result);
+            excel.AddMapping<ProductFormulaMapped>("ValueDefaultAsFormula", p => p.Formula);
+            excel.AddMapping<ProductFormulaMapped>("ValueAsString", p => p.ResultString).AsFormulaResult();
+
+            var products = excel.Fetch<ProductFormulaMapped>().ToList();
+            var expectedProducts = new List<ProductFormulaMapped>
+            {
+                new ProductFormulaMapped { Result = 119.4m, Formula = "C2*D2", ResultString = "119.4" },
+                new ProductFormulaMapped { Result = 98.67m, Formula = "C3*D3", ResultString = "98.67" },
+                new ProductFormulaMapped { Result = 99m, Formula = "C5*D5", ResultString = "99" },
+            };
+
+            Assert.AreEqual(expectedProducts[0], products[0]);
+
+            CollectionAssert.AreEqual(expectedProducts, products);
         }
     }
 }

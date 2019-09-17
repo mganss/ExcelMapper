@@ -464,10 +464,7 @@ namespace Ganss.Excel
 
         object GetCellValue(ICell cell, ColumnInfo targetColumn)
         {
-            var cellType = cell.CellType == CellType.Formula && targetColumn.PropertyType != typeof(string) ? cell.CachedFormulaResultType : cell.CellType;
-
-            if(cellType == CellType.Formula && targetColumn.FormulaResult.HasValue && targetColumn.FormulaResult.Value)
-                cellType = cell.CachedFormulaResultType;
+            var cellType = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult) ? cell.CachedFormulaResultType : cell.CellType;
 
             switch (cellType)
             {
