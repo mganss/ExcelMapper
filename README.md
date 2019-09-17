@@ -135,6 +135,10 @@ public class Product
     [FormulaResult]
     public string Result { get; set; }
 }
+
+// or
+
+excel.AddMapping<Product>("Result" p => p.Result).AsFormulaResult();
 ```
 
 ## Custom mapping
