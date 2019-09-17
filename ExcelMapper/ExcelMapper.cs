@@ -466,6 +466,9 @@ namespace Ganss.Excel
         {
             var cellType = cell.CellType == CellType.Formula && targetColumn.PropertyType != typeof(string) ? cell.CachedFormulaResultType : cell.CellType;
 
+            if(cellType == CellType.Formula && targetColumn.FormulaResult.HasValue && targetColumn.FormulaResult.Value)
+                cellType = cell.CachedFormulaResultType;
+
             switch (cellType)
             {
                 case CellType.Numeric:

@@ -89,6 +89,11 @@ namespace Ganss.Excel
         /// </value>
         public string CustomFormat { get; set; }
 
+        /// <summary>
+        /// Enforce as formula result even for string target types.
+        /// </summary>
+        public bool? FormulaResult { get; set; } = null;
+
         static HashSet<Type> NumericTypes = new HashSet<Type>
         {
             typeof(decimal),
@@ -230,6 +235,10 @@ namespace Ganss.Excel
             SetCell = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
+
+            var formulaResult = (FormulaResultAttribute)propertyInfo.GetCustomAttribute(typeof(FormulaResultAttribute), false);
+            if(formulaResult != null)
+                FormulaResult = formulaResult.AsFormula;
         }
     }
 
