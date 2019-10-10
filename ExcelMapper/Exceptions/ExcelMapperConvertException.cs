@@ -7,8 +7,6 @@ namespace Ganss.Excel.Exceptions
     /// </summary>
     public class ExcelMapperConvertException : Exception
     {
-        public ExcelMapperConvertException(string message) : base(message) { }
-
         public ExcelMapperConvertException(string message, Exception inner) : base(message, inner) { }
     }
 }
