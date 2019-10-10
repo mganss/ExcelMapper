@@ -4,11 +4,13 @@ using NPOI.XSSF.UserModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Ganss.Excel.Exceptions;
 
 namespace Ganss.Excel
 {
@@ -214,7 +216,17 @@ namespace Ganss.Excel
                     {
                         var cell = row.GetCell(col.Key);
                         if (cell != null)
-                            col.Value.SetProperty(o, GetCellValue(cell, col.Value));
+                        {
+                            var cellValue = GetCellValue(cell, col.Value);
+                            try
+                            {
+                                col.Value.SetProperty(o, cellValue);
+                            }
+                            catch (Exception e)
+                            {
+                                throw new ExcelMapperConvertException($"Unable to convert \"{(string.IsNullOrWhiteSpace(cellValue.ToString()) ? "<EMPTY>" : cellValue)}\" from [L:{i}]:[C:{col.Key}] to {col.Value.PropertyType}", e);
+                            }
+                        }
                     }
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
