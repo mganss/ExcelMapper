@@ -224,7 +224,7 @@ namespace Ganss.Excel
                             }
                             catch (Exception e)
                             {
-                                throw new ExcelMapperConvertException($"Unable to convert \"{(string.IsNullOrWhiteSpace(cellValue.ToString()) ? "<EMPTY>" : cellValue)}\" from [L:{i}]:[C:{col.Key}] to {col.Value.PropertyType}", e);
+                                throw new ExcelMapperConvertException(cellValue, col.Value.PropertyType, i, col.Key, e);
                             }
                         }
                     }
