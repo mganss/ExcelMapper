@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Ganss.Excel.Exceptions;
 
 namespace Ganss.Excel.Tests
 {
@@ -66,6 +67,36 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductValue>().ToList();
             CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
+        }
+
+        public class ProductException : Product
+        {
+            public bool Offer { get; set; }
+        }
+
+        [Test]
+        public void FetchExcpetionWhenEmptyTest()
+        {
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx").Fetch<ProductException>().ToList());
+            Assert.That(ex.Message.Contains("<EMPTY>"));
+            Assert.That(ex.Message.Contains("[L:1]:[C:2]"));
+        }
+
+        [Test]
+        public void FetchExcpetionWhenFieldTooBigTest()
+        {
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionTooBig.xlsx").Fetch<ProductException>().ToList());
+            //2147483649 is Int.MaxValue + 1
+            Assert.That(ex.Message.Contains("2147483649"));
+            Assert.That(ex.Message.Contains("[L:1]:[C:1]"));
+        }
+
+        [Test]
+        public void FetchExcpetionWhenFieldInvalidTest()
+        {
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionInvalid.xlsx").Fetch<ProductException>().ToList());
+            Assert.That(ex.Message.Contains("FALSEd"));
+            Assert.That(ex.Message.Contains("[L:1]:[C:3]"));
         }
 
         public class ProductNoHeader
