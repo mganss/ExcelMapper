@@ -10,6 +10,7 @@ namespace ExcelMapper.Tests.ExceptionsTests
         public void EmptyConstructorTest()
         {
             var ex = new ExcelMapperConvertException();
+
             Assert.AreEqual($"Exception of type '{typeof(ExcelMapperConvertException).FullName}' was thrown.", ex.Message);
         }
 
@@ -17,7 +18,9 @@ namespace ExcelMapper.Tests.ExceptionsTests
         public void MessageConstructorTest()
         {
             const string message = "Exception message.";
+
             var ex = new ExcelMapperConvertException(message);
+
             Assert.AreEqual(message, ex.Message);
         }
 
@@ -26,7 +29,9 @@ namespace ExcelMapper.Tests.ExceptionsTests
         {
             const string message = "Exception message.";
             var baseEx = new StackOverflowException();
+
             var ex = new ExcelMapperConvertException(message, baseEx);
+
             Assert.AreEqual(message, ex.Message);
             Assert.AreEqual(baseEx.GetType(), ex.InnerException?.GetType());
         }
