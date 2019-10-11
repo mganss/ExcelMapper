@@ -16,7 +16,7 @@ namespace Ganss.Excel.Exceptions
         public ExcelMapperConvertException(object cellValue, Type targetType, int line, int column) : base(FormatMessage(cellValue, targetType, line, column)) { }
 
         public ExcelMapperConvertException(object cellValue, Type targetType, int line, int column, Exception innerException) 
-            : base(FormatMessage(cellValue, targetType, line, column), innerException) { }
+            : this(FormatMessage(cellValue, targetType, line, column), innerException) { }
 
         private static string FormatMessage(object cellValue, Type targetType, int line, int column)
             => $"Unable to convert \"{(string.IsNullOrWhiteSpace(cellValue.ToString()) ? "<EMPTY>" : cellValue)}\" from [L:{line}]:[C:{column}] to {targetType}.";
