@@ -41,6 +41,10 @@ namespace ExcelMapper.Tests.ExceptionsTests
 
             var ex = new ExcelMapperConvertException(value, targetType, line, column);
 
+            Assert.AreEqual(value, ex.CellValue);
+            Assert.AreEqual(targetType, ex.TargetType);
+            Assert.AreEqual(line, ex.Line);
+            Assert.AreEqual(column, ex.Column);
             Assert.That(ex.Message.Contains($"\"{value}\""));
             Assert.That(ex.Message.Contains(targetType.ToString()));
             Assert.That(ex.Message.Contains($"[L:{line}]"));
