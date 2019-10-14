@@ -6,6 +6,8 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using Ganss.Excel.Exceptions;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace Ganss.Excel.Tests
 {
@@ -526,6 +528,37 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(expectedProducts[0], products[0]);
 
             CollectionAssert.AreEqual(expectedProducts, products);
+        }
+
+        [Test]
+        public void TestExcelMapperConvertException()
+        {
+            ExcelMapperConvertException ex =
+                new ExcelMapperConvertException("cellvalue", typeof(string), 12, 34);
+
+            // Sanity check: Make sure custom properties are set before serialization
+            Assert.AreEqual(12, ex.Line);
+            Assert.AreEqual(34, ex.Column);
+
+            // Round-trip the exception: Serialize and de-serialize with a BinaryFormatter
+            var bf = new BinaryFormatter();
+            using (var ms = new MemoryStream())
+            {
+                // "Save" object state
+                bf.Serialize(ms, ex);
+
+                // Re-use the same stream for de-serialization
+                ms.Seek(0, 0);
+
+                // Replace the original exception with de-serialized one
+                ex = (ExcelMapperConvertException)bf.Deserialize(ms);
+            }
+
+            // Make sure custom properties are preserved after serialization
+            Assert.AreEqual(12, ex.Line);
+            Assert.AreEqual(34, ex.Column);
+
+            Assert.Throws<ArgumentNullException>(() => ex.GetObjectData(null, new System.Runtime.Serialization.StreamingContext()));
         }
     }
 }

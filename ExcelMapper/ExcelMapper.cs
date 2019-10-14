@@ -499,6 +499,15 @@ namespace Ganss.Excel
             }
         }
 
+        static PropertyInfo GetPropertyInfo<T>(Expression<Func<T, object>> propertyExpression)
+        {
+            var exp = (LambdaExpression)propertyExpression;
+            var mExp = (exp.Body.NodeType == ExpressionType.MemberAccess) ?
+                (MemberExpression)exp.Body :
+                (MemberExpression)((UnaryExpression)exp.Body).Operand;
+            return (PropertyInfo)mExp.Member;
+        }
+
         /// <summary>
         /// Adds a mapping from a column name to a property.
         /// </summary>
@@ -529,15 +538,6 @@ namespace Ganss.Excel
             typeMapper.ColumnsByIndex[columnIndex] = columnInfo;
 
             return columnInfo;
-        }
-
-        static PropertyInfo GetPropertyInfo<T>(Expression<Func<T, object>> propertyExpression)
-        {
-            var exp = (LambdaExpression)propertyExpression;
-            var mExp = (exp.Body.NodeType == ExpressionType.MemberAccess) ?
-                (MemberExpression)exp.Body :
-                (MemberExpression)((UnaryExpression)exp.Body).Operand;
-            return (PropertyInfo)mExp.Member;
         }
 
         /// <summary>
