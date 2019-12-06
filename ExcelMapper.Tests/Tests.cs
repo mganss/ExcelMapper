@@ -101,6 +101,13 @@ namespace Ganss.Excel.Tests
             Assert.That(ex.Message.Contains("[L:1]:[C:3]"));
         }
 
+        [Test]
+        public void FetchExceptionWhenSheetDoesNotExists()
+        {
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"..\..\..\productsExceptionInvalid.xlsx").Fetch<ProductException>("this sheet does not exist").ToList());
+            Assert.That(ex.Message.Contains("Sheet not found"));
+        }
+
         public class ProductNoHeader
         {
             [Column(1)]
