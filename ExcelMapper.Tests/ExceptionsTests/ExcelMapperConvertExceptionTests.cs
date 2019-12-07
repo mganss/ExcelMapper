@@ -10,8 +10,7 @@ namespace ExcelMapper.Tests.ExceptionsTests
         public void EmptyConstructorTest()
         {
             var ex = new ExcelMapperConvertException();
-
-            Assert.AreEqual($"Exception of type '{typeof(ExcelMapperConvertException).FullName}' was thrown.", ex.Message);
+            Assert.NotNull(ex);
         }
 
         [Test]
