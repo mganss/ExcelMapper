@@ -174,9 +174,14 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
         public IEnumerable<T> Fetch<T>(string sheetName) where T : new()
         {
             var sheet = Workbook.GetSheet(sheetName);
+            if (sheet == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
+            }
             return Fetch<T>(sheet);
         }
 
