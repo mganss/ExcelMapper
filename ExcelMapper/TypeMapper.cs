@@ -192,7 +192,7 @@ namespace Ganss.Excel
             object v;
             if (SetProp != null)
                 v = SetProp(val);
-            else if (IsNullable && (val == null || (val as string) == ""))
+            else if (IsNullable && (val == null || (val is string s && s.Length == 0)))
                 v = null;
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
@@ -288,7 +288,7 @@ namespace Ganss.Excel
         {
             foreach (var prop in Type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
-                if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute ignoreAttribute))
+                if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute))
                 {
                     var ci = new ColumnInfo(prop);
 
@@ -311,7 +311,7 @@ namespace Ganss.Excel
                         ci.CustomFormat = dataFormatAttribute.CustomFormat;
                     }
 
-                    if (Attribute.GetCustomAttribute(prop, typeof(FormulaResultAttribute)) is FormulaResultAttribute formulaResultAttribute)
+                    if (Attribute.GetCustomAttribute(prop, typeof(FormulaResultAttribute)) is FormulaResultAttribute)
                         ci.FormulaResult = true;
                 }
             }

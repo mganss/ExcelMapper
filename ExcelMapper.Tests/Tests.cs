@@ -19,7 +19,7 @@ namespace Ganss.Excel.Tests
             Environment.CurrentDirectory = TestContext.CurrentContext.TestDirectory;
         }
 
-        public class Product
+        private class Product
         {
             public string Name { get; set; }
             [Column("Number")]
@@ -39,12 +39,12 @@ namespace Ganss.Excel.Tests
             }
         }
 
-        public class ProductValue
+        private class ProductValue
         {
             public decimal Value { get; set; }
         }
 
-        public class ProductValueString
+        private class ProductValueString
         {
             public decimal Value { get; set; }
             public string ValueDefaultAsFormula { get; set; }
@@ -71,7 +71,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
         }
 
-        public class ProductException : Product
+        private class ProductException : Product
         {
             public bool Offer { get; set; }
         }
@@ -108,7 +108,7 @@ namespace Ganss.Excel.Tests
             Assert.That(ex.Message.Contains("Sheet not found"));
         }
 
-        public class ProductNoHeader
+        private class ProductNoHeader
         {
             [Column(1)]
             public string Name { get; set; }
@@ -196,7 +196,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products, productsFetched);
         }
 
-        public class ProductMapped
+        private class ProductMapped
         {
             public string NameX { get; set; }
             public int NumberX { get; set; }
@@ -236,7 +236,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products, productsFetched);
         }
 
-        public class GetterSetterProduct
+        private class GetterSetterProduct
         {
             public string Name { get; set; }
             public DateTime? OfferEnd { get; set; }
@@ -281,7 +281,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products, productsFetched);
         }
 
-        public class IgnoreProduct
+        private class IgnoreProduct
         {
             public string Name { get; set; }
             [Ignore]
@@ -328,7 +328,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products, productsFetched);
         }
 
-        public class NullableProduct
+        private class NullableProduct
         {
             public string Name { get; set; }
             public int? Number { get; set; }
@@ -377,7 +377,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products, productsFetched);
         }
 
-        public class DataFormatProduct
+        private class DataFormatProduct
         {
             [DataFormat(0xf)]
             public DateTime Date { get; set; }
@@ -400,7 +400,7 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(p.Number, pf.Number);
         }
 
-        public class DataItem
+        private class DataItem
         {
             [Ignore]
             public string Bql { get; set; }
@@ -497,7 +497,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(new List<string> { "119.4", "98.67", "99" }, products.Select(p => p.ValueAsString).ToList());
         }
 
-        public class ProductFormulaMapped
+        private class ProductFormulaMapped
         {
             public decimal Result { get; set; }
             public string Formula { get; set; }

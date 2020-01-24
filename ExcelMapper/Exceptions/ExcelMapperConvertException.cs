@@ -111,7 +111,7 @@ namespace Ganss.Excel.Exceptions
         {
             if (info == null)
             {
-                throw new ArgumentNullException("info");
+                throw new ArgumentNullException(nameof(info));
             }
 
             info.AddValue("Line", Line);

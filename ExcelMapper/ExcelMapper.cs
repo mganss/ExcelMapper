@@ -427,7 +427,7 @@ namespace Ganss.Excel
             Workbook.Write(stream);
         }
 
-        void SetColumnStyles(ISheet sheet, Dictionary<int, ColumnInfo> columnsByIndex)
+        static void SetColumnStyles(ISheet sheet, Dictionary<int, ColumnInfo> columnsByIndex)
         {
             foreach (var c in columnsByIndex)
                 c.Value.SetColumnStyle(sheet, c.Key);
@@ -479,7 +479,7 @@ namespace Ganss.Excel
             return columnsByIndex;
         }
 
-        object GetCellValue(ICell cell, ColumnInfo targetColumn)
+        static object GetCellValue(ICell cell, ColumnInfo targetColumn)
         {
             var cellType = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult) ? cell.CachedFormulaResultType : cell.CellType;
 
