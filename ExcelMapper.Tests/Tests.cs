@@ -65,6 +65,28 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void FetchWithTypeTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch(typeof(Product));
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void FetchWithTypeThrowsExceptionWithPrimitivesTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(string)));
+            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(object)));
+            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(int)));
+            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(double?)));
+        }
+
+        [Test]
         public void FetchValueTest()
         {
             var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductValue>().ToList();

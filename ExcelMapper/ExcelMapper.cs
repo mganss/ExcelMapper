@@ -197,9 +197,31 @@ namespace Ganss.Excel
             return Fetch<T>(sheet);
         }
 
+        /// <summary>
+        /// Fetches objects from the specified sheet index.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable Fetch(Type type, int sheetIndex = 0)
+        {
+            if (type.IsPrimitive || typeof(string).Equals(type) || typeof(object).Equals(type) || Nullable.GetUnderlyingType(type)!=null)
+            {
+                throw new IsPrimitiveTypeException(type.Name);
+            }
+
+            var sheet = Workbook.GetSheetAt(sheetIndex);
+            return Fetch(sheet,type);
+        }
+
         IEnumerable<T> Fetch<T>(ISheet sheet) where T : new()
         {
-            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            return Fetch(sheet, typeof(T)).OfType<T>();
+        }
+
+        IEnumerable Fetch(ISheet sheet, Type type)
+        {
+            var typeMapper = TypeMapperFactory.Create(type);
             var columns = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber).Cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
                 .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
@@ -215,7 +237,7 @@ namespace Ganss.Excel
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => c.CellType != CellType.Blank)))
                 {
-                    var o = new T();
+                    var o = Activator.CreateInstance(type);
 
                     foreach (var col in columns)
                     {
