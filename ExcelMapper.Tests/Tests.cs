@@ -77,19 +77,110 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void FetchWithStreamAndIndexTest()
+        {
+            var stream = new FileStream(@"..\..\..\products.xlsx", FileMode.Open, FileAccess.Read);
+            var products = new ExcelMapper().Fetch<Product>(stream, 0);
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void FetchWithTypeUsingStreamAndIndexTest()
+        {
+            var stream = new FileStream(@"..\..\..\products.xlsx", FileMode.Open, FileAccess.Read);
+            var products = new ExcelMapper().Fetch(stream, typeof(Product), 0);
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void FetchWithStreamAndSheetNameTest()
+        {
+            var stream = new FileStream(@"..\..\..\products.xlsx", FileMode.Open, FileAccess.Read);
+            var products = new ExcelMapper().Fetch<Product>(stream, "Tabelle1");
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void FetchWithTypeUsingStreamAndSheetNameTest()
+        {
+            var stream = new FileStream(@"..\..\..\products.xlsx", FileMode.Open, FileAccess.Read);
+            var products = new ExcelMapper().Fetch(stream, typeof(Product), "Tabelle1");
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void FetchWithFileAndSheetNameTest()
+        {
+            var products = new ExcelMapper().Fetch<Product>(@"..\..\..\products.xlsx", "Tabelle1");
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void FetchWithFileAndIndexTest()
+        {
+            var products = new ExcelMapper().Fetch<Product>(@"..\..\..\products.xlsx", 0);
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
         public void FetchWithTypeThrowsExceptionWithPrimitivesTest()
         {
             var excel = new ExcelMapper(@"..\..\..\products.xlsx");
-            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(string)));
-            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(object)));
-            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(int)));
-            Assert.Throws<IsPrimitiveTypeException>(() => excel.Fetch(typeof(double?)));
+            Assert.Throws<ArgumentException>(() => excel.Fetch(typeof(string)));
+            Assert.Throws<ArgumentException>(() => excel.Fetch(typeof(object)));
+            Assert.Throws<ArgumentException>(() => excel.Fetch(typeof(int)));
+            Assert.Throws<ArgumentException>(() => excel.Fetch(typeof(double?)));
         }
 
         [Test]
         public void FetchValueTest()
         {
             var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductValue>().ToList();
+            CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
+        }
+
+        [Test]
+        public void FetchValueWithTypeTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch(typeof(ProductValue))
+                                                                     .OfType<ProductValue>()
+                                                                     .ToList();
             CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
         }
 
@@ -102,6 +193,16 @@ namespace Ganss.Excel.Tests
         public void FetchExcpetionWhenEmptyTest()
         {
             var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx").Fetch<ProductException>().ToList());
+            Assert.That(ex.Message.Contains("<EMPTY>"));
+            Assert.That(ex.Message.Contains("[L:1]:[C:2]"));
+        }
+
+        [Test]
+        public void FetchWithTypeExcpetionWhenEmptyTest()
+        {
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx").Fetch(typeof(ProductException))
+                                                                                                                              .OfType<ProductException>()
+                                                                                                                              .ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
             Assert.That(ex.Message.Contains("[L:1]:[C:2]"));
         }
@@ -130,6 +231,15 @@ namespace Ganss.Excel.Tests
             Assert.That(ex.Message.Contains("Sheet not found"));
         }
 
+        [Test]
+        public void FetchWithTypeThrowsExceptionWhenSheetDoesNotExists()
+        {
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"..\..\..\productsExceptionInvalid.xlsx").Fetch(typeof(ProductException), "This is not a exist")
+                                                                                                                                .OfType<ProductException>()
+                                                                                                                                .ToList());
+            Assert.That(ex.Message.Contains("Sheet not found"));
+        }
+
         private class ProductNoHeader
         {
             [Column(1)]
@@ -155,6 +265,20 @@ namespace Ganss.Excel.Tests
         public void FetchNoHeaderTest()
         {
             var products = new ExcelMapper(@"..\..\..\productsnoheader.xlsx") { HeaderRow = false }.Fetch<ProductNoHeader>("Products").ToList();
+            CollectionAssert.AreEqual(new List<ProductNoHeader>
+            {
+                new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
+                new ProductNoHeader { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
+                new ProductNoHeader { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+            }, products);
+        }
+
+        [Test]
+        public void FetchWithTypeNoHeaderTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\productsnoheader.xlsx") { HeaderRow = false }.Fetch(typeof(ProductNoHeader), "Products")
+                                                                                                   .OfType<ProductNoHeader>()
+                                                                                                   .ToList();
             CollectionAssert.AreEqual(new List<ProductNoHeader>
             {
                 new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
@@ -465,6 +589,23 @@ namespace Ganss.Excel.Tests
             var saveFile = "dataitemssave.xlsx";
             new ExcelMapper().Save(saveFile, items, "DataItems");
             var itemsSaved = new ExcelMapper().Fetch<DataItem>(saveFile, "DataItems").ToList();
+            CollectionAssert.AreEqual(items, itemsSaved);
+        }
+
+        [Test]
+        public void ColumnTestUsingFetchWithType()
+        {
+            var excel = new ExcelMapper(@"..\..\..\dataitems.xlsx") { HeaderRow = false };
+            var items = excel.Fetch(typeof(DataItem)).OfType<DataItem>().ToList();
+
+            var trackedFile = "dataitemstracked.xlsx";
+            excel.Save(trackedFile, "DataItems");
+            var itemsTracked = excel.Fetch(trackedFile, typeof(DataItem), "DataItems").OfType<DataItem>().ToList();
+            CollectionAssert.AreEqual(items, itemsTracked);
+
+            var saveFile = "dataitemssave.xlsx";
+            new ExcelMapper().Save(saveFile, items, "DataItems");
+            var itemsSaved = new ExcelMapper().Fetch(saveFile, typeof(DataItem), "DataItems").OfType<DataItem>().ToList();
             CollectionAssert.AreEqual(items, itemsSaved);
         }
 

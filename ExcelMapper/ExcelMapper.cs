@@ -596,7 +596,7 @@ namespace Ganss.Excel
         {
             if (type.IsPrimitive || typeof(string).Equals(type) || typeof(object).Equals(type) || Nullable.GetUnderlyingType(type) != null)
             {
-                throw new IsPrimitiveTypeException(type.Name);
+                throw new ArgumentException($"{type.Name} can not be used to map an excel because it is a primitive type");
             }
         }
 
