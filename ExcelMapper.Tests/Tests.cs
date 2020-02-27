@@ -88,6 +88,7 @@ namespace Ganss.Excel.Tests
                 new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
                 new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
+            stream.Close();
         }
 
         [Test]
@@ -102,6 +103,7 @@ namespace Ganss.Excel.Tests
                 new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
                 new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
+            stream.Close();
         }
 
         [Test]
@@ -116,6 +118,7 @@ namespace Ganss.Excel.Tests
                 new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
                 new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
+            stream.Close();
         }
 
         [Test]
@@ -130,6 +133,8 @@ namespace Ganss.Excel.Tests
                 new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
                 new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
+            stream.Close();
+
         }
 
         [Test]
@@ -598,7 +603,7 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(@"..\..\..\dataitems.xlsx") { HeaderRow = false };
             var items = excel.Fetch(typeof(DataItem)).OfType<DataItem>().ToList();
 
-            var trackedFile = "dataitemstracked.xlsx";
+            var trackedFile = "dataitemstracked1.xlsx";
             excel.Save(trackedFile, "DataItems");
             var itemsTracked = excel.Fetch(trackedFile, typeof(DataItem), "DataItems").OfType<DataItem>().ToList();
             CollectionAssert.AreEqual(items, itemsTracked);
