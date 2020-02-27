@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelMapper", "ExcelMapper\ExcelMapper.csproj", "{0B860688-C17C-416F-98FE-8292C891E59B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelMapper", "ExcelMapper\ExcelMapper.csproj", "{0B860688-C17C-416F-98FE-8292C891E59B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelMapper.Tests", "ExcelMapper.Tests\ExcelMapper.Tests.csproj", "{3EB7FEC1-7D6C-485B-AA4F-645B4C24CEE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelMapper.Tests", "ExcelMapper.Tests\ExcelMapper.Tests.csproj", "{3EB7FEC1-7D6C-485B-AA4F-645B4C24CEE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9E76978F-1FB6-4756-ACC7-50807D199ED3}
 	EndGlobalSection
 EndGlobal

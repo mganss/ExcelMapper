@@ -4,12 +4,10 @@ using NPOI.XSSF.UserModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using Ganss.Excel.Exceptions;
 
 namespace Ganss.Excel
@@ -125,8 +123,20 @@ namespace Ganss.Excel
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(string file, string sheetName) where T : new()
         {
+            return Fetch(file, typeof(T), sheetName).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable Fetch(string file, Type type, string sheetName)
+        {
             Workbook = WorkbookFactory.Create(file);
-            return Fetch<T>(sheetName);
+            return Fetch(type, sheetName);
         }
 
         /// <summary>
@@ -138,8 +148,20 @@ namespace Ganss.Excel
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(string file, int sheetIndex) where T : new()
         {
+            return Fetch(file, typeof(T), sheetIndex).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable Fetch(string file, Type type, int sheetIndex)
+        {
             Workbook = WorkbookFactory.Create(file);
-            return Fetch<T>(sheetIndex);
+            return Fetch(type, sheetIndex);
         }
 
         /// <summary>
@@ -151,8 +173,20 @@ namespace Ganss.Excel
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(Stream stream, string sheetName) where T : new()
         {
+            return Fetch(stream, typeof(T), sheetName).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable Fetch(Stream stream, Type type, string sheetName)
+        {
             Workbook = WorkbookFactory.Create(stream);
-            return Fetch<T>(sheetName);
+            return Fetch(type, sheetName);
         }
 
         /// <summary>
@@ -164,8 +198,20 @@ namespace Ganss.Excel
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex) where T : new()
         {
+            return Fetch(stream, typeof(T), sheetIndex).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable Fetch(Stream stream, Type type, int sheetIndex)
+        {
             Workbook = WorkbookFactory.Create(stream);
-            return Fetch<T>(sheetIndex);
+            return Fetch(type, sheetIndex);
         }
 
         /// <summary>
@@ -177,12 +223,26 @@ namespace Ganss.Excel
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
         public IEnumerable<T> Fetch<T>(string sheetName) where T : new()
         {
+            return Fetch(typeof(T), sheetName).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
+        public IEnumerable Fetch(Type type, string sheetName)
+        {
+            PrimitiveCheck(type);
+
             var sheet = Workbook.GetSheet(sheetName);
             if (sheet == null)
             {
                 throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
             }
-            return Fetch<T>(sheet);
+            return Fetch(sheet, type);
         }
 
         /// <summary>
@@ -197,9 +257,28 @@ namespace Ganss.Excel
             return Fetch<T>(sheet);
         }
 
+        /// <summary>
+        /// Fetches objects from the specified sheet index.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public IEnumerable Fetch(Type type, int sheetIndex = 0)
+        {
+            PrimitiveCheck(type);
+
+            var sheet = Workbook.GetSheetAt(sheetIndex);
+            return Fetch(sheet, type);
+        }
+
         IEnumerable<T> Fetch<T>(ISheet sheet) where T : new()
         {
-            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            return Fetch(sheet, typeof(T)).OfType<T>();
+        }
+
+        IEnumerable Fetch(ISheet sheet, Type type)
+        {
+            var typeMapper = TypeMapperFactory.Create(type);
             var columns = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber).Cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
                 .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
@@ -215,7 +294,7 @@ namespace Ganss.Excel
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => c.CellType != CellType.Blank)))
                 {
-                    var o = new T();
+                    var o = Activator.CreateInstance(type);
 
                     foreach (var col in columns)
                     {
@@ -513,13 +592,21 @@ namespace Ganss.Excel
             return (PropertyInfo)mExp.Member;
         }
 
+        static void PrimitiveCheck(Type type)
+        {
+            if (type.IsPrimitive || typeof(string).Equals(type) || typeof(object).Equals(type) || Nullable.GetUnderlyingType(type) != null)
+            {
+                throw new ArgumentException($"{type.Name} can not be used to map an excel because it is a primitive type");
+            }
+        }
+
         /// <summary>
         /// Adds a mapping from a column name to a property.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="columnName">Name of the column.</param>
         /// <param name="propertyExpression">The property expression.</param>
-        public ColumnInfo AddMapping<T>(string columnName, Expression<Func<T,object>> propertyExpression)
+        public ColumnInfo AddMapping<T>(string columnName, Expression<Func<T, object>> propertyExpression)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
@@ -535,7 +622,7 @@ namespace Ganss.Excel
         /// <typeparam name="T"></typeparam>
         /// <param name="columnIndex">Index of the column.</param>
         /// <param name="propertyExpression">The property expression.</param>
-        public ColumnInfo AddMapping<T>(int columnIndex, Expression<Func<T,object>> propertyExpression)
+        public ColumnInfo AddMapping<T>(int columnIndex, Expression<Func<T, object>> propertyExpression)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
