@@ -608,7 +608,7 @@ namespace Ganss.Excel.Tests
             var itemsTracked = excel.Fetch(trackedFile, typeof(DataItem), "DataItems").OfType<DataItem>().ToList();
             CollectionAssert.AreEqual(items, itemsTracked);
 
-            var saveFile = "dataitemssave.xlsx";
+            var saveFile = "dataitemssave1.xlsx";
             new ExcelMapper().Save(saveFile, items, "DataItems");
             var itemsSaved = new ExcelMapper().Fetch(saveFile, typeof(DataItem), "DataItems").OfType<DataItem>().ToList();
             CollectionAssert.AreEqual(items, itemsSaved);
