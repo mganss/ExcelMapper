@@ -279,9 +279,10 @@ namespace Ganss.Excel
         IEnumerable Fetch(ISheet sheet, Type type)
         {
             var typeMapper = TypeMapperFactory.Create(type);
+            var hasColumnsByIndex = typeMapper.ColumnsByIndex.Any();
             var columns = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber).Cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
-                .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
+                .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow && !hasColumnsByIndex ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
                 .Where(c => c.ColumnInfo != null)
                 .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
             var i = MinRowNumber;

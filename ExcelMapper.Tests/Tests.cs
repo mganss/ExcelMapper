@@ -735,5 +735,38 @@ namespace Ganss.Excel.Tests
 
             Assert.Throws<ArgumentNullException>(() => ex.GetObjectData(null, new System.Runtime.Serialization.StreamingContext()));
         }
+
+        private class ProductIndex
+        {
+            [Column(1)]
+            public string Price { get; set; }
+            [Column(3)]
+            public string Name { get; set; }
+            [Column(4)]
+            public string Number { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is ProductIndex o)) return false;
+                return o.Name == Name && o.Number == Number && o.Price == Price;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name + Number + Price).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void FetchIndexTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductIndex>().ToList();
+            CollectionAssert.AreEqual(new List<ProductIndex>
+            {
+                new ProductIndex { Price = "Nudossi", Name = "60", Number = "1.99" },
+                new ProductIndex { Price = "Halloren", Name = "33", Number = "2.99" },
+                new ProductIndex { Price = "Filinchen", Name = "100", Number = "0.99" },
+            }, products);
+        }
     }
 }
