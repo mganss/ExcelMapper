@@ -559,6 +559,8 @@ namespace Ganss.Excel
             return columnsByIndex;
         }
 
+        static bool dateBugWorkaround = false;
+
         static object GetCellValue(ICell cell, ColumnInfo targetColumn)
         {
             var cellType = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult) ? cell.CachedFormulaResultType : cell.CellType;
@@ -567,7 +569,21 @@ namespace Ganss.Excel
             {
                 case CellType.Numeric:
                     if (DateUtil.IsCellDateFormatted(cell))
-                        return cell.DateCellValue;
+                    {
+                        // see https://github.com/mganss/ExcelMapper/issues/51
+                        try
+                        {
+                            if (!dateBugWorkaround)
+                                return cell.DateCellValue;
+                            else
+                                return DateUtil.GetJavaDate(cell.NumericCellValue);
+                        }
+                        catch (NullReferenceException)
+                        {
+                            dateBugWorkaround = true;
+                            return DateUtil.GetJavaDate(cell.NumericCellValue);
+                        }
+                    }
                     else
                         return cell.NumericCellValue;
                 case CellType.Formula:
