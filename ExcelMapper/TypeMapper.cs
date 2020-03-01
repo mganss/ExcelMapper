@@ -296,13 +296,13 @@ namespace Ganss.Excel
                     {
                         if (!string.IsNullOrEmpty(columnAttribute.Name))
                             ColumnsByName[columnAttribute.Name] = ci;
-                        else
+                        else if (!ColumnsByName.ContainsKey(prop.Name))
                             ColumnsByName[prop.Name] = ci;
 
                         if (columnAttribute.Index > 0)
                             ColumnsByIndex[columnAttribute.Index - 1] = ci;
                     }
-                    else
+                    else if (!ColumnsByName.ContainsKey(prop.Name))
                         ColumnsByName[prop.Name] = ci;
 
                     if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)

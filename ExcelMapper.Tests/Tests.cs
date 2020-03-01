@@ -768,5 +768,40 @@ namespace Ganss.Excel.Tests
                 new ProductIndex { Price = "Filinchen", Name = "100", Number = "0.99" },
             }, products);
         }
+
+        private class ProductDoubleMap
+        {
+            [Column(1)]
+            public string Price { get; set; }
+            public string Name { get; set; }
+
+            [Column("Number")]
+            public string OtherNumber { get; set; }
+            public string Number { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is ProductDoubleMap o)) return false;
+                return o.Name == Name && o.Number == Number && o.Price == Price && o.OtherNumber == OtherNumber;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name + Number + Price + OtherNumber).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void FetchDoubleMap()
+        {
+            // https://github.com/mganss/ExcelMapper/issues/50
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductDoubleMap>().ToList();
+            CollectionAssert.AreEqual(new List<ProductDoubleMap>
+            {
+                new ProductDoubleMap { Price = "Nudossi", OtherNumber = "60" },
+                new ProductDoubleMap { Price = "Halloren", OtherNumber = "33" },
+                new ProductDoubleMap { Price = "Filinchen", OtherNumber = "100" },
+            }, products);
+        }
     }
 }

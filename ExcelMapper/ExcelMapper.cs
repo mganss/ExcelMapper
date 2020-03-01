@@ -276,13 +276,30 @@ namespace Ganss.Excel
             return Fetch(sheet, typeof(T)).OfType<T>();
         }
 
+        ColumnInfo GetColumnInfo(TypeMapper typeMapper, ICell cell)
+        {
+            var colByIndex = typeMapper.GetColumnByIndex(cell.ColumnIndex);
+            if (!HeaderRow || colByIndex != null)
+                return colByIndex;
+            var name = cell.StringCellValue;
+            var colByName = typeMapper.GetColumnByName(name);
+            // map column by name only if it hasn't been mapped to another property by index
+            if (colByName != null
+                && !typeMapper.ColumnsByIndex.Any(c => c.Value.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                return colByName;
+            return null;
+        }
+
         IEnumerable Fetch(ISheet sheet, Type type)
         {
             var typeMapper = TypeMapperFactory.Create(type);
-            var hasColumnsByIndex = typeMapper.ColumnsByIndex.Any();
             var columns = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber).Cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
-                .Select(c => new { c.ColumnIndex, ColumnInfo = HeaderRow && !hasColumnsByIndex ? typeMapper.GetColumnByName(c.StringCellValue) : typeMapper.GetColumnByIndex(c.ColumnIndex) })
+                .Select(c => new 
+                { 
+                    c.ColumnIndex, 
+                    ColumnInfo = GetColumnInfo(typeMapper, c)
+                })
                 .Where(c => c.ColumnInfo != null)
                 .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
             var i = MinRowNumber;
