@@ -276,20 +276,6 @@ namespace Ganss.Excel
             return Fetch(sheet, typeof(T)).OfType<T>();
         }
 
-        ColumnInfo GetColumnInfo(TypeMapper typeMapper, ICell cell)
-        {
-            var colByIndex = typeMapper.GetColumnByIndex(cell.ColumnIndex);
-            if (!HeaderRow || colByIndex != null)
-                return colByIndex;
-            var name = cell.StringCellValue;
-            var colByName = typeMapper.GetColumnByName(name);
-            // map column by name only if it hasn't been mapped to another property by index
-            if (colByName != null
-                && !typeMapper.ColumnsByIndex.Any(c => c.Value.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                return colByName;
-            return null;
-        }
-
         IEnumerable Fetch(ISheet sheet, Type type)
         {
             var typeMapper = TypeMapperFactory.Create(type);
@@ -338,6 +324,20 @@ namespace Ganss.Excel
 
                 i++;
             }
+        }
+
+        ColumnInfo GetColumnInfo(TypeMapper typeMapper, ICell cell)
+        {
+            var colByIndex = typeMapper.GetColumnByIndex(cell.ColumnIndex);
+            if (!HeaderRow || colByIndex != null)
+                return colByIndex;
+            var name = cell.StringCellValue;
+            var colByName = typeMapper.GetColumnByName(name);
+            // map column by name only if it hasn't been mapped to another property by index
+            if (colByName != null
+                && !typeMapper.ColumnsByIndex.Any(c => c.Value.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                return colByName;
+            return null;
         }
 
         /// <summary>
