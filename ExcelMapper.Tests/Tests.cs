@@ -77,6 +77,18 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void FetchAnExcelSheetWithWithSpacedCellsTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\ProductWithWhiteSpaceEntry.xlsx").Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
         public void FetchWithStreamAndIndexTest()
         {
             var stream = new FileStream(@"..\..\..\products.xlsx", FileMode.Open, FileAccess.Read);
