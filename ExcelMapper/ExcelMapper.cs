@@ -296,16 +296,18 @@ namespace Ganss.Excel
             while (i <= MaxRowNumber && (row = sheet.GetRow(i)) != null)
             {
                 // optionally skip header row and blank rows
-                if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => c.CellType != CellType.Blank)))
+                if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
                 {
                     var o = Activator.CreateInstance(type);
 
                     foreach (var col in columns)
                     {
                         var cell = row.GetCell(col.Key);
-                        if (cell != null)
+
+                        if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
                         {
                             var cellValue = GetCellValue(cell, col.Value);
+
                             try
                             {
                                 col.Value.SetProperty(o, cellValue);
@@ -323,6 +325,19 @@ namespace Ganss.Excel
                 }
 
                 i++;
+            }
+        }
+
+        private static bool IsCellBlank(ICell cell)
+        {
+            switch (cell.CellType)
+            {
+                case CellType.String:
+                    return string.IsNullOrWhiteSpace(cell.StringCellValue);
+                case CellType.Blank:
+                    return true;
+                default:
+                    return false;
             }
         }
 

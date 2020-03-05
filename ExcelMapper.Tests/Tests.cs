@@ -195,17 +195,27 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
-        public void FetchExcpetionWhenEmptyTest()
+        public void FetchEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx").Fetch<ProductException>().ToList());
+            var products = new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx").Fetch<ProductException>().ToList();
+            CollectionAssert.AreEqual(new List<ProductException>
+            {
+                new ProductException { Name = "Nudossi", NumberInStock = 60, Price = 0m },
+            }, products);
+        }
+
+        [Test]
+        public void FetchExceptionWhenEmptyTest()
+        {
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch<ProductException>().ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
             Assert.That(ex.Message.Contains("[L:1]:[C:2]"));
         }
 
         [Test]
-        public void FetchWithTypeExcpetionWhenEmptyTest()
+        public void FetchWithTypeExceptionWhenEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx").Fetch(typeof(ProductException))
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch(typeof(ProductException))
                                                                                                                               .OfType<ProductException>()
                                                                                                                               .ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
