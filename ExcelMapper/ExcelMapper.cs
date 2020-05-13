@@ -432,7 +432,7 @@ namespace Ganss.Excel
             return Fetch(ms, type, sheetIndex);
         }
 
-        private async Task<Stream> ReadAsync(string file)
+        static async Task<Stream> ReadAsync(string file)
         {
             using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
             var ms = new MemoryStream();
@@ -440,7 +440,7 @@ namespace Ganss.Excel
             return ms;
         }
 
-        private async Task<Stream> ReadAsync(Stream stream)
+        static async Task<Stream> ReadAsync(Stream stream)
         {
             var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
@@ -449,15 +449,12 @@ namespace Ganss.Excel
 
         private static bool IsCellBlank(ICell cell)
         {
-            switch (cell.CellType)
+            return cell.CellType switch
             {
-                case CellType.String:
-                    return string.IsNullOrWhiteSpace(cell.StringCellValue);
-                case CellType.Blank:
-                    return true;
-                default:
-                    return false;
-            }
+                CellType.String => string.IsNullOrWhiteSpace(cell.StringCellValue),
+                CellType.Blank => true,
+                _ => false,
+            };
         }
 
         ColumnInfo GetColumnInfo(TypeMapper typeMapper, ICell cell)
@@ -484,8 +481,8 @@ namespace Ganss.Excel
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         public void Save<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true)
         {
-            using (var fs = File.Open(file, FileMode.Create, FileAccess.Write))
-                Save(fs, objects, sheetName, xlsx);
+            using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
+            Save(fs, objects, sheetName, xlsx);
         }
 
         /// <summary>
@@ -498,8 +495,8 @@ namespace Ganss.Excel
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         public void Save<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true)
         {
-            using (var fs = File.Open(file, FileMode.Create, FileAccess.Write))
-                Save(fs, objects, sheetIndex, xlsx);
+            using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
+            Save(fs, objects, sheetIndex, xlsx);
         }
 
         /// <summary>
@@ -547,8 +544,8 @@ namespace Ganss.Excel
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         public void Save(string file, string sheetName, bool xlsx = true)
         {
-            using (var fs = File.Open(file, FileMode.Create, FileAccess.Write))
-                Save(fs, sheetName, xlsx);
+            using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
+            Save(fs, sheetName, xlsx);
         }
 
         /// <summary>
@@ -559,8 +556,8 @@ namespace Ganss.Excel
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         public void Save(string file, int sheetIndex = 0, bool xlsx = true)
         {
-            using (var fs = File.Open(file, FileMode.Create, FileAccess.Write))
-                Save(fs, sheetIndex, xlsx);
+            using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
+            Save(fs, sheetIndex, xlsx);
         }
 
         /// <summary>
@@ -770,13 +767,13 @@ namespace Ganss.Excel
             await SaveAsync(stream, ms);
         }
 
-        async Task SaveAsync(string file, byte[] buf)
+        static async Task SaveAsync(string file, byte[] buf)
         {
             using var fs = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write);
             await fs.WriteAsync(buf, 0, buf.Length);
         }
 
-        async Task SaveAsync(Stream stream, MemoryStream ms)
+        static async Task SaveAsync(Stream stream, MemoryStream ms)
         {
             var buf = ms.ToArray();
             await stream.WriteAsync(buf, 0, buf.Length);
