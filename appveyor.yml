@@ -31,7 +31,7 @@ on_success:
   - ps: |
       if (-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
           git config --global credential.helper store
-          Add-Content "$HOME\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+          Add-Content -Path "$HOME\.git-credentials" -Value "https://$($env:access_token):x-oauth-basic@github.com`n" -NoNewline
           git config --global user.email "michael@ganss.org"
           git config --global user.name "Michael Ganss"
           git tag v$env:APPVEYOR_BUILD_VERSION
