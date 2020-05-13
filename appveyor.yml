@@ -1,6 +1,6 @@
 version: 5.0.{build}
 skip_tags: true
-image: Visual Studio 2017
+image: Visual Studio 2019
 environment:
   access_token:
     secure: Eq6BjtZ80BXKLwFMg76IjuQAvbLjbojIF/X/ARouGVhxPneJtgDfCXMPNgJ7KBKq
