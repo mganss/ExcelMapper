@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Ganss.Excel.Exceptions;
+using System.Threading.Tasks;
 
 namespace Ganss.Excel
 {
@@ -328,6 +329,124 @@ namespace Ganss.Excel
             }
         }
 
+        /// <summary>
+        /// Fetches objects from the specified sheet name using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<T>> FetchAsync<T>(string file, string sheetName) where T : new()
+        {
+            return (await FetchAsync(file, typeof(T), sheetName)).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name using async I/O.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable> FetchAsync(string file, Type type, string sheetName)
+        {
+            using var ms = await ReadAsync(file);
+            return Fetch(ms, type, sheetName);
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0) where T : new()
+        {
+            using var ms = await ReadAsync(file);
+            return Fetch(ms, typeof(T), sheetIndex).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index using async I/O.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable> FetchAsync(string file, Type type, int sheetIndex = 0)
+        {
+            using var ms = await ReadAsync(file);
+            return Fetch(ms, type, sheetIndex);
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName) where T : new()
+        {
+            using var ms = await ReadAsync(stream);
+            return Fetch(ms, typeof(T), sheetName).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet name using async I/O.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable> FetchAsync(Stream stream, Type type, string sheetName)
+        {
+            using var ms = await ReadAsync(stream);
+            return Fetch(ms, type, sheetName);
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0) where T : new()
+        {
+            using var ms = await ReadAsync(stream);
+            return Fetch(ms, typeof(T), sheetIndex).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches objects from the specified sheet index using async I/O.
+        /// </summary>
+        /// <param name="type">The type of objects the Excel file is mapped to.</param>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable> FetchAsync(Stream stream, Type type, int sheetIndex = 0)
+        {
+            using var ms = await ReadAsync(stream);
+            return Fetch(ms, type, sheetIndex);
+        }
+
+        private async Task<Stream> ReadAsync(string file)
+        {
+            using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
+            var ms = new MemoryStream();
+            await fs.CopyToAsync(ms);
+            return ms;
+        }
+
+        private async Task<Stream> ReadAsync(Stream stream)
+        {
+            var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            return ms;
+        }
+
         private static bool IsCellBlank(ICell cell)
         {
             switch (cell.CellType)
@@ -537,6 +656,130 @@ namespace Ganss.Excel
             }
 
             Workbook.Write(stream);
+        }
+
+        /// <summary>
+        /// Saves the specified objects to the specified Excel file using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to save.</typeparam>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="objects">The objects to save.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, objects, sheetName, xlsx);
+            await SaveAsync(file, ms.ToArray());
+        }
+
+        /// <summary>
+        /// Saves the specified objects to the specified Excel file using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to save.</typeparam>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="objects">The objects to save.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, objects, sheetIndex, xlsx);
+            await SaveAsync(file, ms.ToArray());
+        }
+
+        /// <summary>
+        /// Saves the specified objects to the specified stream using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to save.</typeparam>
+        /// <param name="stream">The stream to save the objects to.</param>
+        /// <param name="objects">The objects to save.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, objects, sheetName, xlsx);
+            await SaveAsync(stream, ms);
+        }
+
+        /// <summary>
+        /// Saves the specified objects to the specified stream using async I/O.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to save.</typeparam>
+        /// <param name="stream">The stream to save the objects to.</param>
+        /// <param name="objects">The objects to save.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, objects, sheetIndex, xlsx);
+            await SaveAsync(stream, ms);
+        }
+
+        /// <summary>
+        /// Saves tracked objects to the specified Excel file using async I/O.
+        /// </summary>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync(string file, string sheetName, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, sheetName, xlsx);
+            await SaveAsync(file, ms.ToArray());
+        }
+
+        /// <summary>
+        /// Saves tracked objects to the specified Excel file using async I/O.
+        /// </summary>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, sheetIndex, xlsx);
+            await SaveAsync(file, ms.ToArray());
+        }
+
+        /// <summary>
+        /// Saves tracked objects to the specified stream using async I/O.
+        /// </summary>
+        /// <param name="stream">The stream to save the objects to.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, sheetName, xlsx);
+            await SaveAsync(stream, ms);
+        }
+
+        /// <summary>
+        /// Saves tracked objects to the specified stream using async I/O.
+        /// </summary>
+        /// <param name="stream">The stream to save the objects to.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
+        public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true)
+        {
+            var ms = new MemoryStream();
+            Save(ms, sheetIndex, xlsx);
+            await SaveAsync(stream, ms);
+        }
+
+        async Task SaveAsync(string file, byte[] buf)
+        {
+            using var fs = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write);
+            await fs.WriteAsync(buf, 0, buf.Length);
+        }
+
+        async Task SaveAsync(Stream stream, MemoryStream ms)
+        {
+            var buf = ms.ToArray();
+            await stream.WriteAsync(buf, 0, buf.Length);
         }
 
         static void SetColumnStyles(ISheet sheet, Dictionary<int, ColumnInfo> columnsByIndex)

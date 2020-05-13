@@ -8,6 +8,7 @@ using System.Text;
 using Ganss.Excel.Exceptions;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Ganss.Excel.Tests
 {
@@ -813,5 +814,109 @@ namespace Ganss.Excel.Tests
                 new ProductDoubleMap { Price = "Filinchen", OtherNumber = "100" },
             }, products);
         }
+
+        void AssertProducts(List<Product> products)
+        {
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public async Task FetchAsyncTest()
+        {
+            var path = @"..\..\..\products.xlsx";
+
+            var products = (await new ExcelMapper().FetchAsync<Product>(path)).ToList();
+            AssertProducts(products);
+
+            products = (await new ExcelMapper().FetchAsync<Product>(path, "Tabelle1")).ToList();
+            AssertProducts(products);
+
+            products = (await new ExcelMapper().FetchAsync(path, typeof(Product), "Tabelle1")).OfType<Product>().ToList();
+            AssertProducts(products);
+
+            products = (await new ExcelMapper().FetchAsync(path, typeof(Product))).OfType<Product>().ToList();
+            AssertProducts(products);
+
+            products = (await new ExcelMapper().FetchAsync<Product>(File.OpenRead(path))).ToList();
+            AssertProducts(products);
+
+            products = (await new ExcelMapper().FetchAsync<Product>(File.OpenRead(path), "Tabelle1")).ToList();
+            AssertProducts(products);
+
+            products = (await new ExcelMapper().FetchAsync(File.OpenRead(path), typeof(Product), "Tabelle1")).OfType<Product>().ToList();
+            AssertProducts(products);
+
+            products = (await new ExcelMapper().FetchAsync(File.OpenRead(path), typeof(Product))).OfType<Product>().ToList();
+            AssertProducts(products);
+        }
+
+        [Test]
+        public async Task SaveAsyncTest()
+        {
+            var products = new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+            };
+
+            var file = "productssave.xlsx";
+
+            await new ExcelMapper().SaveAsync(file, products, "Products");
+            var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(products, productsFetched);
+
+            await new ExcelMapper().SaveAsync(file, products);
+            productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(products, productsFetched);
+
+            var fs = File.OpenWrite(file);
+            await new ExcelMapper().SaveAsync(fs, products, "Products");
+            fs.Close();
+            productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(products, productsFetched);
+
+            fs = File.OpenWrite(file);
+            await new ExcelMapper().SaveAsync(fs, products);
+            fs.Close();
+            productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(products, productsFetched);
+
+            var path = @"..\..\..\products.xlsx";
+
+            var mapper = new ExcelMapper() { TrackObjects = true };
+            var tracked = (await mapper.FetchAsync<Product>(path)).ToList();
+            await mapper.SaveAsync(file, "Tabelle1");
+            productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(tracked, productsFetched);
+
+            mapper = new ExcelMapper() { TrackObjects = true };
+            tracked = (await mapper.FetchAsync<Product>(path)).ToList();
+            await mapper.SaveAsync(file);
+            productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(tracked, productsFetched);
+
+            mapper = new ExcelMapper() { TrackObjects = true };
+            tracked = (await mapper.FetchAsync<Product>(path)).ToList();
+            fs = File.OpenWrite(file);
+            await mapper.SaveAsync(fs, "Tabelle1");
+            fs.Close();
+            productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(tracked, productsFetched);
+
+            mapper = new ExcelMapper() { TrackObjects = true };
+            tracked = (await mapper.FetchAsync<Product>(path)).ToList();
+            fs = File.OpenWrite(file);
+            await mapper.SaveAsync(fs);
+            fs.Close();
+            productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+            CollectionAssert.AreEqual(tracked, productsFetched);
+        }
+
     }
 }
