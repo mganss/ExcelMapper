@@ -280,7 +280,9 @@ namespace Ganss.Excel
         IEnumerable Fetch(ISheet sheet, Type type)
         {
             var typeMapper = TypeMapperFactory.Create(type);
-            var columns = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber).Cells
+            var firstRow = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber);
+            var cells = Enumerable.Range(0, firstRow.LastCellNum).Select(i => firstRow.GetCell(i, MissingCellPolicy.CREATE_NULL_AS_BLANK));
+            var columns = cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
                 .Select(c => new 
                 { 
