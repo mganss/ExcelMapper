@@ -923,6 +923,12 @@ namespace Ganss.Excel.Tests
             public Product Product { get; set; }
         }
 
+        private class ProductJsonMapped
+        {
+            [Json]
+            public Product Product { get; set; }
+        }
+
         [Test]
         public void JsonTest()
         {
@@ -942,6 +948,50 @@ namespace Ganss.Excel.Tests
             var productsFetched = new ExcelMapper(file).Fetch<ProductJson>().ToList();
 
             CollectionAssert.AreEqual(products.Select(p => p.Product), productsFetched.Select(p => p.Product));
+        }
+
+        [Test]
+        public void JsonMappedTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\productsjson.xlsx");
+
+            excel.AddMapping<ProductJsonMapped>("Product", p => p.Product).AsJson();
+
+            var products = excel.Fetch<ProductJsonMapped>().ToList();
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+            }, products.Select(p => p.Product));
+        }
+
+        private class ProductJsonList
+        {
+            [Json]
+            public List<Product> Products { get; set; }
+        }
+
+        [Test]
+        public void JsonListTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\productsjsonlist.xlsx").Fetch<ProductJsonList>().ToList();
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+            }, products.First().Products);
+
+            var file = "productsjsonlistsave.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file).Fetch<ProductJsonList>().ToList();
+
+            CollectionAssert.AreEqual(products.First().Products, productsFetched.First().Products);
         }
     }
 }
