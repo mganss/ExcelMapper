@@ -917,5 +917,31 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(tracked, productsFetched);
         }
 
+        private class ProductJson
+        {
+            [Json]
+            public Product Product { get; set; }
+        }
+
+        [Test]
+        public void JsonTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\productsjson.xlsx").Fetch<ProductJson>().ToList();
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+            }, products.Select(p => p.Product));
+
+            var file = "productsjsonsave.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file).Fetch<ProductJson>().ToList();
+
+            CollectionAssert.AreEqual(products.Select(p => p.Product), productsFetched.Select(p => p.Product));
+        }
     }
 }

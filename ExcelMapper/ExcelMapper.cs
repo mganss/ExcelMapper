@@ -10,6 +10,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Ganss.Excel.Exceptions;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Ganss.Excel
 {
@@ -870,7 +871,10 @@ namespace Ganss.Excel
                 case CellType.Blank:
                 case CellType.String:
                 default:
-                    return cell.StringCellValue;
+                    if (targetColumn.Json)
+                        return JsonSerializer.Deserialize(cell.StringCellValue, targetColumn.PropertyType);
+                    else
+                        return cell.StringCellValue;
             }
         }
 

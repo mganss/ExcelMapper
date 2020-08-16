@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using System.Text.Json;
 
 namespace Ganss.Excel
 {
@@ -95,6 +96,14 @@ namespace Ganss.Excel
         /// </value>
         public bool FormulaResult { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to serialize as JSON.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the property will be serialized as JSON; otherwise, <c>false</c>.
+        /// </value>
+        public bool Json { get; set; }
+
         static readonly HashSet<Type> NumericTypes = new HashSet<Type>
         {
             typeof(decimal),
@@ -149,8 +158,10 @@ namespace Ganss.Excel
                 {
                     if (o == null)
                         c.SetCellValue((string)null);
-                    else
+                    else if (!Json)
                         c.SetCellValue(o.ToString());
+                    else
+                        c.SetCellValue(JsonSerializer.Serialize(o));
                 };
             }
         }
@@ -234,6 +245,14 @@ namespace Ganss.Excel
             return this;
         }
 
+        /// <summary>Selects the property to be serialized as JSON.</summary>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo AsJson()
+        {
+            Json = true;
+            return this;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ColumnInfo"/> class.
         /// </summary>
@@ -311,6 +330,9 @@ namespace Ganss.Excel
 
                     if (Attribute.GetCustomAttribute(prop, typeof(FormulaResultAttribute)) is FormulaResultAttribute)
                         ci.FormulaResult = true;
+
+                    if (Attribute.GetCustomAttribute(prop, typeof(JsonAttribute)) is JsonAttribute)
+                        ci.Json = true;
                 }
             }
         }
