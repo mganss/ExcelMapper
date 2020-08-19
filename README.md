@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/tyyg8905i24qv9pg/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/excelmapper/branch/master)
 [![codecov.io](https://codecov.io/github/mganss/ExcelMapper/coverage.svg?branch=master)](https://codecov.io/github/mganss/ExcelMapper?branch=master)
 [![netstandard2.0](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)
-[![net45](https://img.shields.io/badge/net-45-brightgreen.svg)](https://img.shields.io/badge/net-45-brightgreen.svg)
+[![net461](https://img.shields.io/badge/net-461-brightgreen.svg)](https://img.shields.io/badge/net-461-brightgreen.svg)
 
 A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) objects to Excel files.
 
@@ -19,6 +19,7 @@ A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) obje
 * Map columns to properties through convention, attributes or method calls
 * Use custom or builtin data formats for numeric and DateTime columns
 * Map formulas or formula results depending on property type
+* Map JSON
 
 ## Read objects from an Excel file
 
@@ -166,3 +167,30 @@ excel.AddMapping<Product>("Date", p => p.Date)
 ## Header row and data row range
 
 You can specify the row number of the header row using the property `HeaderRowNumber` (default is 0). The range of rows that are considered rows that may contain data can be specified using the properties `MinRowNumber` (default is 0) and `MaxRowNumber` (default is `int.MaxValue`). The header row doesn't have to fall within this range, e.g. you can have the header row in row 5 and the data in rows 10-20.
+
+## JSON
+
+You can easily serialize to and from JSON formatted cells by specifying the `Json` attribute or `AsJson()` method.
+
+```c#
+public class ProductJson
+{
+    [Json]
+    public Product Product { get; set; }
+}
+
+// or
+
+var excel = new ExcelMapper("products.xls");
+excel.AddMapping<ProductJson>("Product", p => p.Product).AsJson();
+```
+
+This also works with lists.
+
+```c#
+public class ProductJson
+{
+    [Json]
+    public List<Product> Products { get; set; }
+}
+```
