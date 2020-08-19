@@ -917,5 +917,35 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(tracked, productsFetched);
         }
 
+        public class Course
+        {
+            public string Mode { get; set; }
+            public string AdEnrollSchedId { get; set; }
+            public string SyStudentId { get; set; }
+            public string StuNum { get; set; }
+            public string AdEnrollId { get; set; }
+            public string SyCampusId { get; set; }
+            public string AdCourseId { get; set; }
+            public string CourseCode { get; set; }
+            public string AdClassSchedId { get; set; }
+            public string SectionCode { get; set; }
+            public string CourseStartDate { get; set; }
+            public string CourseEndDate { get; set; }
+            public string AdTermId { get; set; }
+            public string TermCode { get; set; }
+            public string State { get; set; }
+        }
+
+        [Test]
+        public void DateTest()
+        {
+            // see https://github.com/mganss/ExcelMapper/issues/51
+            var mapper = new ExcelMapper(@"..\..\..\DateTest.xlsx") { HeaderRow = true };
+
+            var courses = mapper.Fetch<Course>().ToList();
+            var courses2 = mapper.Fetch<Course>().ToList();
+
+            Assert.AreEqual("00:00.0", courses.First().CourseStartDate);
+        }
     }
 }

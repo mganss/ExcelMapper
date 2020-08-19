@@ -10,6 +10,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Ganss.Excel.Exceptions;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace Ganss.Excel
 {
@@ -77,6 +78,14 @@ namespace Ganss.Excel
         ///   <c>true</c> if blank lines are skipped; otherwise, <c>false</c>.
         /// </value>
         public bool SkipBlankRows { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the <see cref="DataFormatter"/> object to use when formatting cell values.
+        /// </summary>
+        /// <value>
+        /// The <see cref="DataFormatter"/> object to use when formatting cell values.
+        /// </value>
+        public DataFormatter DataFormatter { get; set; } = new DataFormatter(CultureInfo.InvariantCulture);
 
         Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new Dictionary<string, Dictionary<int, object>>();
         IWorkbook Workbook { get; set; }
@@ -284,9 +293,9 @@ namespace Ganss.Excel
             var cells = Enumerable.Range(0, firstRow.LastCellNum).Select(i => firstRow.GetCell(i, MissingCellPolicy.CREATE_NULL_AS_BLANK));
             var columns = cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
-                .Select(c => new 
-                { 
-                    c.ColumnIndex, 
+                .Select(c => new
+                {
+                    c.ColumnIndex,
                     ColumnInfo = GetColumnInfo(typeMapper, c)
                 })
                 .Where(c => c.ColumnInfo != null)
@@ -835,14 +844,19 @@ namespace Ganss.Excel
 
         static bool dateBugWorkaround = false;
 
-        static object GetCellValue(ICell cell, ColumnInfo targetColumn)
+        object GetCellValue(ICell cell, ColumnInfo targetColumn)
         {
-            var cellType = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult) ? cell.CachedFormulaResultType : cell.CellType;
+            var formulaResult = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult);
+            var cellType = formulaResult ? cell.CachedFormulaResultType : cell.CellType;
 
             switch (cellType)
             {
                 case CellType.Numeric:
-                    if (DateUtil.IsCellDateFormatted(cell))
+                    if (!formulaResult && targetColumn.PropertyType == typeof(string))
+                    {
+                        return DataFormatter.FormatCellValue(cell);
+                    }
+                    else if (DateUtil.IsCellDateFormatted(cell))
                     {
                         // see https://github.com/mganss/ExcelMapper/issues/51
                         try
