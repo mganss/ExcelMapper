@@ -847,6 +847,10 @@ namespace Ganss.Excel
 
         object GetCellValue(ICell cell, ColumnInfo targetColumn)
         {
+            if (targetColumn.TextPlain) 
+            {
+                return DataFormatter.FormatCellValue(cell);
+            }
             var formulaResult = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult);
             var cellType = formulaResult ? cell.CachedFormulaResultType : cell.CellType;
 
