@@ -11,7 +11,7 @@ A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) obje
 ## Features
 
 * Read and write Excel files
-* Uses the pure managed [NPOI](https://github.com/tonyqus/npoi) library instead of the [Jet](https://en.wikipedia.org/wiki/Microsoft_Jet_Database_Engine) database engine for Excel access
+* Uses the pure managed [NPOI](https://github.com/tonyqus/npoi) library instead of the [Jet](https://en.wikipedia.org/wiki/Microsoft_Jet_Database_Engine) database engine ([NPOI users group](https://t.me/npoidevs))
 * Map to Excel files using header rows (column names) or column indexes (no header row)
 * Optionally skip blank lines when reading
 * Preserve formatting when saving back files
