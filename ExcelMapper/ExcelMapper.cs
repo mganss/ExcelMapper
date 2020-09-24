@@ -12,6 +12,7 @@ using Ganss.Excel.Exceptions;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Text.Json;
+using NPOI.Util;
 
 namespace Ganss.Excel
 {
@@ -291,6 +292,10 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(type);
             var firstRow = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber);
+
+            if (firstRow == null)
+                yield break;
+
             var cells = Enumerable.Range(0, firstRow.LastCellNum).Select(i => firstRow.GetCell(i, MissingCellPolicy.CREATE_NULL_AS_BLANK));
             var columns = cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
@@ -843,8 +848,6 @@ namespace Ganss.Excel
             return columnsByIndex;
         }
 
-        static bool dateBugWorkaround = false;
-
         object GetCellValue(ICell cell, ColumnInfo targetColumn)
         {
             var formulaResult = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult);
@@ -859,19 +862,9 @@ namespace Ganss.Excel
                     }
                     else if (DateUtil.IsCellDateFormatted(cell))
                     {
-                        // see https://github.com/mganss/ExcelMapper/issues/51
-                        try
-                        {
-                            if (!dateBugWorkaround)
-                                return cell.DateCellValue;
-                            else
-                                return DateUtil.GetJavaDate(cell.NumericCellValue);
-                        }
-                        catch (NullReferenceException)
-                        {
-                            dateBugWorkaround = true;
-                            return DateUtil.GetJavaDate(cell.NumericCellValue);
-                        }
+                        // temporary workaround for https://github.com/tonyqus/npoi/issues/412
+                        LocaleUtil.SetUserTimeZone(TimeZone.CurrentTimeZone);
+                        return cell.DateCellValue;
                     }
                     else
                         return cell.NumericCellValue;

@@ -1022,5 +1022,41 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products.First().Products, productsFetched.First().Products);
         }
+
+        public class Sample2
+        {
+            [Column(37)]
+            public DateTime? CaptDate { get; set; }
+
+            [Column(38)]
+            public string Identifier { get; set; }
+
+            [Column(39)]
+            public int Value { get; set; }
+
+            [Column(40)]
+            public int Disposed { get; set; }
+        }
+
+        [Test]
+        public void Number74Test()
+        {
+            const int N = 3;
+
+            for (var i = 0; i < N; i++)
+            {
+                using (var f2 = File.OpenRead(@"..\..\..\SampleExcel.xlsx"))
+                {
+                    var s2 = FetchWaterCaptationComplementsAsync(f2).Result;
+                }
+            }
+        }
+
+        private async Task<List<Sample2>> FetchWaterCaptationComplementsAsync(Stream file)
+        {
+            var excelMapper = new ExcelMapper { HeaderRow = false };
+            var samples = (await excelMapper.FetchAsync<Sample2>(file)).ToList();
+            return samples;
+        }
     }
 }
