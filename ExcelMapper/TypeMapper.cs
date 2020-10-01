@@ -103,6 +103,13 @@ namespace Ganss.Excel
         /// <c>true</c> if the property will be serialized as JSON; otherwise, <c>false</c>.
         /// </value>
         public bool Json { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether to get the value in plain text.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the property will be serialized as JSON; otherwise, <c>false</c>.
+        /// </value>
+        public bool TextPlain { get; set; }
 
         static readonly HashSet<Type> NumericTypes = new HashSet<Type>
         {
