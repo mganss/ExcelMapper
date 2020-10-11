@@ -1,4 +1,4 @@
-﻿using NPOI.HSSF.UserModel;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -885,7 +885,7 @@ namespace Ganss.Excel
             }
         }
 
-        static PropertyInfo GetPropertyInfo<T>(Expression<Func<T, object>> propertyExpression)
+        internal static PropertyInfo GetPropertyInfo<T>(Expression<Func<T, object>> propertyExpression)
         {
             var exp = (LambdaExpression)propertyExpression;
             var mExp = (exp.Body.NodeType == ExpressionType.MemberAccess) ?
@@ -908,13 +908,12 @@ namespace Ganss.Excel
         /// <typeparam name="T"></typeparam>
         /// <param name="columnName">Name of the column.</param>
         /// <param name="propertyExpression">The property expression.</param>
-        public ColumnInfo AddMapping<T>(string columnName, Expression<Func<T, object>> propertyExpression)
+        public ColumnInfo<T> AddMapping<T>(string columnName, Expression<Func<T, object>> propertyExpression)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
-            var columnInfo = new ColumnInfo(prop);
+            var columnInfo = new ColumnInfo<T>(prop);
             typeMapper.ColumnsByName[columnName] = columnInfo;
-
             return columnInfo;
         }
 
@@ -928,9 +927,8 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
-            var columnInfo = new ColumnInfo(prop);
+            var columnInfo = new ColumnInfo<T>(prop);
             typeMapper.ColumnsByIndex[columnIndex] = columnInfo;
-
             return columnInfo;
         }
 

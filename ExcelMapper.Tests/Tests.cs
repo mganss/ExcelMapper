@@ -401,6 +401,8 @@ namespace Ganss.Excel.Tests
         {
             public string Name { get; set; }
             public DateTime? OfferEnd { get; set; }
+            public string OfferEndChainToString { get; set; }
+            public long OfferEndChainToLong { get; set; }
 
             public override bool Equals(object obj)
             {
@@ -429,7 +431,19 @@ namespace Ganss.Excel.Tests
                 {
                     if ((v as string) == "NULL") return null;
                     return Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
-                });
+                })
+                .ThenSetPropertyUsing(p => p.OfferEndChainToString, v =>
+                {
+                    if ((v as string) == "NULL") return "IS_NULL";
+                    var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                    return dt.ToLongDateString();
+                })
+                .ThenSetPropertyUsing(p => p.OfferEndChainToLong, v =>
+                 {
+                     if ((v as string) == "NULL") return 0L;
+                     var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                     return dt.ToBinary();
+                 });
 
             var products = excel.Fetch<GetterSetterProduct>().ToList();
 
