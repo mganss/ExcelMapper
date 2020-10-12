@@ -275,8 +275,7 @@ namespace Ganss.Excel
     {
         /// <summary>
         /// Next mapping in the setProp() chain
-        /// </summary>
-        internal ColumnInfo<T> NextSetProp;
+        public ColumnInfo<T> NextSetProp { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColumnInfo{T}"/> class.
