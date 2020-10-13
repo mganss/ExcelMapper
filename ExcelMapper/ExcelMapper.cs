@@ -304,7 +304,7 @@ namespace Ganss.Excel
                     c.ColumnIndex,
                     ColumnInfo = GetColumnInfo(typeMapper, c)
                 })
-                .Where(c => c.ColumnInfo != null)
+                .Where(c => c.ColumnInfo != null && c.ColumnInfo.Any())
                 .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
             var i = MinRowNumber;
             IRow row = null;
@@ -324,15 +324,20 @@ namespace Ganss.Excel
 
                         if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
                         {
-                            var cellValue = GetCellValue(cell, col.Value);
+                            foreach (var ci in col.Value)
+                            {
+                                if (!ci.Direction.HasFlag(ColumnInfoDirection.Cell2Prop))
+                                    continue;
 
-                            try
-                            {
-                                col.Value.SetProperty(o, cellValue);
-                            }
-                            catch (Exception e)
-                            {
-                                throw new ExcelMapperConvertException(cellValue, col.Value.PropertyType, i, col.Key, e);
+                                var cellValue = GetCellValue(cell, ci);
+                                try
+                                {
+                                    ci.SetProperty(o, cellValue);
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new ExcelMapperConvertException(cellValue, ci.PropertyType, i, col.Key, e);
+                                }
                             }
                         }
                     }
@@ -474,17 +479,21 @@ namespace Ganss.Excel
             };
         }
 
-        ColumnInfo GetColumnInfo(TypeMapper typeMapper, ICell cell)
+        List<ColumnInfo> GetColumnInfo(TypeMapper typeMapper, ICell cell)
         {
             var colByIndex = typeMapper.GetColumnByIndex(cell.ColumnIndex);
+
             if (!HeaderRow || colByIndex != null)
                 return colByIndex;
+
             var name = cell.StringCellValue;
             var colByName = typeMapper.GetColumnByName(name);
+
             // map column by name only if it hasn't been mapped to another property by index
             if (colByName != null
-                && !typeMapper.ColumnsByIndex.Any(c => c.Value.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                && !typeMapper.ColumnsByIndex.SelectMany(ci => ci.Value).Any(c => c.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 return colByName;
+
             return null;
         }
 
@@ -622,8 +631,14 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    col.Value.SetCellStyle(cell);
-                    col.Value.SetCell(cell, col.Value.GetProperty(o.Value));
+                    foreach (var ci in col.Value)
+                    {
+                        if (ci.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
+                        {
+                            ci.SetCellStyle(cell);
+                            ci.SetCell(cell, ci.GetProperty(o.Value));
+                        }
+                    }
                 }
             }
 
@@ -651,8 +666,15 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    col.Value.SetCellStyle(cell);
-                    col.Value.SetCell(cell, col.Value.GetProperty(o));
+
+                    foreach (var ci in col.Value)
+                    {
+                        if (ci.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
+                        {
+                            ci.SetCellStyle(cell);
+                            ci.SetCell(cell, ci.GetProperty(o));
+                        }
+                    }
                 }
 
                 i++;
@@ -796,13 +818,17 @@ namespace Ganss.Excel
             await stream.WriteAsync(buf, 0, buf.Length);
         }
 
-        static void SetColumnStyles(ISheet sheet, Dictionary<int, ColumnInfo> columnsByIndex)
+        static void SetColumnStyles(ISheet sheet, Dictionary<int, List<ColumnInfo>> columnsByIndex)
         {
-            foreach (var c in columnsByIndex)
-                c.Value.SetColumnStyle(sheet, c.Key);
+            foreach (var col in columnsByIndex)
+                col.Value.ForEach(ci =>
+                {
+                    if (ci.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
+                        ci.SetColumnStyle(sheet, col.Key);
+                });
         }
 
-        Dictionary<int, ColumnInfo> GetColumns(ISheet sheet, TypeMapper typeMapper)
+        Dictionary<int, List<ColumnInfo>> GetColumns(ISheet sheet, TypeMapper typeMapper)
         {
             var columnsByIndex = typeMapper.ColumnsByIndex;
 
@@ -820,11 +846,20 @@ namespace Ganss.Excel
                     headerRow = sheet.CreateRow(HeaderRowNumber);
 
                     if (!hasColumnsByIndex)
-                        columnsByIndex = new Dictionary<int, ColumnInfo>();
+                        columnsByIndex = new Dictionary<int, List<ColumnInfo>>();
 
                     foreach (var getter in columnsByName)
                     {
-                        var columnIndex = !hasColumnsByIndex ? j : columnsByIndex.First(c => c.Value.Property == getter.Value.Property).Key;
+                        var columnIndex = !hasColumnsByIndex
+                            ? j
+                            : columnsByIndex.First(kvpi =>
+                                kvpi.Value.Where(kvpci =>
+                                    getter.Value.Where(gci =>
+                                        kvpci.Property == gci.Property
+                                    ).Any()
+                                ).Any()
+                            ).Key;
+
                         var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
                         if (!hasColumnsByIndex)
@@ -912,8 +947,16 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
-            var columnInfo = new ColumnInfo(prop);
-            typeMapper.ColumnsByName[columnName] = columnInfo;
+
+            if (!typeMapper.ColumnsByName.ContainsKey(columnName))
+                typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
+
+            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
+            if (columnInfo is null)
+            {
+                columnInfo = new ColumnInfo(prop);
+                typeMapper.ColumnsByName[columnName].Add(columnInfo);
+            }
 
             return columnInfo;
         }
@@ -928,8 +971,16 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
-            var columnInfo = new ColumnInfo(prop);
-            typeMapper.ColumnsByIndex[columnIndex] = columnInfo;
+
+            if (!typeMapper.ColumnsByIndex.ContainsKey(columnIndex))
+                typeMapper.ColumnsByIndex.Add(columnIndex, new List<ColumnInfo>());
+
+            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
+            if (columnInfo is null)
+            {
+                columnInfo = new ColumnInfo(prop);
+                typeMapper.ColumnsByIndex[columnIndex].Add(columnInfo);
+            }
 
             return columnInfo;
         }
@@ -944,8 +995,16 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            var columnInfo = new ColumnInfo(prop);
-            typeMapper.ColumnsByName[columnName] = columnInfo;
+
+            if (!typeMapper.ColumnsByName.ContainsKey(columnName))
+                typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
+
+            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
+            if (columnInfo is null)
+            {
+                columnInfo = new ColumnInfo(prop);
+                typeMapper.ColumnsByName[columnName].Add(columnInfo);
+            }
 
             return columnInfo;
         }
@@ -960,8 +1019,16 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            var columnInfo = new ColumnInfo(prop);
-            typeMapper.ColumnsByIndex[columnIndex] = columnInfo;
+
+            if (!typeMapper.ColumnsByIndex.ContainsKey(columnIndex))
+                typeMapper.ColumnsByIndex.Add(columnIndex, new List<ColumnInfo>());
+
+            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
+            if (columnInfo is null)
+            {
+                columnInfo = new ColumnInfo(prop);
+                typeMapper.ColumnsByIndex[columnIndex].Add(columnInfo);
+            }
 
             return columnInfo;
         }
@@ -975,8 +1042,9 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
-            var kvp = typeMapper.ColumnsByName.FirstOrDefault(c => c.Value.Property == prop);
-            if (kvp.Key != null) typeMapper.ColumnsByName.Remove(kvp.Key);
+
+            typeMapper.ColumnsByName.Where(c => c.Value.Where(cc => cc.Property == prop).Any())
+                .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
 
         /// <summary>
@@ -988,8 +1056,9 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            var kvp = typeMapper.ColumnsByName.FirstOrDefault(c => c.Value.Property == prop);
-            if (kvp.Key != null) typeMapper.ColumnsByName.Remove(kvp.Key);
+
+            typeMapper.ColumnsByName.Where(c => c.Value.Where(cc => cc.Property == prop).Any())
+                .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
     }
 }

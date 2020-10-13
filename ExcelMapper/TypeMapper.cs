@@ -18,7 +18,7 @@ namespace Ganss.Excel
         /// <value>
         /// The dictionary of columns by name.
         /// </value>
-        public Dictionary<string, ColumnInfo> ColumnsByName { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, List<ColumnInfo>> ColumnsByName { get; set; } = new Dictionary<string, List<ColumnInfo>>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Gets or sets the columns by index.
@@ -26,7 +26,7 @@ namespace Ganss.Excel
         /// <value>
         /// The dictionary of columns by index.
         /// </value>
-        public Dictionary<int, ColumnInfo> ColumnsByIndex { get; set; } = new Dictionary<int, ColumnInfo>();
+        public Dictionary<int, List<ColumnInfo>> ColumnsByIndex { get; set; } = new Dictionary<int, List<ColumnInfo>>();
 
         /// <summary>
         /// Creates a <see cref="TypeMapper"/> object from the specified type.
@@ -46,20 +46,37 @@ namespace Ganss.Excel
             {
                 if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute))
                 {
-                    var ci = new ColumnInfo(prop);
+                    var ci = new ColumnInfo(prop); // Both direction
 
                     if (Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) is ColumnAttribute columnAttribute)
                     {
                         if (!string.IsNullOrEmpty(columnAttribute.Name))
-                            ColumnsByName[columnAttribute.Name] = ci;
+                        {
+                            if (!ColumnsByName.ContainsKey(columnAttribute.Name))
+                                ColumnsByName.Add(columnAttribute.Name, new List<ColumnInfo>());
+
+                            ColumnsByName[columnAttribute.Name].Add(ci);
+                        }
                         else if (!ColumnsByName.ContainsKey(prop.Name))
-                            ColumnsByName[prop.Name] = ci;
+                            ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
 
                         if (columnAttribute.Index > 0)
-                            ColumnsByIndex[columnAttribute.Index - 1] = ci;
+                        {
+                            var idx = columnAttribute.Index - 1;
+                            if (!ColumnsByIndex.ContainsKey(idx))
+                                ColumnsByIndex.Add(idx, new List<ColumnInfo>());
+
+                            ColumnsByIndex[idx].Add(ci);
+                        }
                     }
                     else if (!ColumnsByName.ContainsKey(prop.Name))
-                        ColumnsByName[prop.Name] = ci;
+                        ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
+
+                    if (Attribute.GetCustomAttribute(prop, typeof(FromExcelOnlyAttribute)) is FromExcelOnlyAttribute)
+                        ci.Direction = ColumnInfoDirection.Cell2Prop;
+
+                    if (Attribute.GetCustomAttribute(prop, typeof(ToExcelOnlyAttribute)) is ToExcelOnlyAttribute)
+                        ci.Direction = ColumnInfoDirection.Prop2Cell;
 
                     if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
                     {
@@ -81,9 +98,9 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="name">The column name.</param>
         /// <returns>A <see cref="ColumnInfo"/> object or null if no <see cref="ColumnInfo"/> exists for the specified column name.</returns>
-        public ColumnInfo GetColumnByName(string name)
+        public List<ColumnInfo> GetColumnByName(string name)
         {
-            ColumnsByName.TryGetValue(name, out ColumnInfo col);
+            ColumnsByName.TryGetValue(name, out List<ColumnInfo> col);
             return col;
         }
 
@@ -92,9 +109,9 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="index">The column index.</param>
         /// <returns>A <see cref="ColumnInfo"/> object or null if no <see cref="ColumnInfo"/> exists for the specified column index.</returns>
-        public ColumnInfo GetColumnByIndex(int index)
+        public List<ColumnInfo> GetColumnByIndex(int index)
         {
-            ColumnsByIndex.TryGetValue(index, out ColumnInfo col);
+            ColumnsByIndex.TryGetValue(index, out List<ColumnInfo> col);
             return col;
         }
     }

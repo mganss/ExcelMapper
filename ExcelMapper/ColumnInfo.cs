@@ -12,6 +12,11 @@ namespace Ganss.Excel
     /// </summary>
     public class ColumnInfo
     {
+        /// <summary>
+        /// Define mapping direction
+        /// </summary>
+        public ColumnInfoDirection Direction { get; internal set; }
+
         private PropertyInfo property;
 
         /// <summary>
@@ -257,13 +262,30 @@ namespace Ganss.Excel
         /// Initializes a new instance of the <see cref="ColumnInfo"/> class.
         /// </summary>
         /// <param name="propertyInfo">The property information.</param>
-        public ColumnInfo(PropertyInfo propertyInfo)
+        /// <param name="direction">Data direction</param>
+        public ColumnInfo(PropertyInfo propertyInfo, ColumnInfoDirection direction = ColumnInfoDirection.Both)
         {
             Property = propertyInfo;
+            Direction = direction;
             SetCell = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
-    }
 
+        /// <summary>Selects the property to be unidirectional from Excel to Object.</summary>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo FromExcelOnly()
+        {
+            Direction = ColumnInfoDirection.Cell2Prop;
+            return this;
+        }
+
+        /// <summary>Selects the property to be unidirectional from Excel to Object.</summary>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo ToExcelOnly()
+        {
+            Direction = ColumnInfoDirection.Prop2Cell;
+            return this;
+        }
+    }
 }

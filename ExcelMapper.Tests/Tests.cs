@@ -401,6 +401,8 @@ namespace Ganss.Excel.Tests
         {
             public string Name { get; set; }
             public DateTime? OfferEnd { get; set; }
+            public string OfferEndToString { get; set; }
+            public long OfferEndToLong { get; set; }
 
             public override bool Equals(object obj)
             {
@@ -429,6 +431,25 @@ namespace Ganss.Excel.Tests
                 {
                     if ((v as string) == "NULL") return null;
                     return Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                });
+
+            // Multi "Excel to Object" unidirectional mapping
+            excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEndToString)
+                .FromExcelOnly()
+                .SetPropertyUsing(v =>
+                {
+                    if ((v as string) == "NULL") return "IS_NULL";
+                    var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                    return dt.ToLongDateString();
+                });
+
+            excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEndToLong)
+                .FromExcelOnly()
+                .SetPropertyUsing(v =>
+                {
+                    if ((v as string) == "NULL") return 0L;
+                    var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                    return dt.ToBinary();
                 });
 
             var products = excel.Fetch<GetterSetterProduct>().ToList();
