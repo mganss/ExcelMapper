@@ -324,11 +324,8 @@ namespace Ganss.Excel
 
                         if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
                         {
-                            foreach (var ci in col.Value)
+                            foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Cell2Prop)))
                             {
-                                if (!ci.Direction.HasFlag(ColumnInfoDirection.Cell2Prop))
-                                    continue;
-
                                 var cellValue = GetCellValue(cell, ci);
                                 try
                                 {
@@ -631,13 +628,10 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    foreach (var ci in col.Value)
+                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Prop2Cell)))
                     {
-                        if (ci.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
-                        {
-                            ci.SetCellStyle(cell);
-                            ci.SetCell(cell, ci.GetProperty(o.Value));
-                        }
+                        ci.SetCellStyle(cell);
+                        ci.SetCell(cell, ci.GetProperty(o.Value));
                     }
                 }
             }
@@ -667,13 +661,10 @@ namespace Ganss.Excel
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
-                    foreach (var ci in col.Value)
+                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Prop2Cell)))
                     {
-                        if (ci.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
-                        {
-                            ci.SetCellStyle(cell);
-                            ci.SetCell(cell, ci.GetProperty(o));
-                        }
+                        ci.SetCellStyle(cell);
+                        ci.SetCell(cell, ci.GetProperty(o));
                     }
                 }
 
@@ -821,11 +812,8 @@ namespace Ganss.Excel
         static void SetColumnStyles(ISheet sheet, Dictionary<int, List<ColumnInfo>> columnsByIndex)
         {
             foreach (var col in columnsByIndex)
-                col.Value.ForEach(ci =>
-                {
-                    if (ci.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
-                        ci.SetColumnStyle(sheet, col.Key);
-                });
+                col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
+                    .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
         Dictionary<int, List<ColumnInfo>> GetColumns(ISheet sheet, TypeMapper typeMapper)
