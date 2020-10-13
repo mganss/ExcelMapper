@@ -850,15 +850,17 @@ namespace Ganss.Excel
 
                     foreach (var getter in columnsByName)
                     {
-                        var columnIndex = !hasColumnsByIndex
-                            ? j
-                            : columnsByIndex.First(kvpi =>
-                                kvpi.Value.Where(kvpci =>
-                                    getter.Value.Where(gci =>
-                                        kvpci.Property == gci.Property
-                                    ).Any()
-                                ).Any()
-                            ).Key;
+                        var columnIndex = j;
+
+                        if (hasColumnsByIndex)
+                        {
+                            columnIndex = (
+                                from kvpi in columnsByIndex
+                                from kvpci in kvpi.Value
+                                join gci in getter.Value on kvpci.Property equals gci.Property
+                                select kvpi
+                            ).First().Key;
+                        }
 
                         var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
