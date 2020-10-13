@@ -617,7 +617,14 @@ namespace Ganss.Excel
         {
             var objects = Objects[sheet.SheetName];
             var typeMapper = TypeMapperFactory.Create(objects.First().Value.GetType());
-            var columnsByIndex = GetColumns(sheet, typeMapper);
+            var columnsByIndex = typeMapper.ColumnsByIndex;
+            var columnsByName = typeMapper.ColumnsByName;
+
+            PrepareColumnsForSaving(ref columnsByIndex, ref columnsByName);
+
+            GetColumns(sheet, typeMapper, ref columnsByIndex, ref columnsByName);
+
+            SetColumnStyles(sheet, columnsByIndex);
 
             foreach (var o in objects)
             {
@@ -639,11 +646,26 @@ namespace Ganss.Excel
             Workbook.Write(stream);
         }
 
+        private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
+        {
+            // All columns with Cell2Prop direction only should not be saved
+            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirection.Cell2Prop))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirection.Cell2Prop))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        }
+
         void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
-            var columnsByIndex = GetColumns(sheet, typeMapper);
+            var columnsByIndex = typeMapper.ColumnsByIndex;
+            var columnsByName = typeMapper.ColumnsByName;
             var i = MinRowNumber;
+
+            PrepareColumnsForSaving(ref columnsByIndex, ref columnsByName);
+
+            GetColumns(sheet, typeMapper, ref columnsByIndex, ref columnsByName);
 
             SetColumnStyles(sheet, columnsByIndex);
 
@@ -816,15 +838,13 @@ namespace Ganss.Excel
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
-        Dictionary<int, List<ColumnInfo>> GetColumns(ISheet sheet, TypeMapper typeMapper)
+        void GetColumns(ISheet sheet, TypeMapper typeMapper
+            , ref Dictionary<int, List<ColumnInfo>> columnsByIndex
+            , ref Dictionary<string, List<ColumnInfo>> columnsByName
+        )
         {
-            var columnsByIndex = typeMapper.ColumnsByIndex;
-
-            SetColumnStyles(sheet, columnsByIndex);
-
             if (HeaderRow)
             {
-                var columnsByName = typeMapper.ColumnsByName;
                 var headerRow = sheet.GetRow(HeaderRowNumber);
                 var hasColumnsByIndex = columnsByIndex.Any();
 
@@ -832,9 +852,6 @@ namespace Ganss.Excel
                 {
                     var j = 0;
                     headerRow = sheet.CreateRow(HeaderRowNumber);
-
-                    if (!hasColumnsByIndex)
-                        columnsByIndex = new Dictionary<int, List<ColumnInfo>>();
 
                     foreach (var getter in columnsByName)
                     {
@@ -869,8 +886,6 @@ namespace Ganss.Excel
                         .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
                 }
             }
-
-            return columnsByIndex;
         }
 
         object GetCellValue(ICell cell, ColumnInfo targetColumn)
