@@ -19,6 +19,52 @@ namespace Ganss.Excel.Tests
             Environment.CurrentDirectory = TestContext.CurrentContext.TestDirectory;
         }
 
+        private class ProductDirection
+        {
+            [FromExcelOnly]
+            public string Name { get; set; }
+
+            [Column("Number")]
+            [FromExcelOnly]
+            public int NumberInStock { get; set; }
+
+            [ToExcelOnly]
+            public decimal Price { get; set; }
+
+            [ToExcelOnly]
+            public string Value { get; set; }
+
+            public override bool Equals(object obj) =>
+                obj is ProductDirection o
+                && o.Name == Name
+                && o.NumberInStock == NumberInStock
+                && o.Price == Price
+                && o.Value == Value;
+
+            public override int GetHashCode() =>
+                $"{Name}{NumberInStock}{Price}{Value}".GetHashCode();
+        }
+
+        private class ProductFluent
+        {
+            public string Name { get; set; }
+            public int Number { get; set; }
+            public decimal Price { get; set; }
+            public string Value { get; set; }
+
+            public override bool Equals(object obj) =>
+                obj is ProductFluent o
+                && o.Name == Name
+                && o.Number == Number
+                && o.Price == Price
+                && o.Value == Value;
+
+            public override int GetHashCode() =>
+                $"{Name}{Number}{Price}{Value}".GetHashCode();
+        }
+        private class ProductFluentResult : ProductFluent
+        { }
+
         private class Product
         {
             public string Name { get; set; }
@@ -50,6 +96,87 @@ namespace Ganss.Excel.Tests
             public string ValueDefaultAsFormula { get; set; }
             [FormulaResult]
             public string ValueAsString { get; set; }
+        }
+
+        [Test]
+        public void FromExcelOnlyTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductDirection>().ToList();
+            CollectionAssert.AreEqual(new List<ProductDirection>
+            {
+                new ProductDirection{ Name = "Nudossi", NumberInStock = 60, Price = 0, Value = null },
+                new ProductDirection{ Name = "Halloren", NumberInStock = 33, Price = 0, Value = null },
+                new ProductDirection{ Name = "Filinchen", NumberInStock = 100, Price = 0, Value = null },
+            }, products);
+        }
+
+        [Test]
+        public void ToExcelOnlyTest()
+        {
+            var src = new List<ProductDirection>
+            {
+                new ProductDirection { 
+                    // FromExcelOnly
+                    Name = "Nudossi", NumberInStock = 60 
+                    // ToExcelOnly
+                    , Price = 1.99m, Value = "C2*D2"
+                },
+                new ProductDirection { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new ProductDirection { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            };
+
+            var file = "productssavetoexcelonly.xlsx";
+
+            new ExcelMapper().Save(file, src, "Products");
+
+            /// Read result with <see cref="Product"/> mapping instead of <see cref="ProductDirection"/>
+            var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { 
+                    // FromExcelOnly prevent excel saving
+                    Name = null, NumberInStock = 0
+                    // ToExcelOnly allow saving but prevent reading
+                    , Price = 1.99m, Value = "C2*D2"
+                },
+                new Product { Name = null, NumberInStock = 0, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = null, NumberInStock = 0, Price = 0.99m, Value = "C5*D5" },
+            }, productsFetched);
+        }
+
+        [Test]
+        public void ToExcelOnlyFluentTest()
+        {
+            var src = new List<ProductFluent>
+            {
+                new ProductFluent { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2" },
+                new ProductFluent { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3" },
+                new ProductFluent { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5" },
+            };
+
+            var file = "productssavetoexcelonly_fluent.xlsx";
+            var mapperwrite = new ExcelMapper();
+
+            // Make mapper unable to read Name & Value from Excel. Only write.
+            mapperwrite.AddMapping<ProductFluent>("Name", p => p.Name).ToExcelOnly();
+            mapperwrite.AddMapping<ProductFluent>("Value", p => p.Value).ToExcelOnly();
+
+            // Make mapper unable to write Number & Price from Excel. Only read.
+            mapperwrite.AddMapping<ProductFluent>("Number", p => p.Number).FromExcelOnly();
+            mapperwrite.AddMapping<ProductFluent>("Price", p => p.Price).FromExcelOnly();
+
+            mapperwrite.Save(file, src, "Products");
+
+            // Reload rows
+            var productsFetched = new ExcelMapper(file).Fetch<ProductFluentResult>().ToList();
+
+            CollectionAssert.AreEqual(new List<ProductFluentResult>
+            {
+                new ProductFluentResult { Name = "Nudossi", Number = 0, Price = 0, Value = "C2*D2" },
+                new ProductFluentResult { Name = "Halloren", Number = 0, Price = 0, Value = "C3*D3" },
+                new ProductFluentResult { Name = "Filinchen", Number = 0, Price = 0, Value = "C5*D5" },
+            }, productsFetched);
         }
 
         [Test]
@@ -401,6 +528,8 @@ namespace Ganss.Excel.Tests
         {
             public string Name { get; set; }
             public DateTime? OfferEnd { get; set; }
+            public string OfferEndToString { get; set; }
+            public long OfferEndToLong { get; set; }
 
             public override bool Equals(object obj)
             {
@@ -429,6 +558,25 @@ namespace Ganss.Excel.Tests
                 {
                     if ((v as string) == "NULL") return null;
                     return Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                });
+
+            // Multi "Excel to Object" unidirectional mapping
+            excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEndToString)
+                .FromExcelOnly()
+                .SetPropertyUsing(v =>
+                {
+                    if ((v as string) == "NULL") return "IS_NULL";
+                    var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                    return dt.ToLongDateString();
+                });
+
+            excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEndToLong)
+                .FromExcelOnly()
+                .SetPropertyUsing(v =>
+                {
+                    if ((v as string) == "NULL") return 0L;
+                    var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                    return dt.ToBinary();
                 });
 
             var products = excel.Fetch<GetterSetterProduct>().ToList();
