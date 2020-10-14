@@ -73,10 +73,10 @@ namespace Ganss.Excel
                         ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
 
                     if (Attribute.GetCustomAttribute(prop, typeof(FromExcelOnlyAttribute)) is FromExcelOnlyAttribute)
-                        ci.Direction = ColumnInfoDirection.Cell2Prop;
+                        ci.Direction = ColumnInfoDirections.Cell2Prop;
 
                     if (Attribute.GetCustomAttribute(prop, typeof(ToExcelOnlyAttribute)) is ToExcelOnlyAttribute)
-                        ci.Direction = ColumnInfoDirection.Prop2Cell;
+                        ci.Direction = ColumnInfoDirections.Prop2Cell;
 
                     if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
                     {

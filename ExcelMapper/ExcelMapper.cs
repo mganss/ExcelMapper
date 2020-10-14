@@ -324,7 +324,7 @@ namespace Ganss.Excel
 
                         if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
                         {
-                            foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Cell2Prop)))
+                            foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Cell2Prop)))
                             {
                                 var cellValue = GetCellValue(cell, ci);
                                 try
@@ -491,7 +491,7 @@ namespace Ganss.Excel
                 && !typeMapper.ColumnsByIndex.SelectMany(ci => ci.Value).Any(c => c.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 return colByName;
 
-            return null;
+            return new List<ColumnInfo>();
         }
 
         /// <summary>
@@ -635,7 +635,7 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Prop2Cell)))
+                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Prop2Cell)))
                     {
                         ci.SetCellStyle(cell);
                         ci.SetCell(cell, ci.GetProperty(o.Value));
@@ -644,16 +644,6 @@ namespace Ganss.Excel
             }
 
             Workbook.Write(stream);
-        }
-
-        private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
-        {
-            // All columns with Cell2Prop direction only should not be saved
-            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirection.Cell2Prop))
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirection.Cell2Prop))
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects)
@@ -683,7 +673,7 @@ namespace Ganss.Excel
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
-                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Prop2Cell)))
+                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Prop2Cell)))
                     {
                         ci.SetCellStyle(cell);
                         ci.SetCell(cell, ci.GetProperty(o));
@@ -705,6 +695,16 @@ namespace Ganss.Excel
             }
 
             Workbook.Write(stream);
+        }
+
+        private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
+        {
+            // All columns with Cell2Prop direction only should not be saved
+            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.Cell2Prop))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.Cell2Prop))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         /// <summary>
@@ -834,7 +834,7 @@ namespace Ganss.Excel
         static void SetColumnStyles(ISheet sheet, Dictionary<int, List<ColumnInfo>> columnsByIndex)
         {
             foreach (var col in columnsByIndex)
-                col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirection.Prop2Cell))
+                col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Prop2Cell))
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
@@ -1048,7 +1048,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
 
-            typeMapper.ColumnsByName.Where(c => c.Value.Where(cc => cc.Property == prop).Any())
+            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property == prop))
                 .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
 
@@ -1062,7 +1062,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 
-            typeMapper.ColumnsByName.Where(c => c.Value.Where(cc => cc.Property == prop).Any())
+            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property == prop))
                 .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
     }

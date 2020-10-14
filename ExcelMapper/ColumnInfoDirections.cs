@@ -7,14 +7,14 @@ namespace Ganss.Excel
     /// Data direction
     /// </summary>
     [Flags]
-    public enum ColumnInfoDirection
+    public enum ColumnInfoDirections
     {
         /// <summary>
         /// From Excel to Object
         /// </summary>
         Cell2Prop = 1 << 0,
         /// <summary>
-        /// From Object to Excel 
+        /// From Object to Excel
         /// </summary>
         Prop2Cell = 1 << 1,
         /// <summary>
