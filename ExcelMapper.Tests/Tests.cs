@@ -115,9 +115,9 @@ namespace Ganss.Excel.Tests
         {
             var src = new List<ProductDirection>
             {
-                new ProductDirection { 
+                new ProductDirection {
                     // FromExcelOnly
-                    Name = "Nudossi", NumberInStock = 60 
+                    Name = "Nudossi", NumberInStock = 60
                     // ToExcelOnly
                     , Price = 1.99m, Value = "C2*D2"
                 },
@@ -134,7 +134,7 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(new List<Product>
             {
-                new Product { 
+                new Product {
                     // FromExcelOnly prevent excel saving
                     Name = null, NumberInStock = 0
                     // ToExcelOnly allow saving but prevent reading
@@ -429,6 +429,43 @@ namespace Ganss.Excel.Tests
             }, products);
         }
 
+        private class ProductNoHeaderManual
+        {
+            public string Name { get; set; }
+            public int NumberInStock { get; set; }
+            public decimal Price { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is ProductNoHeader o)) return false;
+                return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name + NumberInStock + Price).GetHashCode();
+            }
+        }
+
+        [Test]
+        public void FetchNoHeaderManualTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\productsnoheader.xlsx") { HeaderRow = false };
+
+            excel.AddMapping<ProductNoHeaderManual>(1, p => p.Name);
+            excel.AddMapping<ProductNoHeaderManual>(3, p => p.NumberInStock);
+            excel.AddMapping(typeof(ProductNoHeaderManual), 4, "Price");
+
+            var products = excel.Fetch<ProductNoHeader>("Products").ToList();
+
+            CollectionAssert.AreEqual(new List<ProductNoHeader>
+            {
+                new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
+                new ProductNoHeader { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
+                new ProductNoHeader { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+            }, products);
+        }
+
         [Test]
         public void SaveTest()
         {
@@ -598,6 +635,7 @@ namespace Ganss.Excel.Tests
             public decimal Price { get; set; }
             public bool Offer { get; set; }
             public DateTime OfferEnd { get; set; }
+            public string Value { get; set; }
 
             public override bool Equals(object obj)
             {
@@ -616,6 +654,7 @@ namespace Ganss.Excel.Tests
         {
             var excel = new ExcelMapper(@"..\..\..\products.xlsx");
             excel.Ignore<IgnoreProduct>(p => p.Price);
+            excel.Ignore(typeof(IgnoreProduct), "Value");
             var products = excel.Fetch<IgnoreProduct>().ToList();
 
             var nudossi = products[0];
@@ -623,10 +662,12 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(0, nudossi.Number);
             Assert.AreEqual(0m, nudossi.Price);
             Assert.IsFalse(nudossi.Offer);
+            Assert.IsNull(nudossi.Value);
 
             var halloren = products[1];
             Assert.IsTrue(halloren.Offer);
             Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
+            Assert.IsNull(halloren.Value);
 
             var file = "productsignored.xlsx";
 
