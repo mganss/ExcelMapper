@@ -45,6 +45,26 @@ namespace Ganss.Excel.Tests
                 $"{Name}{NumberInStock}{Price}{Value}".GetHashCode();
         }
 
+        private class ProductFluent
+        {
+            public string Name { get; set; }
+            public int Number { get; set; }
+            public decimal Price { get; set; }
+            public string Value { get; set; }
+
+            public override bool Equals(object obj) =>
+                obj is ProductFluent o
+                && o.Name == Name
+                && o.Number == Number
+                && o.Price == Price
+                && o.Value == Value;
+
+            public override int GetHashCode() =>
+                $"{Name}{Number}{Price}{Value}".GetHashCode();
+        }
+        private class ProductFluentResult : ProductFluent
+        { }
+
         private class Product
         {
             public string Name { get; set; }
@@ -122,6 +142,40 @@ namespace Ganss.Excel.Tests
                 },
                 new Product { Name = null, NumberInStock = 0, Price = 2.99m, Value = "C3*D3" },
                 new Product { Name = null, NumberInStock = 0, Price = 0.99m, Value = "C5*D5" },
+            }, productsFetched);
+        }
+
+        [Test]
+        public void ToExcelOnlyFluentTest()
+        {
+            var src = new List<ProductFluent>
+            {
+                new ProductFluent { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2" },
+                new ProductFluent { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3" },
+                new ProductFluent { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5" },
+            };
+
+            var file = "productssavetoexcelonly_fluent.xlsx";
+            var mapperwrite = new ExcelMapper();
+
+            // Make mapper unable to read Name & Value from Excel. Only write.
+            mapperwrite.AddMapping<ProductFluent>("Name", p => p.Name).ToExcelOnly();
+            mapperwrite.AddMapping<ProductFluent>("Value", p => p.Value).ToExcelOnly();
+
+            // Make mapper unable to write Number & Price from Excel. Only read.
+            mapperwrite.AddMapping<ProductFluent>("Number", p => p.Number).FromExcelOnly();
+            mapperwrite.AddMapping<ProductFluent>("Price", p => p.Price).FromExcelOnly();
+
+            mapperwrite.Save(file, src, "Products");
+
+            // Reload rows
+            var productsFetched = new ExcelMapper(file).Fetch<ProductFluentResult>().ToList();
+
+            CollectionAssert.AreEqual(new List<ProductFluentResult>
+            {
+                new ProductFluentResult { Name = "Nudossi", Number = 0, Price = 0, Value = "C2*D2" },
+                new ProductFluentResult { Name = "Halloren", Number = 0, Price = 0, Value = "C3*D3" },
+                new ProductFluentResult { Name = "Filinchen", Number = 0, Price = 0, Value = "C5*D5" },
             }, productsFetched);
         }
 
