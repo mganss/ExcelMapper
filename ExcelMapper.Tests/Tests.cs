@@ -8,6 +8,7 @@ using Ganss.Excel.Exceptions;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Threading.Tasks;
+using NPOI.XSSF.UserModel;
 
 namespace Ganss.Excel.Tests
 {
@@ -564,6 +565,7 @@ namespace Ganss.Excel.Tests
         private class GetterSetterProduct
         {
             public string Name { get; set; }
+            public string RedName { get; set; }
             public DateTime? OfferEnd { get; set; }
             public string OfferEndToString { get; set; }
             public long OfferEndToLong { get; set; }
@@ -586,6 +588,18 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(@"..\..\..\productsconvert.xlsx") { TrackObjects = true };
 
             excel.AddMapping<GetterSetterProduct>("Name", p => p.Name);
+            excel.AddMapping<GetterSetterProduct>("Name", p => p.RedName)
+                .FromExcelOnly()
+                .SetPropertyUsing((v, c) =>
+                {
+                    switch (c.CellStyle.FillForegroundColorColor)
+                    {
+                        case XSSFColor color when color.ARGBHex == "FFFF0000":
+                            return v;
+                        default:
+                            return null;
+                    }
+                });
             excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEnd)
                 .SetCellUsing((c, o) =>
                 {
@@ -609,7 +623,7 @@ namespace Ganss.Excel.Tests
 
             excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEndToLong)
                 .FromExcelOnly()
-                .SetPropertyUsing(v =>
+                .SetPropertyUsing((v, c) =>
                 {
                     if ((v as string) == "NULL") return 0L;
                     var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
@@ -617,6 +631,9 @@ namespace Ganss.Excel.Tests
                 });
 
             var products = excel.Fetch<GetterSetterProduct>().ToList();
+
+            Assert.Null(products[0].RedName);
+            Assert.AreEqual("Halloren", products[1].RedName);
 
             var file = @"productsconverttracked.xlsx";
 
@@ -1212,7 +1229,7 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products.First().Products, productsFetched.First().Products);
         }
 
-        public class Sample2
+        private class Sample2
         {
             [Column(37)]
             public DateTime? CaptDate { get; set; }
