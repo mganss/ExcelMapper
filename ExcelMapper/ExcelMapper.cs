@@ -329,7 +329,7 @@ namespace Ganss.Excel
                                 var cellValue = GetCellValue(cell, ci);
                                 try
                                 {
-                                    ci.SetProperty(o, cellValue);
+                                    ci.SetProperty(o, cellValue, cell);
                                 }
                                 catch (Exception e)
                                 {

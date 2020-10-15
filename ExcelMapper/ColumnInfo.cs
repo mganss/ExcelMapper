@@ -75,7 +75,7 @@ namespace Ganss.Excel
         /// <value>
         /// The property setter.
         /// </value>
-        public Func<object, object> SetProp { get; set; }
+        public Func<object, ICell, object> SetProp { get; set; }
 
         /// <summary>
         /// Gets or sets the builtin format.
@@ -201,11 +201,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="o">The object whose property to set.</param>
         /// <param name="val">The value.</param>
-        public void SetProperty(object o, object val)
+        /// <param name="cell">The cell where the value originates from.</param>
+        public void SetProperty(object o, object val, ICell cell)
         {
             object v;
             if (SetProp != null)
-                v = SetProp(val);
+                v = SetProp(val, cell);
             else if (IsNullable && (val == null || (val is string s && s.Length == 0)))
                 v = null;
             else
@@ -237,6 +238,15 @@ namespace Ganss.Excel
         /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing(Func<object, object> setProp)
+        {
+            SetProp = (v, c) => setProp(v);
+            return this;
+        }
+
+        /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
+        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetPropertyUsing(Func<object, ICell, object> setProp)
         {
             SetProp = setProp;
             return this;
