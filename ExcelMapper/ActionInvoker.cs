@@ -19,15 +19,15 @@ namespace Ganss.Excel
         /// <see cref="ActionInvokerImpl{T}"/> factory
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="AfterMappingAction"></param>
+        /// <param name="mappingAction"></param>
         /// <returns></returns>
-        public static ActionInvoker CreateInstance<T>(Action<T, int> AfterMappingAction)
+        public static ActionInvoker CreateInstance<T>(Action<T, int> mappingAction)
         {
             // instanciate concrete generic invoker
             var invokerType = typeof(ActionInvokerImpl<>);
             Type[] tType = { typeof(T) };
             Type constructed = invokerType.MakeGenericType(tType);
-            object invokerInstance = Activator.CreateInstance(constructed, AfterMappingAction);
+            object invokerInstance = Activator.CreateInstance(constructed, mappingAction);
             return (ActionInvoker)invokerInstance;
         }
     }
