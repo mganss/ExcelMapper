@@ -7,7 +7,7 @@ namespace Ganss.Excel
     /// Data direction
     /// </summary>
     [Flags]
-    public enum ColumnInfoDirections
+    public enum MappingDirections
     {
         /// <summary>
         /// From Excel to Object

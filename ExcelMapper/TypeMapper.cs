@@ -84,7 +84,7 @@ namespace Ganss.Excel
                                 ColumnsByIndex[idx].Add(ci);
                             }
 
-                            ci.Direction = columnAttribute.Direction;
+                            ci.Directions = columnAttribute.Directions;
                         }
                     }
                     else if (!ColumnsByName.ContainsKey(prop.Name))

@@ -329,7 +329,7 @@ namespace Ganss.Excel
 
                         if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
                         {
-                            foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ExcelToObject)))
+                            foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ExcelToObject)))
                             {
                                 var cellValue = GetCellValue(cell, ci);
                                 try
@@ -347,7 +347,9 @@ namespace Ganss.Excel
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
 
                     if (typeMapper.AfterMappingAction != null)
-                        typeMapper.AfterMappingAction(o, objInstanceIdx++);
+                        typeMapper.AfterMappingAction(o, objInstanceIdx);
+
+                    objInstanceIdx++;
 
                     yield return o;
                 }
@@ -643,7 +645,7 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ObjectToExcel)))
+                    foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)))
                     {
                         ci.SetCellStyle(cell);
                         ci.SetCell(cell, ci.GetProperty(o.Value));
@@ -681,7 +683,7 @@ namespace Ganss.Excel
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
-                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ObjectToExcel)))
+                    foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)))
                     {
                         ci.SetCellStyle(cell);
                         ci.SetCell(cell, ci.GetProperty(o));
@@ -707,11 +709,11 @@ namespace Ganss.Excel
 
         private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
         {
-            // All columns with Cell2Prop direction only should not be saved
-            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.ExcelToObject))
+            /// All columns with <see cref="MappingDirections.ExcelToObject"/> direction only should not be saved
+            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.ExcelToObject))
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -842,7 +844,7 @@ namespace Ganss.Excel
         static void SetColumnStyles(ISheet sheet, Dictionary<int, List<ColumnInfo>> columnsByIndex)
         {
             foreach (var col in columnsByIndex)
-                col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ObjectToExcel))
+                col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel))
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 

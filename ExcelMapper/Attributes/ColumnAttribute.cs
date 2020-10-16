@@ -11,37 +11,37 @@ namespace Ganss.Excel
     {
         readonly string name = null;
         readonly int index = -1;
-        readonly ColumnInfoDirections direction;
+        readonly MappingDirections directions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColumnAttribute"/> class.
         /// </summary>
         /// <param name="name">The name of the column.</param>
-        /// <param name="direction">mapping direction</param>
-        public ColumnAttribute(string name, ColumnInfoDirections direction = ColumnInfoDirections.Both)
+        /// <param name="directions">mapping direction</param>
+        public ColumnAttribute(string name, MappingDirections directions = MappingDirections.Both)
         {
             this.name = name;
-            this.direction = direction;
+            this.directions = directions;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColumnAttribute"/> class.
         /// </summary>
         /// <param name="index">The index of the column.</param>
-        /// <param name="direction">mapping direction</param>
-        public ColumnAttribute(int index, ColumnInfoDirections direction = ColumnInfoDirections.Both)
+        /// <param name="directions">mapping direction</param>
+        public ColumnAttribute(int index, MappingDirections directions = MappingDirections.Both)
         {
             this.index = index;
-            this.direction = direction;
+            this.directions = directions;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColumnAttribute"/> class.
         /// </summary>
-        /// <param name="direction">mapping direction</param>
-        public ColumnAttribute(ColumnInfoDirections direction)
+        /// <param name="directions">mapping direction</param>
+        public ColumnAttribute(MappingDirections directions)
         {
-            this.direction = direction;
+            this.directions = directions;
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Ganss.Excel
         /// <value>
         /// The name of the column.
         /// </value>
-        public ColumnInfoDirections Direction => direction;
+        public MappingDirections Directions => directions;
 
         /// <summary>
         /// Gets the name of the column.

@@ -24,16 +24,16 @@ namespace Ganss.Excel.Tests
         {
             public string Name { get; set; }
 
-            [Column("Number", ColumnInfoDirections.ExcelToObject)]// Read as "Number"
-            [Column("NewNumber", ColumnInfoDirections.ObjectToExcel)]// Write as "NewNumber"
+            [Column("Number", MappingDirections.ExcelToObject)]// Read as "Number"
+            [Column("NewNumber", MappingDirections.ObjectToExcel)]// Write as "NewNumber"
             public int NumberInStock { get; set; }
 
-            [Column(ColumnInfoDirections.ExcelToObject)]// Read as "Price"
-            [Column("NewPrice", ColumnInfoDirections.ObjectToExcel)]// Write as "NewPrice"
+            [Column(MappingDirections.ExcelToObject)]// Read as "Price"
+            [Column("NewPrice", MappingDirections.ObjectToExcel)]// Write as "NewPrice"
             public decimal Price { get; set; }
 
-            [Column(ColumnInfoDirections.ExcelToObject)] // Read as "Value"
-            [Column("NewValue", ColumnInfoDirections.ObjectToExcel)] // Write as "NewValue"
+            [Column(MappingDirections.ExcelToObject)] // Read as "Value"
+            [Column("NewValue", MappingDirections.ObjectToExcel)] // Write as "NewValue"
             public string Value { get; set; }
         }
 
@@ -57,16 +57,16 @@ namespace Ganss.Excel.Tests
 
         private class ProductDirection
         {
-            [Column(ColumnInfoDirections.ExcelToObject)]
+            [Column(MappingDirections.ExcelToObject)]
             public string Name { get; set; }
 
-            [Column("Number", ColumnInfoDirections.ExcelToObject)]
+            [Column("Number", MappingDirections.ExcelToObject)]
             public int NumberInStock { get; set; }
 
-            [Column(ColumnInfoDirections.ObjectToExcel)]
+            [Column(MappingDirections.ObjectToExcel)]
             public decimal Price { get; set; }
 
-            [Column(ColumnInfoDirections.ObjectToExcel)]
+            [Column(MappingDirections.ObjectToExcel)]
             public string Value { get; set; }
 
             public override bool Equals(object obj) =>
@@ -190,12 +190,12 @@ namespace Ganss.Excel.Tests
         [Test]
         public void MultiDirectionalTest()
         {
-            /// Reading using <see cref="ColumnInfoDirections.ExcelToObject"/> direction mapping
+            /// Reading using <see cref="MappingDirections.ExcelToObject"/> direction mapping
             var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductMultiColums>().ToList();
 
             var file = "productssave_multicolums.xlsx";
 
-            /// Saving using <see cref="ColumnInfoDirections.ObjectToExcel"/> direction mapping
+            /// Saving using <see cref="MappingDirections.ObjectToExcel"/> direction mapping
             new ExcelMapper().Save(file, products, "Products");
 
             /// reload excel with <see cref="ProductMultiColumsReload"/> mapping instead of <see cref="ProductMultiColums"/>
