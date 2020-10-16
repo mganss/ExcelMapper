@@ -5,14 +5,14 @@ namespace Ganss.Excel
     /// <summary>
     /// Abstract class action invoker
     /// </summary>
-    public class ActionInvoker
+    internal class ActionInvoker
     {
         /// <summary>
         /// Invoke from an unspecified <paramref name="obj"/> type
         /// </summary>
         /// <param name="obj">mapping instance class</param>
         /// <param name="index">index in the collection</param>
-        public virtual void Invoke(object obj, int index) =>
+        internal virtual void Invoke(object obj, int index) =>
             throw new NotImplementedException();
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace Ganss.Excel
         /// <typeparam name="T"></typeparam>
         /// <param name="mappingAction"></param>
         /// <returns></returns>
-        public static ActionInvoker CreateInstance<T>(Action<T, int> mappingAction)
+        internal static ActionInvoker CreateInstance<T>(Action<T, int> mappingAction)
         {
             // instanciate concrete generic invoker
             var invokerType = typeof(ActionInvokerImpl<>);
@@ -36,7 +36,7 @@ namespace Ganss.Excel
     /// Generic form <see cref="ActionInvoker"/> 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class ActionInvokerImpl<T> : ActionInvoker
+    internal class ActionInvokerImpl<T> : ActionInvoker
         where T : class
     {
         /// <summary>
@@ -58,7 +58,7 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="index"></param>
-        public override void Invoke(object obj, int index)
+        internal override void Invoke(object obj, int index)
         {
             if (mappingAction is null || obj is null) return;
             mappingAction((obj as T), index);
