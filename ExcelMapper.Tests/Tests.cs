@@ -163,13 +163,12 @@ namespace Ganss.Excel.Tests
             var products = new ExcelMapper(@"..\..\..\products.xlsx")
                 // preparation before the mapping start
                 .AddBeforeMapping<BeforeAFterMapping>((obj, idx) =>
-                    (obj as BeforeAFterMapping).Id = idx + 1000
+                    obj.Id = idx + 1000
                 )
                 // Apply late mapping after every Excel to Object row mapping
                 .AddAfterMapping<BeforeAFterMapping>((obj, idx) =>
                 {
-                    var o = obj as BeforeAFterMapping;
-                    o.Hash = $"{o.Name}:{o.Number}:{o.Id}";
+                    obj.Hash = $"{obj.Name}:{obj.Number}:{obj.Id}";
                 })
                 .Fetch<BeforeAFterMapping>().ToList();
 

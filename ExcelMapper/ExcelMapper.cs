@@ -320,8 +320,8 @@ namespace Ganss.Excel
                 {
                     var o = Activator.CreateInstance(type);
 
-                    if (typeMapper.BeforeMappingAction != null)
-                        typeMapper.BeforeMappingAction(o, objInstanceIdx);
+                    if (typeMapper.BeforeMappingActionInvoker != null)
+                        typeMapper.BeforeMappingActionInvoker.Invoke(o, objInstanceIdx);
 
                     foreach (var col in columns)
                     {
@@ -346,8 +346,8 @@ namespace Ganss.Excel
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
 
-                    if (typeMapper.AfterMappingAction != null)
-                        typeMapper.AfterMappingAction(o, objInstanceIdx);
+                    if (typeMapper.AfterMappingActionInvoker != null)
+                        typeMapper.AfterMappingActionInvoker.Invoke(o, objInstanceIdx);
 
                     objInstanceIdx++;
 
@@ -982,10 +982,10 @@ namespace Ganss.Excel
         /// <typeparam name="T"></typeparam>
         /// <param name="action"></param>
         /// <returns></returns>
-        public ExcelMapper AddAfterMapping<T>(Action<object, int> action)
+        public ExcelMapper AddAfterMapping<T>(Action<T, int> action)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
-            typeMapper.AfterMappingAction = action;
+            typeMapper.AfterMappingActionInvoker = ActionInvoker.CreateInstance(action);
             return this;
         }
 
@@ -995,10 +995,10 @@ namespace Ganss.Excel
         /// <typeparam name="T"></typeparam>
         /// <param name="action"></param>
         /// <returns></returns>
-        public ExcelMapper AddBeforeMapping<T>(Action<object, int> action)
+        public ExcelMapper AddBeforeMapping<T>(Action<T, int> action)
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
-            typeMapper.BeforeMappingAction = action;
+            typeMapper.BeforeMappingActionInvoker = ActionInvoker.CreateInstance(action);
             return this;
         }
 

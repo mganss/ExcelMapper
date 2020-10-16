@@ -32,12 +32,12 @@ namespace Ganss.Excel
         /// <summary>
         /// Gets or sets the Before Mapping action.
         /// </summary>
-        public Action<object, int> BeforeMappingAction { get; set; }
+        public ActionInvoker BeforeMappingActionInvoker { get; set; }
 
         /// <summary>
         /// Gets or sets the After Mapping action.
         /// </summary>
-        public Action<object, int> AfterMappingAction { get; set; }
+        public ActionInvoker AfterMappingActionInvoker { get; set; }
 
         /// <summary>
         /// Creates a <see cref="TypeMapper"/> object from the specified type.
