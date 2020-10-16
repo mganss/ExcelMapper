@@ -286,7 +286,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo FromExcelOnly()
         {
-            Direction = ColumnInfoDirections.Cell2Prop;
+            Direction = ColumnInfoDirections.ExcelToObject;
             return this;
         }
 
@@ -294,7 +294,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo ToExcelOnly()
         {
-            Direction = ColumnInfoDirections.Prop2Cell;
+            Direction = ColumnInfoDirections.ObjectToExcel;
             return this;
         }
     }

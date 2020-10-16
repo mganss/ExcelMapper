@@ -1,4 +1,4 @@
-﻿using NPOI.HSSF.UserModel;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -304,12 +304,14 @@ namespace Ganss.Excel
                     c.ColumnIndex,
                     ColumnInfo = GetColumnInfo(typeMapper, c)
                 })
-                .Where(c => c.ColumnInfo != null && c.ColumnInfo.Any())
+                .Where(c => c.ColumnInfo?.Any() ?? false)
                 .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
             var i = MinRowNumber;
             IRow row = null;
 
             if (TrackObjects) Objects[sheet.SheetName] = new Dictionary<int, object>();
+
+            var objInstanceIdx = 0;
 
             while (i <= MaxRowNumber && (row = sheet.GetRow(i)) != null)
             {
@@ -318,13 +320,16 @@ namespace Ganss.Excel
                 {
                     var o = Activator.CreateInstance(type);
 
+                    if (typeMapper.BeforeMappingAction != null)
+                        typeMapper.BeforeMappingAction(o, objInstanceIdx);
+
                     foreach (var col in columns)
                     {
                         var cell = row.GetCell(col.Key);
 
                         if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
                         {
-                            foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Cell2Prop)))
+                            foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ExcelToObject)))
                             {
                                 var cellValue = GetCellValue(cell, ci);
                                 try
@@ -340,6 +345,9 @@ namespace Ganss.Excel
                     }
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
+
+                    if (typeMapper.AfterMappingAction != null)
+                        typeMapper.AfterMappingAction(o, objInstanceIdx++);
 
                     yield return o;
                 }
@@ -635,7 +643,7 @@ namespace Ganss.Excel
                 foreach (var col in columnsByIndex)
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Prop2Cell)))
+                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ObjectToExcel)))
                     {
                         ci.SetCellStyle(cell);
                         ci.SetCell(cell, ci.GetProperty(o.Value));
@@ -673,7 +681,7 @@ namespace Ganss.Excel
                 {
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
-                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Prop2Cell)))
+                    foreach (var ci in col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ObjectToExcel)))
                     {
                         ci.SetCellStyle(cell);
                         ci.SetCell(cell, ci.GetProperty(o));
@@ -700,10 +708,10 @@ namespace Ganss.Excel
         private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
         {
             // All columns with Cell2Prop direction only should not be saved
-            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.Cell2Prop))
+            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.ExcelToObject))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.Cell2Prop))
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Direction == ColumnInfoDirections.ExcelToObject))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -834,7 +842,7 @@ namespace Ganss.Excel
         static void SetColumnStyles(ISheet sheet, Dictionary<int, List<ColumnInfo>> columnsByIndex)
         {
             foreach (var col in columnsByIndex)
-                col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.Prop2Cell))
+                col.Value.Where(c => c.Direction.HasFlag(ColumnInfoDirections.ObjectToExcel))
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
@@ -964,6 +972,32 @@ namespace Ganss.Excel
             }
 
             return columnInfo;
+        }
+
+        /// <summary>
+        /// Action to call after an object is mapped
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public ExcelMapper AddAfterMapping<T>(Action<object, int> action)
+        {
+            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            typeMapper.AfterMappingAction = action;
+            return this;
+        }
+
+        /// <summary>
+        /// Action to call before an object is mapped
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public ExcelMapper AddBeforeMapping<T>(Action<object, int> action)
+        {
+            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            typeMapper.BeforeMappingAction = action;
+            return this;
         }
 
         /// <summary>

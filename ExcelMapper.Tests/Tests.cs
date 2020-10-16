@@ -20,19 +20,53 @@ namespace Ganss.Excel.Tests
             Environment.CurrentDirectory = TestContext.CurrentContext.TestDirectory;
         }
 
-        private class ProductDirection
+        private class ProductMultiColums
         {
-            [FromExcelOnly]
             public string Name { get; set; }
 
-            [Column("Number")]
-            [FromExcelOnly]
+            [Column("Number", ColumnInfoDirections.ExcelToObject)]// Read as "Number"
+            [Column("NewNumber", ColumnInfoDirections.ObjectToExcel)]// Write as "NewNumber"
             public int NumberInStock { get; set; }
 
-            [ToExcelOnly]
+            [Column(ColumnInfoDirections.ExcelToObject)]// Read as "Price"
+            [Column("NewPrice", ColumnInfoDirections.ObjectToExcel)]// Write as "NewPrice"
             public decimal Price { get; set; }
 
-            [ToExcelOnly]
+            [Column(ColumnInfoDirections.ExcelToObject)] // Read as "Value"
+            [Column("NewValue", ColumnInfoDirections.ObjectToExcel)] // Write as "NewValue"
+            public string Value { get; set; }
+        }
+
+        public class ProductMultiColumsReload
+        {
+            public string Name { get; set; }
+            public int NewNumber { get; set; }
+            public decimal NewPrice { get; set; }
+            public string NewValue { get; set; }
+
+            public override bool Equals(object obj) =>
+                obj is ProductMultiColumsReload reload
+                && Name == reload.Name
+                && NewNumber == reload.NewNumber
+                && NewPrice == reload.NewPrice
+                && NewValue == reload.NewValue;
+
+            public override int GetHashCode() =>
+                $"{Name}{NewNumber}{NewPrice}{NewValue}".GetHashCode();
+        }
+
+        private class ProductDirection
+        {
+            [Column(ColumnInfoDirections.ExcelToObject)]
+            public string Name { get; set; }
+
+            [Column("Number", ColumnInfoDirections.ExcelToObject)]
+            public int NumberInStock { get; set; }
+
+            [Column(ColumnInfoDirections.ObjectToExcel)]
+            public decimal Price { get; set; }
+
+            [Column(ColumnInfoDirections.ObjectToExcel)]
             public string Value { get; set; }
 
             public override bool Equals(object obj) =>
@@ -97,6 +131,82 @@ namespace Ganss.Excel.Tests
             public string ValueDefaultAsFormula { get; set; }
             [FormulaResult]
             public string ValueAsString { get; set; }
+        }
+
+        private class BeforeAFterMapping
+        {
+            public string Name { get; set; }
+            public int Number { get; set; }
+            public decimal Price { get; set; }
+            public string Value { get; set; }
+
+            public int Id { get; set; }
+            public string Hash { get; set; }
+
+            public override bool Equals(object obj) =>
+                obj is BeforeAFterMapping o
+                && o.Name == Name
+                && o.Number == Number
+                && o.Price == Price
+                && o.Value == Value
+                && o.Id == Id
+                && o.Hash == Hash
+                ;
+
+            public override int GetHashCode() =>
+                $"{Name}{Number}{Price}{Value}{Id}{Hash}".GetHashCode();
+        }
+
+        [Test]
+        public void BeforeAFterMappingTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx")
+                // preparation before the mapping start
+                .AddBeforeMapping<BeforeAFterMapping>((obj, idx) =>
+                    (obj as BeforeAFterMapping).Id = idx + 1000
+                )
+                // Apply late mapping after every Excel to Object row mapping
+                .AddAfterMapping<BeforeAFterMapping>((obj, idx) =>
+                {
+                    var o = obj as BeforeAFterMapping;
+                    o.Hash = $"{o.Name}:{o.Number}:{o.Id}";
+                })
+                .Fetch<BeforeAFterMapping>().ToList();
+
+            CollectionAssert.AreEqual(new List<BeforeAFterMapping>
+            {
+                new BeforeAFterMapping { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2"
+                    , Id = 1000, Hash = $"Nudossi:60:1000"
+                },
+                new BeforeAFterMapping { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3"
+                    , Id = 1001, Hash = $"Halloren:33:1001"
+                },
+                new BeforeAFterMapping { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5"
+                    , Id = 1002, Hash = $"Filinchen:100:1002"
+                },
+            }, products);
+        }
+
+        [Test]
+        public void MultiDirectionalTest()
+        {
+            /// Reading using <see cref="ColumnInfoDirections.ExcelToObject"/> direction mapping
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductMultiColums>().ToList();
+
+            var file = "productssave_multicolums.xlsx";
+
+            /// Saving using <see cref="ColumnInfoDirections.ObjectToExcel"/> direction mapping
+            new ExcelMapper().Save(file, products, "Products");
+
+            /// reload excel with <see cref="ProductMultiColumsReload"/> mapping instead of <see cref="ProductMultiColums"/>
+            var reloaded = new ExcelMapper(file).Fetch<ProductMultiColumsReload>().ToList();
+
+            CollectionAssert.AreEqual(new List<ProductMultiColumsReload>
+            {
+                new ProductMultiColumsReload { Name = "Nudossi", NewNumber = 60, NewPrice = 1.99m, NewValue = "C2*D2" },
+                new ProductMultiColumsReload { Name = "Halloren", NewNumber = 33, NewPrice = 2.99m, NewValue = "C3*D3" },
+                new ProductMultiColumsReload { Name = "Filinchen", NewNumber = 100, NewPrice = 0.99m, NewValue = "C5*D5" },
+            }, reloaded);
         }
 
         [Test]
