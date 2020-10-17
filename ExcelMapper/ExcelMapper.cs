@@ -709,7 +709,7 @@ namespace Ganss.Excel
 
         private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
         {
-            /// All columns with <see cref="MappingDirections.ExcelToObject"/> direction only should not be saved
+            // All columns with <see cref="MappingDirections.ExcelToObject"/> direction only should not be saved
             columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
@@ -953,30 +953,6 @@ namespace Ganss.Excel
         }
 
         /// <summary>
-        /// Adds a mapping from a column name to a property.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="columnName">Name of the column.</param>
-        /// <param name="propertyExpression">The property expression.</param>
-        public ColumnInfo AddMapping<T>(string columnName, Expression<Func<T, object>> propertyExpression)
-        {
-            var typeMapper = TypeMapperFactory.Create(typeof(T));
-            var prop = GetPropertyInfo(propertyExpression);
-
-            if (!typeMapper.ColumnsByName.ContainsKey(columnName))
-                typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
-
-            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
-            if (columnInfo is null)
-            {
-                columnInfo = new ColumnInfo(prop);
-                typeMapper.ColumnsByName[columnName].Add(columnInfo);
-            }
-
-            return columnInfo;
-        }
-
-        /// <summary>
         /// Action to call after an object is mapped
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1003,6 +979,30 @@ namespace Ganss.Excel
         }
 
         /// <summary>
+        /// Adds a mapping from a column name to a property.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="columnName">Name of the column.</param>
+        /// <param name="propertyExpression">The property expression.</param>
+        public ColumnInfo AddMapping<T>(string columnName, Expression<Func<T, object>> propertyExpression)
+        {
+            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            var prop = GetPropertyInfo(propertyExpression);
+
+            if (!typeMapper.ColumnsByName.ContainsKey(columnName))
+                typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
+
+            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);
+            if (columnInfo is null)
+            {
+                columnInfo = new ColumnInfo(prop);
+                typeMapper.ColumnsByName[columnName].Add(columnInfo);
+            }
+
+            return columnInfo;
+        }
+
+        /// <summary>
         /// Adds a mapping from a column index to a property.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1016,7 +1016,7 @@ namespace Ganss.Excel
             if (!typeMapper.ColumnsByIndex.ContainsKey(columnIndex))
                 typeMapper.ColumnsByIndex.Add(columnIndex, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
+            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
@@ -1040,7 +1040,7 @@ namespace Ganss.Excel
             if (!typeMapper.ColumnsByName.ContainsKey(columnName))
                 typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
+            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
@@ -1064,7 +1064,7 @@ namespace Ganss.Excel
             if (!typeMapper.ColumnsByIndex.ContainsKey(columnIndex))
                 typeMapper.ColumnsByIndex.Add(columnIndex, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);// Exist already ?
+            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
