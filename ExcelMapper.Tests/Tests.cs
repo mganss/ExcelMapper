@@ -272,9 +272,9 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = Convert.ToDateTime("01/01/1970") },
-                new ProductDynamic { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = Convert.ToDateTime("31/12/2015") },
-                new ProductDynamic { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = Convert.ToDateTime("01/01/1970") },
+                new ProductDynamic { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, result);
         }
 
