@@ -133,7 +133,7 @@ namespace Ganss.Excel.Tests
             public string ValueAsString { get; set; }
         }
 
-        private class BeforeAFterMapping
+        private class BeforeAfterMapping
         {
             public string Name { get; set; }
             public int Number { get; set; }
@@ -144,7 +144,7 @@ namespace Ganss.Excel.Tests
             public string Hash { get; set; }
 
             public override bool Equals(object obj) =>
-                obj is BeforeAFterMapping o
+                obj is BeforeAfterMapping o
                 && o.Name == Name
                 && o.Number == Number
                 && o.Price == Price
@@ -162,25 +162,25 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper(@"..\..\..\products.xlsx")
                 // preparation before the mapping start
-                .AddBeforeMapping<BeforeAFterMapping>((obj, idx) =>
+                .AddBeforeMapping<BeforeAfterMapping>((obj, idx) =>
                     obj.Id = idx + 1000
                 )
                 // Apply late mapping after every Excel to Object row mapping
-                .AddAfterMapping<BeforeAFterMapping>((obj, idx) =>
+                .AddAfterMapping<BeforeAfterMapping>((obj, idx) =>
                 {
                     obj.Hash = $"{obj.Name}:{obj.Number}:{obj.Id}";
                 })
-                .Fetch<BeforeAFterMapping>().ToList();
+                .Fetch<BeforeAfterMapping>().ToList();
 
-            CollectionAssert.AreEqual(new List<BeforeAFterMapping>
+            CollectionAssert.AreEqual(new List<BeforeAfterMapping>
             {
-                new BeforeAFterMapping { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2"
+                new BeforeAfterMapping { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2"
                     , Id = 1000, Hash = $"Nudossi:60:1000"
                 },
-                new BeforeAFterMapping { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3"
+                new BeforeAfterMapping { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3"
                     , Id = 1001, Hash = $"Halloren:33:1001"
                 },
-                new BeforeAFterMapping { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5"
+                new BeforeAfterMapping { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5"
                     , Id = 1002, Hash = $"Filinchen:100:1002"
                 },
             }, products);
