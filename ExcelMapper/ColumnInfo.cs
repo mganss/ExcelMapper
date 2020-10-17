@@ -15,7 +15,7 @@ namespace Ganss.Excel
         /// <summary>
         /// Define mapping direction
         /// </summary>
-        public ColumnInfoDirections Direction { get; internal set; }
+        public MappingDirections Directions { get; internal set; }
 
         private PropertyInfo property;
 
@@ -273,10 +273,10 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="propertyInfo">The property information.</param>
         /// <param name="direction">Data direction</param>
-        public ColumnInfo(PropertyInfo propertyInfo, ColumnInfoDirections direction = ColumnInfoDirections.Both)
+        public ColumnInfo(PropertyInfo propertyInfo, MappingDirections direction = MappingDirections.Both)
         {
             Property = propertyInfo;
-            Direction = direction;
+            Directions = direction;
             SetCell = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
@@ -286,7 +286,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo FromExcelOnly()
         {
-            Direction = ColumnInfoDirections.Cell2Prop;
+            Directions = MappingDirections.ExcelToObject;
             return this;
         }
 
@@ -294,7 +294,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo ToExcelOnly()
         {
-            Direction = ColumnInfoDirections.Prop2Cell;
+            Directions = MappingDirections.ObjectToExcel;
             return this;
         }
     }

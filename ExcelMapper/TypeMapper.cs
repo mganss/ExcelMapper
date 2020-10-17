@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Ganss.Excel
@@ -29,6 +30,16 @@ namespace Ganss.Excel
         public Dictionary<int, List<ColumnInfo>> ColumnsByIndex { get; set; } = new Dictionary<int, List<ColumnInfo>>();
 
         /// <summary>
+        /// Gets or sets the Before Mapping action.
+        /// </summary>
+        internal ActionInvoker BeforeMappingActionInvoker { get; set; }
+
+        /// <summary>
+        /// Gets or sets the After Mapping action.
+        /// </summary>
+        internal ActionInvoker AfterMappingActionInvoker { get; set; }
+
+        /// <summary>
         /// Creates a <see cref="TypeMapper"/> object from the specified type.
         /// </summary>
         /// <param name="type">The type.</param>
@@ -48,35 +59,36 @@ namespace Ganss.Excel
                 {
                     var ci = new ColumnInfo(prop); // Both direction
 
-                    if (Attribute.GetCustomAttribute(prop, typeof(ColumnAttribute)) is ColumnAttribute columnAttribute)
+                    var attribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute)).Cast<ColumnAttribute>();
+                    if (attribs.Any())
                     {
-                        if (!string.IsNullOrEmpty(columnAttribute.Name))
+                        foreach (var columnAttribute in attribs)
                         {
-                            if (!ColumnsByName.ContainsKey(columnAttribute.Name))
-                                ColumnsByName.Add(columnAttribute.Name, new List<ColumnInfo>());
+                            ci = new ColumnInfo(prop); // Both direction
+                            if (!string.IsNullOrEmpty(columnAttribute.Name))
+                            {
+                                if (!ColumnsByName.ContainsKey(columnAttribute.Name))
+                                    ColumnsByName.Add(columnAttribute.Name, new List<ColumnInfo>());
 
-                            ColumnsByName[columnAttribute.Name].Add(ci);
-                        }
-                        else if (!ColumnsByName.ContainsKey(prop.Name))
-                            ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
+                                ColumnsByName[columnAttribute.Name].Add(ci);
+                            }
+                            else if (!ColumnsByName.ContainsKey(prop.Name))
+                                ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
 
-                        if (columnAttribute.Index > 0)
-                        {
-                            var idx = columnAttribute.Index - 1;
-                            if (!ColumnsByIndex.ContainsKey(idx))
-                                ColumnsByIndex.Add(idx, new List<ColumnInfo>());
+                            if (columnAttribute.Index > 0)
+                            {
+                                var idx = columnAttribute.Index - 1;
+                                if (!ColumnsByIndex.ContainsKey(idx))
+                                    ColumnsByIndex.Add(idx, new List<ColumnInfo>());
 
-                            ColumnsByIndex[idx].Add(ci);
+                                ColumnsByIndex[idx].Add(ci);
+                            }
+
+                            ci.Directions = columnAttribute.Directions;
                         }
                     }
                     else if (!ColumnsByName.ContainsKey(prop.Name))
                         ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
-
-                    if (Attribute.GetCustomAttribute(prop, typeof(FromExcelOnlyAttribute)) is FromExcelOnlyAttribute)
-                        ci.Direction = ColumnInfoDirections.Cell2Prop;
-
-                    if (Attribute.GetCustomAttribute(prop, typeof(ToExcelOnlyAttribute)) is ToExcelOnlyAttribute)
-                        ci.Direction = ColumnInfoDirections.Prop2Cell;
 
                     if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
                     {
