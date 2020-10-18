@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPOI.SS.UserModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -48,6 +49,25 @@ namespace Ganss.Excel
         {
             var typeMapper = new TypeMapper { Type = type };
             typeMapper.Analyze();
+            return typeMapper;
+        }
+
+        public static TypeMapper Create(IEnumerable<ICell> columns)
+        {
+            var typeMapper = new TypeMapper();
+
+            foreach (var col in columns)
+            {
+                var index = col.ColumnIndex;
+                var name = col.StringCellValue;
+                var columnInfo = new DynamicColumnInfo(index, name);
+                typeMapper.ColumnsByIndex.Add(index, new List<ColumnInfo> { columnInfo });
+                if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
+                    typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
+                else
+                    columnInfos.Add(columnInfo);
+            }
+
             return typeMapper;
         }
 

@@ -245,7 +245,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchDynamicTest()
         {
-            var products = new ExcelMapper(@"..\..\..\products.xlsx").FetchDynamic().ToList();
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch().ToList();
 
             var result = new List<ProductDynamic>();
             foreach (var p in products)
@@ -276,6 +276,45 @@ namespace Ganss.Excel.Tests
                 new ProductDynamic { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
                 new ProductDynamic { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, result);
+        }
+
+        [Test]
+        public void FetchDynamicSaveTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+            var dynProducts = excel.Fetch().ToList();
+            var products = dynProducts.Select(p => new ProductDynamic()
+            {
+                NumberInStock = (int)p.Number,
+                Price = (decimal)p.Price,
+                Name = p.Name,
+                Value = p.Value,
+                Offer = p.Offer,
+                OfferEnd = p.OfferEnd,
+            }).ToList();
+
+            CollectionAssert.AreEqual(new List<ProductDynamic>
+            {
+                new ProductDynamic { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            }, products);
+
+            dynProducts[0].Name += "Test";
+            dynProducts[1].Price += 1.0;
+            dynProducts[2].OfferEnd = new DateTime(2000, 1, 2);
+
+            var file = @"productssavedynamic.xlsx";
+
+            excel.Save(file);
+
+            var productsFetched = new ExcelMapper(file).Fetch<ProductDynamic>().ToList();
+
+            products[0].Name += "Test";
+            products[1].Price += 1.0m;
+            products[2].OfferEnd = new DateTime(2000, 1, 2);
+
+            CollectionAssert.AreEqual(products, productsFetched);
         }
 
         [Test]

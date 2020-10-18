@@ -1,8 +1,10 @@
 ﻿using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime;
 using System.Text.Json;
 
 namespace Ganss.Excel
@@ -202,7 +204,7 @@ namespace Ganss.Excel
         /// <param name="o">The object whose property to set.</param>
         /// <param name="val">The value.</param>
         /// <param name="cell">The cell where the value originates from.</param>
-        public void SetProperty(object o, object val, ICell cell)
+        public virtual void SetProperty(object o, object val, ICell cell)
         {
             object v;
             if (SetProp != null)
@@ -296,6 +298,27 @@ namespace Ganss.Excel
         {
             Directions = MappingDirections.ObjectToExcel;
             return this;
+        }
+    }
+
+    public class DynamicColumnInfo: ColumnInfo
+    {
+        public int Index { get; set; }
+        public string Name { get; set; }
+
+        public DynamicColumnInfo(int index, string name): base(propertyInfo: null)
+        {
+            Index = index;
+            Name = name;
+            FormulaResult = true;
+        }
+
+        public override void SetProperty(object o, object val, ICell cell)
+        {
+            var expando = (IDictionary<string, object>)o;
+            expando.Add(Index.ToString(), val);
+            if (!string.IsNullOrEmpty(Name))
+                expando.Add(Name, val);
         }
     }
 }

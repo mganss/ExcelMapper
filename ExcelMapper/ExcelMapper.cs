@@ -158,10 +158,10 @@ namespace Ganss.Excel
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> FetchDynamic(string file, string sheetName)
+        public IEnumerable<dynamic> Fetch(string file, string sheetName)
         {
             Workbook = WorkbookFactory.Create(file);
-            return FetchDynamic(sheetName);
+            return Fetch(sheetName);
         }
 
         /// <summary>
@@ -195,10 +195,10 @@ namespace Ganss.Excel
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> FetchDynamic(string file, int sheetIndex)
+        public IEnumerable<dynamic> Fetch(string file, int sheetIndex)
         {
             Workbook = WorkbookFactory.Create(file);
-            return FetchDynamic(sheetIndex);
+            return Fetch(sheetIndex);
         }
 
         /// <summary>
@@ -232,10 +232,10 @@ namespace Ganss.Excel
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> FetchDynamic(Stream stream, string sheetName)
+        public IEnumerable<dynamic> Fetch(Stream stream, string sheetName)
         {
             Workbook = WorkbookFactory.Create(stream);
-            return FetchDynamic(sheetName);
+            return Fetch(sheetName);
         }
 
         /// <summary>
@@ -269,10 +269,10 @@ namespace Ganss.Excel
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> FetchDynamic(Stream stream, int sheetIndex)
+        public IEnumerable<dynamic> Fetch(Stream stream, int sheetIndex)
         {
             Workbook = WorkbookFactory.Create(stream);
-            return FetchDynamic(sheetIndex);
+            return Fetch(sheetIndex);
         }
 
         /// <summary>
@@ -312,14 +312,14 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
-        public IEnumerable<dynamic> FetchDynamic(string sheetName)
+        public IEnumerable<dynamic> Fetch(string sheetName)
         {
             var sheet = Workbook.GetSheet(sheetName);
             if (sheet == null)
             {
                 throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
             }
-            return FetchDynamic(sheet);
+            return Fetch(sheet);
         }
 
         /// <summary>
@@ -353,10 +353,10 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> FetchDynamic(int sheetIndex = 0)
+        public IEnumerable<dynamic> Fetch(int sheetIndex = 0)
         {
             var sheet = Workbook.GetSheetAt(sheetIndex);
-            return FetchDynamic(sheet);
+            return Fetch(sheet);
         }
 
         IEnumerable<T> Fetch<T>(ISheet sheet) where T : new()
@@ -366,15 +366,16 @@ namespace Ganss.Excel
 
         IEnumerable Fetch(ISheet sheet, Type type)
         {
-            var typeMapper = TypeMapperFactory.Create(type);
             var firstRow = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber);
 
             if (firstRow == null)
                 yield break;
 
             var cells = Enumerable.Range(0, firstRow.LastCellNum).Select(i => firstRow.GetCell(i, MissingCellPolicy.CREATE_NULL_AS_BLANK));
-            var columns = cells
-                .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
+            var firstRowCells = cells
+                .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)));
+            var typeMapper = type != null ? TypeMapperFactory.Create(type) : TypeMapper.Create(firstRowCells);
+            var columns = firstRowCells
                 .Select(c => new
                 {
                     c.ColumnIndex,
@@ -394,10 +395,9 @@ namespace Ganss.Excel
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
                 {
-                    var o = Activator.CreateInstance(type);
+                    var o = type != null ? Activator.CreateInstance(type) : new ExpandoObject();
 
-                    if (typeMapper.BeforeMappingActionInvoker != null)
-                        typeMapper.BeforeMappingActionInvoker.Invoke(o, objInstanceIdx);
+                    typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
 
                     foreach (var col in columns)
                     {
@@ -422,8 +422,7 @@ namespace Ganss.Excel
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
 
-                    if (typeMapper.AfterMappingActionInvoker != null)
-                        typeMapper.AfterMappingActionInvoker.Invoke(o, objInstanceIdx);
+                    typeMapper?.AfterMappingActionInvoker?.Invoke(o, objInstanceIdx);
 
                     objInstanceIdx++;
 
@@ -434,90 +433,7 @@ namespace Ganss.Excel
             }
         }
 
-        IEnumerable<dynamic> FetchDynamic(ISheet sheet)
-        {
-            var firstRow = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber);
-
-            if (firstRow == null)
-                yield break;
-
-            var cells = Enumerable.Range(0, firstRow.LastCellNum).Select(i => firstRow.GetCell(i, MissingCellPolicy.CREATE_NULL_AS_BLANK));
-            var columns = cells
-                .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)))
-                .Select(c => new
-                {
-                    c.ColumnIndex,
-                    ColumnName = c.StringCellValue
-                })
-                .ToDictionary(c => c.ColumnIndex, c => c.ColumnName);
-
-            var i = MinRowNumber;
-            IRow row = null;
-
-            if (TrackObjects) Objects[sheet.SheetName] = new Dictionary<int, object>();
-
-            var objInstanceIdx = 0;
-
-            while (i <= MaxRowNumber && (row = sheet.GetRow(i)) != null)
-            {
-                // optionally skip header row and blank rows
-                if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
-                {
-                    dynamic o;
-                    IDictionary<string, object> dicoRow;
-                    o = dicoRow = new ExpandoObject();
-
-                    foreach (var col in columns)
-                    {
-                        var cell = row.GetCell(col.Key);
-
-                        if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
-                        {
-                            var cellValue = GetCellValueDynamic(cell);
-                            dicoRow.Add(col.Key.ToString(), cellValue);// ByIndex
-                            if (HeaderRow)
-                                dicoRow.Add(col.Value, cellValue);// ByName
-                        }
-                    }
-
-                    if (TrackObjects) Objects[sheet.SheetName][i] = o;
-
-                    objInstanceIdx++;
-
-                    yield return o;
-                }
-
-                i++;
-            }
-        }
-
-        object GetCellValueDynamic(ICell cell, CellType? cellType = null)
-        {
-            cellType = cellType ?? cell.CellType;
-
-            switch (cellType)
-            {
-                case CellType.Numeric:
-                    if (DateUtil.IsCellDateFormatted(cell))
-                    {
-                        // temporary workaround for https://github.com/tonyqus/npoi/issues/412
-                        LocaleUtil.SetUserTimeZone(TimeZone.CurrentTimeZone);
-                        return cell.DateCellValue;
-                    }
-                    return cell.NumericCellValue;
-                case CellType.Formula:
-                    return GetCellValueDynamic(cell, cell.CachedFormulaResultType);
-                case CellType.Boolean:
-                    return cell.BooleanCellValue;
-                case CellType.Error:
-                    return cell.ErrorCellValue;
-                case CellType.Unknown:
-                case CellType.Blank:
-                case CellType.String:
-                default:
-                    return cell.StringCellValue;
-            }
-        }
+        IEnumerable<dynamic> Fetch(ISheet sheet) => Fetch(sheet, type: null).Cast<dynamic>();
 
         /// <summary>
         /// Fetches objects from the specified sheet name using async I/O.
