@@ -208,6 +208,76 @@ namespace Ganss.Excel.Tests
             }, reloaded);
         }
 
+
+        private class ProductDynamic
+        {
+            public string Name { get; set; }
+            public int NumberInStock { get; set; }
+            public decimal Price { get; set; }
+            public bool Offer { get; set; }
+            public DateTime OfferEnd { get; set; }
+            public double Value { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                return obj is ProductDynamic dynamic &&
+                       Name == dynamic.Name &&
+                       NumberInStock == dynamic.NumberInStock &&
+                       Price == dynamic.Price &&
+                       Offer == dynamic.Offer &&
+                       OfferEnd == dynamic.OfferEnd &&
+                       Value == dynamic.Value;
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = -675879668;
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+                hashCode = hashCode * -1521134295 + NumberInStock.GetHashCode();
+                hashCode = hashCode * -1521134295 + Price.GetHashCode();
+                hashCode = hashCode * -1521134295 + Offer.GetHashCode();
+                hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
+                hashCode = hashCode * -1521134295 + Value.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        [Test]
+        public void FetchDynamicTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").FetchDynamic().ToList();
+
+            var result = new List<ProductDynamic>();
+            foreach (var p in products)
+            {
+                var dicoRow = p as IDictionary<string, object>;// Need underlying Dictionary for ColumnIndex value recovery
+                var r = new ProductDynamic()
+                {
+                    // Using dynamic notation
+                    NumberInStock = (int)p.Number,// Need explicit casting for CellType.Numeric when different from double
+                    Price = (decimal)p.Price,
+
+                    // using Dictionary notation
+                    Name = dicoRow["Name"] as string,
+
+                    // using indexed notation
+                    Value = (double)dicoRow["6"],// "Value" is at column index = 6
+
+                    // No casting
+                    Offer = p.Offer,
+                    OfferEnd = p.OfferEnd,
+                };
+                result.Add(r);
+            }
+
+            CollectionAssert.AreEqual(new List<ProductDynamic>
+            {
+                new ProductDynamic { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            }, result);
+        }
+
         [Test]
         public void FromExcelOnlyTest()
         {
