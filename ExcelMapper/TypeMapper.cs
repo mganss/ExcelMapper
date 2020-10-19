@@ -1,6 +1,7 @@
 ﻿using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
@@ -52,6 +53,11 @@ namespace Ganss.Excel
             return typeMapper;
         }
 
+        /// <summary>
+        /// Creates a <see cref="TypeMapper"/> object from a list of cells.
+        /// </summary>
+        /// <param name="columns">The cells.</param>
+        /// <returns>A <see cref="TypeMapper"/> object.</returns>
         public static TypeMapper Create(IEnumerable<ICell> columns)
         {
             var typeMapper = new TypeMapper();
@@ -66,6 +72,37 @@ namespace Ganss.Excel
                     typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
                 else
                     columnInfos.Add(columnInfo);
+            }
+
+            return typeMapper;
+        }
+
+        /// <summary>
+        /// Creates a <see cref="TypeMapper"/> object from an <see cref="ExpandoObject"/> object.
+        /// </summary>
+        /// <param name="o">The <see cref="ExpandoObject"/> object.</param>
+        /// <returns>A <see cref="TypeMapper"/> object.</returns>
+        public static TypeMapper Create(ExpandoObject o)
+        {
+            var typeMapper = new TypeMapper();
+            var l = o.ToList();
+
+            for (int i = 0; i < o.Count(); i++)
+            {
+                var prop = l[i];
+                var name = prop.Key;
+                var columnInfo = new DynamicColumnInfo(prop.Key, prop.Value.GetType());
+
+                if (!int.TryParse(prop.Key, out _))
+                {
+                    if ((i % 2) == 0 || !int.TryParse(l[i - 1].Key, out var ix))
+                        ix = i;
+                    typeMapper.ColumnsByIndex.Add(ix, new List<ColumnInfo> { columnInfo });
+                    if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
+                        typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
+                    else
+                        columnInfos.Add(columnInfo);
+                }
             }
 
             return typeMapper;

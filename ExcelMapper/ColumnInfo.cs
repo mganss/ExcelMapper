@@ -15,11 +15,27 @@ namespace Ganss.Excel
     public class ColumnInfo
     {
         /// <summary>
-        /// Define mapping direction
+        /// Gets or sets the mapping directions.
         /// </summary>
-        public MappingDirections Directions { get; internal set; }
+        public MappingDirections Directions { get; internal set; } = MappingDirections.Both;
 
         private PropertyInfo property;
+
+        /// <summary>
+        /// Sets the property type.
+        /// </summary>
+        /// <param name="propertyType">The property type.</param>
+        protected void SetPropertyType(Type propertyType)
+        {
+            var underlyingType = Nullable.GetUnderlyingType(propertyType);
+            IsNullable = underlyingType != null;
+            PropertyType = underlyingType ?? propertyType;
+        }
+
+        /// <summary>
+        /// Gets or sets the property name.
+        /// </summary>
+        public string Name { get; protected set; }
 
         /// <summary>
         /// Gets or sets the property.
@@ -35,9 +51,8 @@ namespace Ganss.Excel
                 property = value;
                 if (property != null)
                 {
-                    var underlyingType = Nullable.GetUnderlyingType(property.PropertyType);
-                    IsNullable = underlyingType != null;
-                    PropertyType = underlyingType ?? property.PropertyType;
+                    SetPropertyType(property.PropertyType);
+                    Name = property.Name;
                 }
                 else
                 {
@@ -53,7 +68,7 @@ namespace Ganss.Excel
         /// <value>
         /// <c>true</c> if the property is nullable; otherwise, <c>false</c>.
         /// </value>
-        public bool IsNullable { get; private set; }
+        public bool IsNullable { get; protected set; }
 
         /// <summary>
         /// Gets the type of the property.
@@ -61,7 +76,7 @@ namespace Ganss.Excel
         /// <value>
         /// The type of the property.
         /// </value>
-        public Type PropertyType { get; private set; }
+        public Type PropertyType { get; protected set; }
 
         /// <summary>
         /// Gets or sets the cell setter.
@@ -121,7 +136,11 @@ namespace Ganss.Excel
             typeof(float), typeof(double)
         };
 
-        Action<ICell, object> GenerateCellSetter()
+        /// <summary>
+        /// Generates the cell setter.
+        /// </summary>
+        /// <returns>The cell setter.</returns>
+        protected Action<ICell, object> GenerateCellSetter()
         {
             if (PropertyType == typeof(DateTime))
             {
@@ -221,8 +240,8 @@ namespace Ganss.Excel
         /// Gets the property value of the specified object.
         /// </summary>
         /// <param name="o">The o.</param>
-        /// <returns></returns>
-        public object GetProperty(object o)
+        /// <returns>The property value.</returns>
+        public virtual object GetProperty(object o)
         {
             return Property.GetValue(o, null);
         }
@@ -284,6 +303,11 @@ namespace Ganss.Excel
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ColumnInfo"/> class.
+        /// </summary>
+        protected ColumnInfo() { }
+
         /// <summary>Selects the property to be unidirectional from Excel to Object.</summary>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo FromExcelOnly()
@@ -301,24 +325,64 @@ namespace Ganss.Excel
         }
     }
 
+    /// <summary>
+    /// Describes the mapping of an <see cref="ExpandoObject"/>'s property to a cell.
+    /// </summary>
     public class DynamicColumnInfo: ColumnInfo
     {
+        /// <summary>
+        /// Gets or sets the column index.
+        /// </summary>
         public int Index { get; set; }
-        public string Name { get; set; }
 
-        public DynamicColumnInfo(int index, string name): base(propertyInfo: null)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DynamicColumnInfo"/> class.
+        /// </summary>
+        /// <param name="index">The column index.</param>
+        /// <param name="name">The column name.</param>
+        public DynamicColumnInfo(int index, string name)
         {
             Index = index;
             Name = name;
             FormulaResult = true;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DynamicColumnInfo"/> class.
+        /// </summary>
+        /// <param name="name">The column name.</param>
+        /// <param name="t">The type of the column.</param>
+        public DynamicColumnInfo(string name, Type t)
+        {
+            Name = name;
+            SetPropertyType(t);
+            SetCell = GenerateCellSetter();
+            if (PropertyType == typeof(DateTime))
+                BuiltinFormat = 0x16; // "m/d/yy h:mm"
+        }
+
+        /// <summary>
+        /// Sets the property of the specified object to the specified value.
+        /// </summary>
+        /// <param name="o">The object whose property to set.</param>
+        /// <param name="val">The value.</param>
+        /// <param name="cell">The cell where the value originates from.</param>
         public override void SetProperty(object o, object val, ICell cell)
         {
             var expando = (IDictionary<string, object>)o;
             expando.Add(Index.ToString(), val);
             if (!string.IsNullOrEmpty(Name))
                 expando.Add(Name, val);
+        }
+
+        /// <summary>
+        /// Gets the property value of the specified object.
+        /// </summary>
+        /// <param name="o">The o.</param>
+        /// <returns>The property value.</returns>
+        public override object GetProperty(object o)
+        {
+            return ((IDictionary<string, object>)o)[Name];
         }
     }
 }

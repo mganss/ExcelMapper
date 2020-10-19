@@ -448,6 +448,18 @@ namespace Ganss.Excel
         }
 
         /// <summary>
+        /// Fetches dynamic objects from the specified sheet name using async I/O.
+        /// </summary>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<dynamic>> FetchAsync(string file, string sheetName)
+        {
+            using var ms = await ReadAsync(file);
+            return Fetch(ms, sheetName);
+        }
+
+        /// <summary>
         /// Fetches objects from the specified sheet name using async I/O.
         /// </summary>
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
@@ -471,6 +483,18 @@ namespace Ganss.Excel
         {
             using var ms = await ReadAsync(file);
             return Fetch(ms, typeof(T), sheetIndex).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches dynamic objects from the specified sheet index using async I/O.
+        /// </summary>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0)
+        {
+            using var ms = await ReadAsync(file);
+            return Fetch(ms, sheetIndex).Cast<dynamic>();
         }
 
         /// <summary>
@@ -500,6 +524,18 @@ namespace Ganss.Excel
         }
 
         /// <summary>
+        /// Fetches dynamic objects from the specified sheet name using async I/O.
+        /// </summary>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName)
+        {
+            using var ms = await ReadAsync(stream);
+            return Fetch(ms, sheetName).Cast<dynamic>();
+        }
+
+        /// <summary>
         /// Fetches objects from the specified sheet name using async I/O.
         /// </summary>
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
@@ -523,6 +559,18 @@ namespace Ganss.Excel
         {
             using var ms = await ReadAsync(stream);
             return Fetch(ms, typeof(T), sheetIndex).OfType<T>();
+        }
+
+        /// <summary>
+        /// Fetches dynamic objects from the specified sheet index using async I/O.
+        /// </summary>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <returns>The objects read from the Excel file.</returns>
+        public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0)
+        {
+            using var ms = await ReadAsync(stream);
+            return Fetch(ms, sheetIndex).Cast<dynamic>();
         }
 
         /// <summary>
@@ -703,7 +751,7 @@ namespace Ganss.Excel
         void Save(Stream stream, ISheet sheet)
         {
             var objects = Objects[sheet.SheetName];
-            var typeMapper = TypeMapperFactory.Create(objects.First().Value.GetType());
+            var typeMapper = TypeMapperFactory.Create(objects.First().Value);
             var columnsByIndex = typeMapper.ColumnsByIndex;
             var columnsByName = typeMapper.ColumnsByName;
 
@@ -735,7 +783,8 @@ namespace Ganss.Excel
 
         void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects)
         {
-            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            var firstObject = objects.FirstOrDefault();
+            var typeMapper = firstObject is ExpandoObject ? TypeMapperFactory.Create(firstObject) : TypeMapperFactory.Create(typeof(T));
             var columnsByIndex = typeMapper.ColumnsByIndex;
             var columnsByName = typeMapper.ColumnsByName;
             var i = MinRowNumber;
@@ -949,7 +998,7 @@ namespace Ganss.Excel
                             columnIndex = (
                                 from kvpi in columnsByIndex
                                 from kvpci in kvpi.Value
-                                join gci in getter.Value on kvpci.Property equals gci.Property
+                                join gci in getter.Value on kvpci.Name equals gci.Name
                                 select kvpi
                             ).First().Key;
                         }
