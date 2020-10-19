@@ -9,6 +9,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Threading.Tasks;
 using NPOI.XSSF.UserModel;
+using NPOI.OpenXmlFormats.Spreadsheet;
 
 namespace Ganss.Excel.Tests
 {
@@ -212,7 +213,7 @@ namespace Ganss.Excel.Tests
         private class ProductDynamic
         {
             public string Name { get; set; }
-            public int NumberInStock { get; set; }
+            public int Number { get; set; }
             public decimal Price { get; set; }
             public bool Offer { get; set; }
             public DateTime OfferEnd { get; set; }
@@ -222,7 +223,7 @@ namespace Ganss.Excel.Tests
             {
                 return obj is ProductDynamic dynamic &&
                        Name == dynamic.Name &&
-                       NumberInStock == dynamic.NumberInStock &&
+                       Number == dynamic.Number &&
                        Price == dynamic.Price &&
                        Offer == dynamic.Offer &&
                        OfferEnd == dynamic.OfferEnd &&
@@ -233,7 +234,7 @@ namespace Ganss.Excel.Tests
             {
                 int hashCode = -675879668;
                 hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-                hashCode = hashCode * -1521134295 + NumberInStock.GetHashCode();
+                hashCode = hashCode * -1521134295 + Number.GetHashCode();
                 hashCode = hashCode * -1521134295 + Price.GetHashCode();
                 hashCode = hashCode * -1521134295 + Offer.GetHashCode();
                 hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
@@ -254,7 +255,7 @@ namespace Ganss.Excel.Tests
                 var r = new ProductDynamic()
                 {
                     // Using dynamic notation
-                    NumberInStock = (int)p.Number,// Need explicit casting for CellType.Numeric when different from double
+                    Number = (int)p.Number,// Need explicit casting for CellType.Numeric when different from double
                     Price = (decimal)p.Price,
 
                     // using Dictionary notation
@@ -272,9 +273,9 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, result);
         }
 
@@ -285,7 +286,7 @@ namespace Ganss.Excel.Tests
             var dynProducts = excel.Fetch().ToList();
             var products = dynProducts.Select(p => new ProductDynamic()
             {
-                NumberInStock = (int)p.Number,
+                Number = (int)p.Number,
                 Price = (decimal)p.Price,
                 Name = p.Name,
                 Value = p.Value,
@@ -295,9 +296,9 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, products);
 
             dynProducts[0].Name += "Test";
@@ -315,6 +316,119 @@ namespace Ganss.Excel.Tests
             products[2].OfferEnd = new DateTime(2000, 1, 2);
 
             CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        [Test]
+        public void FetchDynamicSaveObjectsTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+            var dynProducts = excel.Fetch().ToList();
+            var products = dynProducts.Select(p => new ProductDynamic()
+            {
+                Number = (int)p.Number,
+                Price = (decimal)p.Price,
+                Name = p.Name,
+                Value = p.Value,
+                Offer = p.Offer,
+                OfferEnd = p.OfferEnd,
+            }).ToList();
+
+            CollectionAssert.AreEqual(new List<ProductDynamic>
+            {
+                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            }, products);
+
+            dynProducts[0].Name += "Test";
+            dynProducts[1].Price += 1.0;
+            dynProducts[2].OfferEnd = new DateTime(2000, 1, 2);
+
+            var file = @"productssavedynamic.xlsx";
+
+            new ExcelMapper().Save(file, dynProducts);
+
+            var productsFetched = new ExcelMapper(file).Fetch<ProductDynamic>().ToList();
+
+            products[0].Name += "Test";
+            products[1].Price += 1.0m;
+            products[2].OfferEnd = new DateTime(2000, 1, 2);
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        [Test]
+        public void FetchDynamicOverloadsTest()
+        {
+            var file = @"..\..\..\products.xlsx";
+            var excel = new ExcelMapper();
+
+            var products = excel.Fetch(file, "Tabelle1");
+            CheckDynamicObjects(products);
+
+            products = excel.Fetch(file, 0);
+            CheckDynamicObjects(products);
+
+            var stream = new FileStream(file, FileMode.Open, FileAccess.Read);
+            products = excel.Fetch(stream, "Tabelle1");
+            stream.Close();
+            CheckDynamicObjects(products);
+
+            stream = new FileStream(file, FileMode.Open, FileAccess.Read);
+            products = excel.Fetch(stream, 0);
+            stream.Close();
+            CheckDynamicObjects(products);
+
+            excel = new ExcelMapper(file);
+            products = excel.Fetch("Tabelle1");
+            CheckDynamicObjects(products);
+
+            excel = new ExcelMapper(file);
+            products = excel.Fetch(0);
+            CheckDynamicObjects(products);
+        }
+
+        [Test]
+        public void FetchAsyncDynamicOverloadsTest()
+        {
+            var file = @"..\..\..\products.xlsx";
+            var excel = new ExcelMapper();
+
+            var products = excel.FetchAsync(file, "Tabelle1").Result;
+            CheckDynamicObjects(products);
+
+            products = excel.FetchAsync(file, 0).Result;
+            CheckDynamicObjects(products);
+
+            var stream = new FileStream(file, FileMode.Open, FileAccess.Read);
+            products = excel.FetchAsync(stream, "Tabelle1").Result;
+            stream.Close();
+            CheckDynamicObjects(products);
+
+            stream = new FileStream(file, FileMode.Open, FileAccess.Read);
+            products = excel.FetchAsync(stream, 0).Result;
+            stream.Close();
+            CheckDynamicObjects(products);
+        }
+
+        private void CheckDynamicObjects(IEnumerable<dynamic> dynProducts)
+        {
+            var products = dynProducts.Select(p => new ProductDynamic()
+            {
+                Number = (int)p.Number,
+                Price = (decimal)p.Price,
+                Name = p.Name,
+                Value = p.Value,
+                Offer = p.Offer,
+                OfferEnd = p.OfferEnd,
+            }).ToList();
+
+            CollectionAssert.AreEqual(new List<ProductDynamic>
+            {
+                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            }, products);
         }
 
         [Test]
