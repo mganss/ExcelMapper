@@ -88,6 +88,15 @@ public class Product
 excel.AddMapping<Product>("Price", p => p.PriceString).FromExcelOnly();
 ```
 
+## Dynamic mapping
+
+You don't have to specify a mapping to static types, you can also fetch a collection of dynamic objects.
+
+```c#
+var products = new ExcelMapper("products.xlsx").Fetch(); // -> IEnumerable<dynamic>
+products.First().Price += 1.0;
+```
+
 ## Save objects
 
 ```C#
