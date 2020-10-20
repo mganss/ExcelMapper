@@ -73,14 +73,13 @@ excel.AddMapping(typeof(Product), 1, "NumberInStock");
 
 ## Multiple mappings
 
-You can map a single column to multiple properties but you need to be aware of what should happen when mapping back from objects to Excel. To specify the single property you want to map back to Excel, add the `FromExcelOnlyAttribute` to all other properties that map to the same column. Alternatively, you can use the `FromExcelOnly()` method when mapping through method calls.
+You can map a single column to multiple properties but you need to be aware of what should happen when mapping back from objects to Excel. To specify the single property you want to map back to Excel, add `MappingDirections.ExcelToObject` in the `Column` attribute of all other properties that map to the same column. Alternatively, you can use the `FromExcelOnly()` method when mapping through method calls.
 
 ```c#
 public class Product
 {
     public decimal Price { get; set; }
-    [Column("Price")]
-    [FromExcelOnly]
+    [Column("Price", MappingDirections.ExcelToObject)]
     public string PriceString { get; set; }
 }
 
