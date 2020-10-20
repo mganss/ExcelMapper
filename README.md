@@ -20,6 +20,7 @@ A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) obje
 * Use custom or builtin data formats for numeric and DateTime columns
 * Map formulas or formula results depending on property type
 * Map JSON
+* Fetch/Save dynamic objects
 
 ## Read objects from an Excel file
 
