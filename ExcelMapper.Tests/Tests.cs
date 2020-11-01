@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading.Tasks;
 using NPOI.XSSF.UserModel;
 using NPOI.OpenXmlFormats.Spreadsheet;
+using System.Data.Common;
 
 namespace Ganss.Excel.Tests
 {
@@ -158,6 +159,196 @@ namespace Ganss.Excel.Tests
                 $"{Name}{Number}{Price}{Value}{Id}{Hash}".GetHashCode();
         }
 
+        private class ProductDynamic
+        {
+            public string Name { get; set; }
+            public int Number { get; set; }
+            public decimal Price { get; set; }
+            public bool Offer { get; set; }
+            public DateTime OfferEnd { get; set; }
+            public double Value { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                return obj is ProductDynamic dynamic &&
+                       Name == dynamic.Name &&
+                       Number == dynamic.Number &&
+                       Price == dynamic.Price &&
+                       Offer == dynamic.Offer &&
+                       OfferEnd == dynamic.OfferEnd &&
+                       Value == dynamic.Value;
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = -675879668;
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+                hashCode = hashCode * -1521134295 + Number.GetHashCode();
+                hashCode = hashCode * -1521134295 + Price.GetHashCode();
+                hashCode = hashCode * -1521134295 + Offer.GetHashCode();
+                hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
+                hashCode = hashCode * -1521134295 + Value.GetHashCode();
+                return hashCode;
+            }
+        }
+        private class ProductDynamicValueConvertSave : ProductDynamic
+        {
+            public override bool Equals(object obj)
+            {
+                return obj is ProductDynamicValueConvertSave save &&
+                       Name == save.Name &&
+                       Number == save.Number &&
+                       Price == save.Price &&
+                       Offer == save.Offer &&
+                       OfferEnd == save.OfferEnd &&
+                       Value == save.Value;
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = 1336918815;
+                hashCode = hashCode * -1521134295 + base.GetHashCode();
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+                hashCode = hashCode * -1521134295 + Number.GetHashCode();
+                hashCode = hashCode * -1521134295 + Price.GetHashCode();
+                hashCode = hashCode * -1521134295 + Offer.GetHashCode();
+                hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
+                hashCode = hashCode * -1521134295 + Value.GetHashCode();
+                return hashCode;
+            }
+        }
+        private class ProductDynamicValueConvert
+        {
+            public string Name { get; set; }
+            public string Number { get; set; }
+            public string Price { get; set; }
+            public bool Offer { get; set; }
+            public DateTime OfferEnd { get; set; }
+            public double Value { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                return obj is ProductDynamicValueConvert convert &&
+                       Name == convert.Name &&
+                       Number == convert.Number &&
+                       Price == convert.Price &&
+                       Offer == convert.Offer &&
+                       OfferEnd == convert.OfferEnd &&
+                       Value == convert.Value;
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = 1023233625;
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Number);
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Price);
+                hashCode = hashCode * -1521134295 + Offer.GetHashCode();
+                hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
+                hashCode = hashCode * -1521134295 + Value.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        private void CheckDynamicObjectsValueConvert(IEnumerable<dynamic> dynProducts)
+        {
+            var products = dynProducts.Select(p => new ProductDynamicValueConvert()
+            {
+                Number = p.Number,
+                Price = p.Price,
+                Name = p.Name,
+                Value = p.Value,
+                Offer = p.Offer,
+                OfferEnd = p.OfferEnd,
+            }).ToList();
+
+            CollectionAssert.AreEqual(new List<ProductDynamicValueConvert>
+            {
+                new ProductDynamicValueConvert { Name = "-Nudossi-", Number = "3C", Price = "/1.99/", Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamicValueConvert { Name = "-Halloren-", Number = "21", Price = "/2.99/", Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamicValueConvert { Name = "-Filinchen-", Number = "64", Price = "/0.99/", Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            }, products);
+        }
+
+        [Test]
+        public async Task FetchSaveValueConverterOverloadsTest()
+        {
+            var file = @"..\..\..\products.xlsx";
+            var excel = new ExcelMapper();
+
+            Func<string, object, object> valueParser = (colname, val) =>
+            {
+                switch (colname)
+                {
+                    // Readers
+                    case "Number" when val is double dval: return ((int)dval).ToString("X");
+                    case "Price" when val is double dval: return string.Format(CultureInfo.InvariantCulture, "/{0}/", dval);
+                    case "Name" when val is string sval: return $"-{sval}-";
+                    default: return val;
+                }
+            };
+
+            Func<string, object, object> valueConverter = (colname, val) =>
+            {
+                switch (colname)
+                {
+                    // Writers
+                    case "Number" when val is string sval: return int.Parse(sval, NumberStyles.HexNumber);
+                    case "Price" when val is string sval: return decimal.Parse(sval.Replace("/", string.Empty), CultureInfo.InvariantCulture);
+                    case "Name" when val is string sval && sval[0] == '-' && sval[sval.Length - 1] == '-': return sval.Replace("-", string.Empty);
+                    default: return val;
+                }
+            };
+
+            var products = await excel.FetchAsync(file, "Tabelle1", valueParser);
+            CheckDynamicObjectsValueConvert(products);
+
+            products = await excel.FetchAsync(file, 0, valueParser);
+            CheckDynamicObjectsValueConvert(products);
+
+            var stream = new FileStream(file, FileMode.Open, FileAccess.Read);
+            products = await excel.FetchAsync(stream, "Tabelle1", valueParser);
+            stream.Close();
+            CheckDynamicObjectsValueConvert(products);
+
+            stream = new FileStream(file, FileMode.Open, FileAccess.Read);
+            products = await excel.FetchAsync(stream, 0, valueParser);
+            stream.Close();
+            CheckDynamicObjectsValueConvert(products);
+
+            // Save
+            var excpectedResult = new List<ProductDynamicValueConvertSave>
+            {
+                new ProductDynamicValueConvertSave { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamicValueConvertSave { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamicValueConvertSave { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            };
+
+            var filesave = "productssave_valueconverter.xlsx";
+
+            await new ExcelMapper().SaveAsync(filesave, products, "Products", valueConverter: valueConverter);
+            var productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
+            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+
+            await new ExcelMapper().SaveAsync(filesave, products, valueConverter: valueConverter);
+            productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
+            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+
+            using (var fs = File.OpenWrite(filesave))
+            {
+                await new ExcelMapper().SaveAsync(fs, products, "Products", valueConverter: valueConverter);
+            }
+            productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
+            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+
+            using (var fs = File.OpenWrite(filesave))
+            {
+                await new ExcelMapper().SaveAsync(fs, products, valueConverter: valueConverter);
+            }
+            productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
+            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+        }
+
         [Test]
         public void BeforeAFterMappingTest()
         {
@@ -207,40 +398,6 @@ namespace Ganss.Excel.Tests
                 new ProductMultiColumsReload { Name = "Halloren", NewNumber = 33, NewPrice = 2.99m, NewValue = "C3*D3" },
                 new ProductMultiColumsReload { Name = "Filinchen", NewNumber = 100, NewPrice = 0.99m, NewValue = "C5*D5" },
             }, reloaded);
-        }
-
-
-        private class ProductDynamic
-        {
-            public string Name { get; set; }
-            public int Number { get; set; }
-            public decimal Price { get; set; }
-            public bool Offer { get; set; }
-            public DateTime OfferEnd { get; set; }
-            public double Value { get; set; }
-
-            public override bool Equals(object obj)
-            {
-                return obj is ProductDynamic dynamic &&
-                       Name == dynamic.Name &&
-                       Number == dynamic.Number &&
-                       Price == dynamic.Price &&
-                       Offer == dynamic.Offer &&
-                       OfferEnd == dynamic.OfferEnd &&
-                       Value == dynamic.Value;
-            }
-
-            public override int GetHashCode()
-            {
-                int hashCode = -675879668;
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-                hashCode = hashCode * -1521134295 + Number.GetHashCode();
-                hashCode = hashCode * -1521134295 + Price.GetHashCode();
-                hashCode = hashCode * -1521134295 + Offer.GetHashCode();
-                hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
-                hashCode = hashCode * -1521134295 + Value.GetHashCode();
-                return hashCode;
-            }
         }
 
         [Test]
