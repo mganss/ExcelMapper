@@ -1,8 +1,9 @@
-﻿using NPOI.SS.UserModel;
+using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Text.Json;
@@ -25,7 +26,7 @@ namespace Ganss.Excel
         /// Sets the property type.
         /// </summary>
         /// <param name="propertyType">The property type.</param>
-        protected void SetPropertyType(Type propertyType)
+        internal void SetPropertyType(Type propertyType)
         {
             var underlyingType = Nullable.GetUnderlyingType(propertyType);
             IsNullable = underlyingType != null;
@@ -323,12 +324,18 @@ namespace Ganss.Excel
             Directions = MappingDirections.ObjectToExcel;
             return this;
         }
+
+        internal void ChangeSetterType(Type newType)
+        {
+            SetPropertyType(newType);
+            SetCell = GenerateCellSetter();
+        }
     }
 
     /// <summary>
     /// Describes the mapping of an <see cref="ExpandoObject"/>'s property to a cell.
     /// </summary>
-    public class DynamicColumnInfo: ColumnInfo
+    public class DynamicColumnInfo : ColumnInfo
     {
         /// <summary>
         /// Gets or sets the column index.

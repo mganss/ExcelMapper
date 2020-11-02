@@ -133,10 +133,12 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<T> Fetch<T>(string file, string sheetName) where T : new()
+        public IEnumerable<T> Fetch<T>(string file, string sheetName, Func<string, object, object> valueParser = null)
+            where T : new()
         {
-            return Fetch(file, typeof(T), sheetName).OfType<T>();
+            return Fetch(file, typeof(T), sheetName, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -145,11 +147,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable Fetch(string file, Type type, string sheetName)
+        public IEnumerable Fetch(string file, Type type, string sheetName, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(file);
-            return Fetch(type, sheetName);
+            return Fetch(type, sheetName, valueParser);
         }
 
         /// <summary>
@@ -157,11 +160,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> Fetch(string file, string sheetName)
+        public IEnumerable<dynamic> Fetch(string file, string sheetName, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(file);
-            return Fetch(sheetName);
+            return Fetch(sheetName, valueParser);
         }
 
         /// <summary>
@@ -170,10 +174,12 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<T> Fetch<T>(string file, int sheetIndex) where T : new()
+        public IEnumerable<T> Fetch<T>(string file, int sheetIndex, Func<string, object, object> valueParser = null)
+            where T : new()
         {
-            return Fetch(file, typeof(T), sheetIndex).OfType<T>();
+            return Fetch(file, typeof(T), sheetIndex, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -182,11 +188,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable Fetch(string file, Type type, int sheetIndex)
+        public IEnumerable Fetch(string file, Type type, int sheetIndex, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(file);
-            return Fetch(type, sheetIndex);
+            return Fetch(type, sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -194,11 +201,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> Fetch(string file, int sheetIndex)
+        public IEnumerable<dynamic> Fetch(string file, int sheetIndex, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(file);
-            return Fetch(sheetIndex);
+            return Fetch(sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -207,10 +215,12 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<T> Fetch<T>(Stream stream, string sheetName) where T : new()
+        public IEnumerable<T> Fetch<T>(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
+            where T : new()
         {
-            return Fetch(stream, typeof(T), sheetName).OfType<T>();
+            return Fetch(stream, typeof(T), sheetName, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -219,11 +229,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable Fetch(Stream stream, Type type, string sheetName)
+        public IEnumerable Fetch(Stream stream, Type type, string sheetName, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(stream);
-            return Fetch(type, sheetName);
+            return Fetch(type, sheetName, valueParser);
         }
 
         /// <summary>
@@ -231,11 +242,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> Fetch(Stream stream, string sheetName)
+        public IEnumerable<dynamic> Fetch(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(stream);
-            return Fetch(sheetName);
+            return Fetch(sheetName, valueParser);
         }
 
         /// <summary>
@@ -244,10 +256,12 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex) where T : new()
+        public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex, Func<string, object, object> valueParser = null)
+            where T : new()
         {
-            return Fetch(stream, typeof(T), sheetIndex).OfType<T>();
+            return Fetch(stream, typeof(T), sheetIndex, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -256,11 +270,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable Fetch(Stream stream, Type type, int sheetIndex)
+        public IEnumerable Fetch(Stream stream, Type type, int sheetIndex, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(stream);
-            return Fetch(type, sheetIndex);
+            return Fetch(type, sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -268,11 +283,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> Fetch(Stream stream, int sheetIndex)
+        public IEnumerable<dynamic> Fetch(Stream stream, int sheetIndex, Func<string, object, object> valueParser = null)
         {
             Workbook = WorkbookFactory.Create(stream);
-            return Fetch(sheetIndex);
+            return Fetch(sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -280,11 +296,13 @@ namespace Ganss.Excel
         /// </summary>
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
-        public IEnumerable<T> Fetch<T>(string sheetName) where T : new()
+        public IEnumerable<T> Fetch<T>(string sheetName, Func<string, object, object> valueParser = null)
+            where T : new()
         {
-            return Fetch(typeof(T), sheetName).OfType<T>();
+            return Fetch(typeof(T), sheetName, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -292,9 +310,10 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
-        public IEnumerable Fetch(Type type, string sheetName)
+        public IEnumerable Fetch(Type type, string sheetName, Func<string, object, object> valueParser = null)
         {
             PrimitiveCheck(type);
 
@@ -303,23 +322,24 @@ namespace Ganss.Excel
             {
                 throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
             }
-            return Fetch(sheet, type);
+            return Fetch(sheet, type, valueParser);
         }
 
         /// <summary>
         /// Fetches objects from the specified sheet name.
         /// </summary>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
-        public IEnumerable<dynamic> Fetch(string sheetName)
+        public IEnumerable<dynamic> Fetch(string sheetName, Func<string, object, object> valueParser = null)
         {
             var sheet = Workbook.GetSheet(sheetName);
             if (sheet == null)
             {
                 throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
             }
-            return Fetch(sheet);
+            return Fetch(sheet, valueParser);
         }
 
         /// <summary>
@@ -327,11 +347,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<T> Fetch<T>(int sheetIndex = 0) where T : new()
+        public IEnumerable<T> Fetch<T>(int sheetIndex = 0, Func<string, object, object> valueParser = null) where T : new()
         {
             var sheet = Workbook.GetSheetAt(sheetIndex);
-            return Fetch<T>(sheet);
+            return Fetch<T>(sheet, valueParser);
         }
 
         /// <summary>
@@ -339,32 +360,34 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="type">The type of objects the Excel file is mapped to</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable Fetch(Type type, int sheetIndex = 0)
+        public IEnumerable Fetch(Type type, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             PrimitiveCheck(type);
 
             var sheet = Workbook.GetSheetAt(sheetIndex);
-            return Fetch(sheet, type);
+            return Fetch(sheet, type, valueParser);
         }
 
         /// <summary>
         /// Fetches objects from the specified sheet index.
         /// </summary>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<dynamic> Fetch(int sheetIndex = 0)
+        public IEnumerable<dynamic> Fetch(int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             var sheet = Workbook.GetSheetAt(sheetIndex);
-            return Fetch(sheet);
+            return Fetch(sheet, valueParser);
         }
 
-        IEnumerable<T> Fetch<T>(ISheet sheet) where T : new()
+        IEnumerable<T> Fetch<T>(ISheet sheet, Func<string, object, object> valueParser = null) where T : new()
         {
-            return Fetch(sheet, typeof(T)).OfType<T>();
+            return Fetch(sheet, typeof(T), valueParser).OfType<T>();
         }
 
-        IEnumerable Fetch(ISheet sheet, Type type)
+        IEnumerable Fetch(ISheet sheet, Type type, Func<string, object, object> valueParser = null)
         {
             var firstRow = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber);
 
@@ -410,6 +433,9 @@ namespace Ganss.Excel
                                 var cellValue = GetCellValue(cell, ci);
                                 try
                                 {
+                                    if (valueParser != null)
+                                        cellValue = valueParser(string.IsNullOrWhiteSpace(ci.Name) ? col.Key.ToString() : ci.Name, cellValue);
+
                                     ci.SetProperty(o, cellValue, cell);
                                 }
                                 catch (Exception e)
@@ -433,7 +459,8 @@ namespace Ganss.Excel
             }
         }
 
-        IEnumerable<dynamic> Fetch(ISheet sheet) => Fetch(sheet, type: null).Cast<dynamic>();
+        IEnumerable<dynamic> Fetch(ISheet sheet, Func<string, object, object> valueParser = null) =>
+            Fetch(sheet, type: null, valueParser).Cast<dynamic>();
 
         /// <summary>
         /// Fetches objects from the specified sheet name using async I/O.
@@ -441,10 +468,12 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<T>> FetchAsync<T>(string file, string sheetName) where T : new()
+        public async Task<IEnumerable<T>> FetchAsync<T>(string file, string sheetName, Func<string, object, object> valueParser = null)
+            where T : new()
         {
-            return (await FetchAsync(file, typeof(T), sheetName)).OfType<T>();
+            return (await FetchAsync(file, typeof(T), sheetName, valueParser)).OfType<T>();
         }
 
         /// <summary>
@@ -452,11 +481,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<dynamic>> FetchAsync(string file, string sheetName)
+        public async Task<IEnumerable<dynamic>> FetchAsync(string file, string sheetName, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, sheetName);
+            return Fetch(ms, sheetName, valueParser);
         }
 
         /// <summary>
@@ -465,11 +495,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable> FetchAsync(string file, Type type, string sheetName)
+        public async Task<IEnumerable> FetchAsync(string file, Type type, string sheetName, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, type, sheetName);
+            return Fetch(ms, type, sheetName, valueParser);
         }
 
         /// <summary>
@@ -478,11 +509,13 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0) where T : new()
+        public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+            where T : new()
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, typeof(T), sheetIndex).OfType<T>();
+            return Fetch(ms, typeof(T), sheetIndex, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -490,11 +523,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0)
+        public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, sheetIndex).Cast<dynamic>();
+            return Fetch(ms, sheetIndex, valueParser).Cast<dynamic>();
         }
 
         /// <summary>
@@ -503,11 +537,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable> FetchAsync(string file, Type type, int sheetIndex = 0)
+        public async Task<IEnumerable> FetchAsync(string file, Type type, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, type, sheetIndex);
+            return Fetch(ms, type, sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -516,11 +551,13 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName) where T : new()
+        public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
+            where T : new()
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, typeof(T), sheetName).OfType<T>();
+            return Fetch(ms, typeof(T), sheetName, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -528,11 +565,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName)
+        public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, sheetName).Cast<dynamic>();
+            return Fetch(ms, sheetName, valueParser).Cast<dynamic>();
         }
 
         /// <summary>
@@ -541,11 +579,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetName">Name of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable> FetchAsync(Stream stream, Type type, string sheetName)
+        public async Task<IEnumerable> FetchAsync(Stream stream, Type type, string sheetName, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, type, sheetName);
+            return Fetch(ms, type, sheetName, valueParser);
         }
 
         /// <summary>
@@ -554,11 +593,13 @@ namespace Ganss.Excel
         /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0) where T : new()
+        public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+            where T : new()
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, typeof(T), sheetIndex).OfType<T>();
+            return Fetch(ms, typeof(T), sheetIndex, valueParser).OfType<T>();
         }
 
         /// <summary>
@@ -566,11 +607,12 @@ namespace Ganss.Excel
         /// </summary>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0)
+        public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, sheetIndex).Cast<dynamic>();
+            return Fetch(ms, sheetIndex, valueParser).Cast<dynamic>();
         }
 
         /// <summary>
@@ -579,11 +621,12 @@ namespace Ganss.Excel
         /// <param name="type">The type of objects the Excel file is mapped to.</param>
         /// <param name="stream">The stream the Excel file is read from.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
+        /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public async Task<IEnumerable> FetchAsync(Stream stream, Type type, int sheetIndex = 0)
+        public async Task<IEnumerable> FetchAsync(Stream stream, Type type, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, type, sheetIndex);
+            return Fetch(ms, type, sheetIndex, valueParser);
         }
 
         static async Task<Stream> ReadAsync(string file)
@@ -637,10 +680,11 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, objects, sheetName, xlsx);
+            Save(fs, objects, sheetName, xlsx, valueConverter);
         }
 
         /// <summary>
@@ -651,10 +695,11 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, objects, sheetIndex, xlsx);
+            Save(fs, objects, sheetIndex, xlsx, valueConverter);
         }
 
         /// <summary>
@@ -665,13 +710,14 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheet(sheetName);
             if (sheet == null) sheet = Workbook.CreateSheet(sheetName);
-            Save(stream, sheet, objects);
+            Save(stream, sheet, objects, valueConverter);
         }
 
         /// <summary>
@@ -682,7 +728,8 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
@@ -691,7 +738,7 @@ namespace Ganss.Excel
                 sheet = Workbook.GetSheetAt(sheetIndex);
             else
                 sheet = Workbook.CreateSheet();
-            Save(stream, sheet, objects);
+            Save(stream, sheet, objects, valueConverter);
         }
 
         /// <summary>
@@ -700,10 +747,11 @@ namespace Ganss.Excel
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save(string file, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, sheetName, xlsx);
+            Save(fs, sheetName, xlsx, valueConverter);
         }
 
         /// <summary>
@@ -712,10 +760,11 @@ namespace Ganss.Excel
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save(string file, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, sheetIndex, xlsx);
+            Save(fs, sheetIndex, xlsx, valueConverter);
         }
 
         /// <summary>
@@ -724,13 +773,14 @@ namespace Ganss.Excel
         /// <param name="stream">The stream to save the objects to.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save(Stream stream, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheet(sheetName);
             if (sheet == null) sheet = Workbook.CreateSheet(sheetName);
-            Save(stream, sheet);
+            Save(stream, sheet, valueConverter);
         }
 
         /// <summary>
@@ -739,16 +789,17 @@ namespace Ganss.Excel
         /// <param name="stream">The stream to save the objects to.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheetAt(sheetIndex);
             if (sheet == null) sheet = Workbook.CreateSheet();
-            Save(stream, sheet);
+            Save(stream, sheet, valueConverter);
         }
 
-        void Save(Stream stream, ISheet sheet)
+        void Save(Stream stream, ISheet sheet, Func<string, object, object> valueConverter = null)
         {
             var objects = Objects[sheet.SheetName];
             var typeMapper = TypeMapperFactory.Create(objects.First().Value);
@@ -772,8 +823,7 @@ namespace Ganss.Excel
                     var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
                     foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)))
                     {
-                        ci.SetCellStyle(cell);
-                        ci.SetCell(cell, ci.GetProperty(o.Value));
+                        SetCell(valueConverter, o.Value, cell, ci);
                     }
                 }
             }
@@ -781,7 +831,7 @@ namespace Ganss.Excel
             Workbook.Write(stream);
         }
 
-        void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects)
+        void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects, Func<string, object, object> valueConverter = null)
         {
             var firstObject = objects.FirstOrDefault();
             var typeMapper = firstObject is ExpandoObject ? TypeMapperFactory.Create(firstObject) : TypeMapperFactory.Create(typeof(T));
@@ -811,8 +861,7 @@ namespace Ganss.Excel
 
                     foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)))
                     {
-                        ci.SetCellStyle(cell);
-                        ci.SetCell(cell, ci.GetProperty(o));
+                        SetCell(valueConverter, o, cell, ci);
                     }
                 }
 
@@ -833,6 +882,26 @@ namespace Ganss.Excel
             Workbook.Write(stream);
         }
 
+        private static void SetCell<T>(Func<string, object, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci)
+        {
+            Type oldType = null;
+            object val = ci.GetProperty(objInstance);
+            if (valueConverter != null)
+            {
+                val = valueConverter(ci.Name, val);
+                var newType = val?.GetType() ?? oldType;
+                if (newType != ci.PropertyType)
+                {
+                    oldType = ci.PropertyType;
+                    ci.ChangeSetterType(newType);
+                }
+            }
+            ci.SetCellStyle(cell);
+            ci.SetCell(cell, val);
+            if (oldType != null)
+                ci.ChangeSetterType(oldType);
+        }
+
         private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
         {
             // All columns with <see cref="MappingDirections.ExcelToObject"/> direction only should not be saved
@@ -851,10 +920,11 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, objects, sheetName, xlsx);
+            Save(ms, objects, sheetName, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -866,10 +936,11 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, objects, sheetIndex, xlsx);
+            Save(ms, objects, sheetIndex, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -881,10 +952,11 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, objects, sheetName, xlsx);
+            Save(ms, objects, sheetName, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
 
@@ -896,10 +968,11 @@ namespace Ganss.Excel
         /// <param name="objects">The objects to save.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, objects, sheetIndex, xlsx);
+            Save(ms, objects, sheetIndex, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
 
@@ -909,10 +982,11 @@ namespace Ganss.Excel
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync(string file, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, sheetName, xlsx);
+            Save(ms, sheetName, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -922,10 +996,11 @@ namespace Ganss.Excel
         /// <param name="file">The path to the Excel file.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, sheetIndex, xlsx);
+            Save(ms, sheetIndex, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -935,10 +1010,11 @@ namespace Ganss.Excel
         /// <param name="stream">The stream to save the objects to.</param>
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, sheetName, xlsx);
+            Save(ms, sheetName, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
 
@@ -948,10 +1024,11 @@ namespace Ganss.Excel
         /// <param name="stream">The stream to save the objects to.</param>
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
-        public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true)
+        /// <param name="valueConverter">converter receiving property name and value</param>
+        public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             var ms = new MemoryStream();
-            Save(ms, sheetIndex, xlsx);
+            Save(ms, sheetIndex, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
 
@@ -974,11 +1051,12 @@ namespace Ganss.Excel
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
-        void GetColumns(ISheet sheet, TypeMapper typeMapper
+        Dictionary<int, string> GetColumns(ISheet sheet, TypeMapper typeMapper
             , ref Dictionary<int, List<ColumnInfo>> columnsByIndex
             , ref Dictionary<string, List<ColumnInfo>> columnsByName
         )
         {
+            Dictionary<int, string> ColIndexNameMap = new Dictionary<int, string>();
             if (HeaderRow)
             {
                 var headerRow = sheet.GetRow(HeaderRowNumber);
@@ -1008,6 +1086,8 @@ namespace Ganss.Excel
                         if (!hasColumnsByIndex)
                             columnsByIndex[j] = getter.Value;
 
+                        ColIndexNameMap.Add(columnIndex, getter.Key);
+
                         cell.SetCellValue(getter.Key);
 
                         j++;
@@ -1017,11 +1097,17 @@ namespace Ganss.Excel
                 {
                     columnsByIndex = headerRow.Cells
                         .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
-                        .Select(c => new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(c.StringCellValue) })
+                        .Select(c =>
+                        {
+                            var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(c.StringCellValue), ColumnName = c.StringCellValue };
+                            ColIndexNameMap.Add(val.ColumnIndex, val.ColumnName);
+                            return val;
+                        })
                         .Where(c => c.ColumnInfo != null)
                         .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
                 }
             }
+            return ColIndexNameMap;
         }
 
         object GetCellValue(ICell cell, ColumnInfo targetColumn)
