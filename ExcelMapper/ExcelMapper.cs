@@ -889,7 +889,7 @@ namespace Ganss.Excel
             if (valueConverter != null)
             {
                 val = valueConverter(ci.Name, val);
-                var newType = val?.GetType();
+                var newType = val?.GetType() ?? ci.PropertyType;
                 if (newType != ci.PropertyType)
                 {
                     oldType = ci.PropertyType;
