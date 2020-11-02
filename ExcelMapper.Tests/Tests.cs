@@ -39,7 +39,7 @@ namespace Ganss.Excel.Tests
             public string Value { get; set; }
         }
 
-        public class ProductMultiColumsReload
+        private class ProductMultiColumsReload
         {
             public string Name { get; set; }
             public int NewNumber { get; set; }
@@ -276,7 +276,7 @@ namespace Ganss.Excel.Tests
             var file = @"..\..\..\products.xlsx";
             var excel = new ExcelMapper();
 
-            Func<string, object, object> valueParser = (colname, val) =>
+            object valueParser(string colname, object val)
             {
                 switch (colname)
                 {
@@ -286,9 +286,9 @@ namespace Ganss.Excel.Tests
                     case "Name" when val is string sval: return $"-{sval}-";
                     default: return val;
                 }
-            };
+            }
 
-            Func<string, object, object> valueConverter = (colname, val) =>
+            object valueConverter(string colname, object val)
             {
                 switch (colname)
                 {
@@ -298,7 +298,7 @@ namespace Ganss.Excel.Tests
                     case "Name" when val is string sval && sval[0] == '-' && sval[sval.Length - 1] == '-': return sval.Replace("-", string.Empty);
                     default: return val;
                 }
-            };
+            }
 
             var products = await excel.FetchAsync(file, "Tabelle1", valueParser);
             CheckDynamicObjectsValueConvert(products);

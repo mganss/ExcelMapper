@@ -528,7 +528,7 @@ namespace Ganss.Excel
         public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, sheetIndex, valueParser).Cast<dynamic>();
+            return Fetch(ms, sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -570,7 +570,7 @@ namespace Ganss.Excel
         public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, sheetName, valueParser).Cast<dynamic>();
+            return Fetch(ms, sheetName, valueParser);
         }
 
         /// <summary>
@@ -612,7 +612,7 @@ namespace Ganss.Excel
         public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(stream);
-            return Fetch(ms, sheetIndex, valueParser).Cast<dynamic>();
+            return Fetch(ms, sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -889,7 +889,7 @@ namespace Ganss.Excel
             if (valueConverter != null)
             {
                 val = valueConverter(ci.Name, val);
-                var newType = val?.GetType() ?? oldType;
+                var newType = val?.GetType();
                 if (newType != ci.PropertyType)
                 {
                     oldType = ci.PropertyType;
@@ -1051,7 +1051,7 @@ namespace Ganss.Excel
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
-        Dictionary<int, string> GetColumns(ISheet sheet, TypeMapper typeMapper
+        void GetColumns(ISheet sheet, TypeMapper typeMapper
             , ref Dictionary<int, List<ColumnInfo>> columnsByIndex
             , ref Dictionary<string, List<ColumnInfo>> columnsByName
         )
@@ -1107,7 +1107,6 @@ namespace Ganss.Excel
                         .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
                 }
             }
-            return ColIndexNameMap;
         }
 
         object GetCellValue(ICell cell, ColumnInfo targetColumn)
