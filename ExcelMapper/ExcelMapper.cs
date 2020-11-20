@@ -923,7 +923,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, objects, sheetName, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
@@ -939,7 +939,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, objects, sheetIndex, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
@@ -955,7 +955,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, objects, sheetName, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
@@ -971,7 +971,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, objects, sheetIndex, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
@@ -985,7 +985,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, sheetName, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
@@ -999,7 +999,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, sheetIndex, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
@@ -1013,7 +1013,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, sheetName, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
@@ -1027,7 +1027,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             Save(ms, sheetIndex, xlsx, valueConverter);
             await SaveAsync(stream, ms);
         }
@@ -1056,7 +1056,6 @@ namespace Ganss.Excel
             , ref Dictionary<string, List<ColumnInfo>> columnsByName
         )
         {
-            Dictionary<int, string> ColIndexNameMap = new Dictionary<int, string>();
             if (HeaderRow)
             {
                 var headerRow = sheet.GetRow(HeaderRowNumber);
@@ -1086,8 +1085,6 @@ namespace Ganss.Excel
                         if (!hasColumnsByIndex)
                             columnsByIndex[j] = getter.Value;
 
-                        ColIndexNameMap.Add(columnIndex, getter.Key);
-
                         cell.SetCellValue(getter.Key);
 
                         j++;
@@ -1100,7 +1097,6 @@ namespace Ganss.Excel
                         .Select(c =>
                         {
                             var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(c.StringCellValue), ColumnName = c.StringCellValue };
-                            ColIndexNameMap.Add(val.ColumnIndex, val.ColumnName);
                             return val;
                         })
                         .Where(c => c.ColumnInfo != null)

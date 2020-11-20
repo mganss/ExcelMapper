@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Ganss.Excel.Exceptions;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Threading.Tasks;
 using NPOI.XSSF.UserModel;
 using NPOI.OpenXmlFormats.Spreadsheet;
 using System.Data.Common;
+using System.Runtime.Serialization.Json;
 
 namespace Ganss.Excel.Tests
 {
@@ -112,7 +112,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is Product o)) return false;
+                if (obj is not Product o) return false;
                 return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price && o.Value == Value;
             }
 
@@ -181,14 +181,7 @@ namespace Ganss.Excel.Tests
 
             public override int GetHashCode()
             {
-                int hashCode = -675879668;
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-                hashCode = hashCode * -1521134295 + Number.GetHashCode();
-                hashCode = hashCode * -1521134295 + Price.GetHashCode();
-                hashCode = hashCode * -1521134295 + Offer.GetHashCode();
-                hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
-                hashCode = hashCode * -1521134295 + Value.GetHashCode();
-                return hashCode;
+                return HashCode.Combine(Name, Number, Price, Offer, OfferEnd, Value);
             }
         }
         private class ProductDynamicValueConvertSave : ProductDynamic
@@ -239,18 +232,11 @@ namespace Ganss.Excel.Tests
 
             public override int GetHashCode()
             {
-                int hashCode = 1023233625;
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Number);
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Price);
-                hashCode = hashCode * -1521134295 + Offer.GetHashCode();
-                hashCode = hashCode * -1521134295 + OfferEnd.GetHashCode();
-                hashCode = hashCode * -1521134295 + Value.GetHashCode();
-                return hashCode;
+                return HashCode.Combine(Name, Number, Price, Offer, OfferEnd, Value);
             }
         }
 
-        private void CheckDynamicObjectsValueConvert(IEnumerable<dynamic> dynProducts)
+        private static void CheckDynamicObjectsValueConvert(IEnumerable<dynamic> dynProducts)
         {
             var products = dynProducts.Select(p => new ProductDynamicValueConvert()
             {
@@ -278,26 +264,26 @@ namespace Ganss.Excel.Tests
 
             object valueParser(string colname, object val)
             {
-                switch (colname)
+                return colname switch
                 {
                     // Readers
-                    case "Number" when val is double dval: return ((int)dval).ToString("X");
-                    case "Price" when val is double dval: return string.Format(CultureInfo.InvariantCulture, "/{0}/", dval);
-                    case "Name" when val is string sval: return $"-{sval}-";
-                    default: return val;
-                }
+                    "Number" when val is double dval => ((int)dval).ToString("X"),
+                    "Price" when val is double dval => string.Format(CultureInfo.InvariantCulture, "/{0}/", dval),
+                    "Name" when val is string sval => $"-{sval}-",
+                    _ => val,
+                };
             }
 
             object valueConverter(string colname, object val)
             {
-                switch (colname)
+                return colname switch
                 {
                     // Writers
-                    case "Number" when val is string sval: return int.Parse(sval, NumberStyles.HexNumber);
-                    case "Price" when val is string sval: return decimal.Parse(sval.Replace("/", string.Empty), CultureInfo.InvariantCulture);
-                    case "Name" when val is string sval && sval[0] == '-' && sval[sval.Length - 1] == '-': return sval.Replace("-", string.Empty);
-                    default: return val;
-                }
+                    "Number" when val is string sval => int.Parse(sval, NumberStyles.HexNumber),
+                    "Price" when val is string sval => decimal.Parse(sval.Replace("/", string.Empty), CultureInfo.InvariantCulture),
+                    "Name" when val is string sval && sval[0] == '-' && sval[^1] == '-' => sval.Replace("-", string.Empty),
+                    _ => val,
+                };
             }
 
             var products = await excel.FetchAsync(file, "Tabelle1", valueParser);
@@ -568,7 +554,7 @@ namespace Ganss.Excel.Tests
             CheckDynamicObjects(products);
         }
 
-        private void CheckDynamicObjects(IEnumerable<dynamic> dynProducts)
+        private static void CheckDynamicObjects(IEnumerable<dynamic> dynProducts)
         {
             var products = dynProducts.Select(p => new ProductDynamic()
             {
@@ -883,7 +869,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is ProductNoHeader o)) return false;
+                if (obj is not ProductNoHeader o) return false;
                 return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price;
             }
 
@@ -927,7 +913,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is ProductNoHeader o)) return false;
+                if (obj is not ProductNoHeader o) return false;
                 return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price;
             }
 
@@ -1019,7 +1005,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is ProductMapped o)) return false;
+                if (obj is not ProductMapped o) return false;
                 return o.NameX == NameX && o.NumberX == NumberX && o.PriceX == PriceX;
             }
 
@@ -1061,7 +1047,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is GetterSetterProduct o)) return false;
+                if (obj is not GetterSetterProduct o) return false;
                 return o.Name == Name && o.OfferEnd == OfferEnd;
             }
 
@@ -1081,13 +1067,11 @@ namespace Ganss.Excel.Tests
                 .FromExcelOnly()
                 .SetPropertyUsing((v, c) =>
                 {
-                    switch (c.CellStyle.FillForegroundColorColor)
+                    return c.CellStyle.FillForegroundColorColor switch
                     {
-                        case XSSFColor color when color.ARGBHex == "FFFF0000":
-                            return v;
-                        default:
-                            return null;
-                    }
+                        XSSFColor color when color.ARGBHex == "FFFF0000" => v,
+                        _ => null,
+                    };
                 });
             excel.AddMapping<GetterSetterProduct>("OfferEnd", p => p.OfferEnd)
                 .SetCellUsing((c, o) =>
@@ -1145,7 +1129,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is IgnoreProduct o)) return false;
+                if (obj is not IgnoreProduct o) return false;
                 return o.Name == Name && o.Number == Number && o.Price == Price && o.Offer == Offer && o.OfferEnd == OfferEnd;
             }
 
@@ -1194,7 +1178,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is NullableProduct o)) return false;
+                if (obj is not NullableProduct o) return false;
                 return o.Name == Name && o.Number == Number && o.Price == Price && o.Offer == Offer && o.OfferEnd == OfferEnd;
             }
 
@@ -1275,7 +1259,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is DataItem o)) return false;
+                if (obj is not DataItem o) return false;
                 return o.Bql == Bql && o.Id == Id && o.OriginalBql == OriginalBql && o.Title == Title && o.TranslatedBql == TranslatedBql;
             }
 
@@ -1378,7 +1362,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is ProductFormulaMapped o)) return false;
+                if (obj is not ProductFormulaMapped o) return false;
                 return o.Result == Result && o.Formula == Formula && o.ResultString == ResultString;
             }
 
@@ -1420,18 +1404,18 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(12, ex.Line);
             Assert.AreEqual(34, ex.Column);
 
-            // Round-trip the exception: Serialize and de-serialize with a BinaryFormatter
-            var bf = new BinaryFormatter();
+            // Round-trip the exception: Serialize and de-serialize
+            var serializer = new DataContractJsonSerializer(typeof(ExcelMapperConvertException));
             using (var ms = new MemoryStream())
             {
                 // "Save" object state
-                bf.Serialize(ms, ex);
+                serializer.WriteObject(ms, ex);
 
                 // Re-use the same stream for de-serialization
                 ms.Seek(0, 0);
 
                 // Replace the original exception with de-serialized one
-                ex = (ExcelMapperConvertException)bf.Deserialize(ms);
+                ex = (ExcelMapperConvertException)serializer.ReadObject(ms);
             }
 
             // Make sure custom properties are preserved after serialization
@@ -1452,7 +1436,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is ProductIndex o)) return false;
+                if (obj is not ProductIndex o) return false;
                 return o.Name == Name && o.Number == Number && o.Price == Price;
             }
 
@@ -1486,7 +1470,7 @@ namespace Ganss.Excel.Tests
 
             public override bool Equals(object obj)
             {
-                if (!(obj is ProductDoubleMap o)) return false;
+                if (obj is not ProductDoubleMap o) return false;
                 return o.Name == Name && o.Number == Number && o.Price == Price && o.OtherNumber == OtherNumber;
             }
 
@@ -1509,7 +1493,7 @@ namespace Ganss.Excel.Tests
             }, products);
         }
 
-        void AssertProducts(List<Product> products)
+        static void AssertProducts(List<Product> products)
         {
             CollectionAssert.AreEqual(new List<Product>
             {
@@ -1740,14 +1724,12 @@ namespace Ganss.Excel.Tests
 
             for (var i = 0; i < N; i++)
             {
-                using (var f2 = File.OpenRead(@"..\..\..\SampleExcel.xlsx"))
-                {
-                    var s2 = FetchWaterCaptationComplementsAsync(f2).Result;
-                }
+                using var f2 = File.OpenRead(@"..\..\..\SampleExcel.xlsx");
+                var s2 = FetchWaterCaptationComplementsAsync(f2).Result;
             }
         }
 
-        private async Task<List<Sample2>> FetchWaterCaptationComplementsAsync(Stream file)
+        private static async Task<List<Sample2>> FetchWaterCaptationComplementsAsync(Stream file)
         {
             var excelMapper = new ExcelMapper { HeaderRow = false };
             var samples = (await excelMapper.FetchAsync<Sample2>(file)).ToList();
