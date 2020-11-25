@@ -221,3 +221,14 @@ public class ProductJson
     public List<Product> Products { get; set; }
 }
 ```
+
+## Name normalization
+
+If the header cell values are not uniform, perhaps because they contain varying amounts of whitespace, you can specify a normalization function that will be applied to header cell
+values before mapping to property names. This can be done globally or for specific classes only.
+
+```c#
+excel.NormalizeUsing(n => Regex.Replace(n, "\w", ""));
+```
+
+This removes all whitespace so that columns with the string " First Name " map to a property named `FirstName`.
