@@ -11,6 +11,7 @@ using NPOI.XSSF.UserModel;
 using NPOI.OpenXmlFormats.Spreadsheet;
 using System.Data.Common;
 using System.Runtime.Serialization.Json;
+using System.Text.RegularExpressions;
 
 namespace Ganss.Excel.Tests
 {
@@ -1734,6 +1735,65 @@ namespace Ganss.Excel.Tests
             var excelMapper = new ExcelMapper { HeaderRow = false };
             var samples = (await excelMapper.FetchAsync<Sample2>(file)).ToList();
             return samples;
+        }
+
+        [Test]
+        public void NormalizeTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+
+            excel.NormalizeUsing(n => n + "X");
+
+            var products = excel.Fetch<ProductMapped>().ToList();
+
+            CollectionAssert.AreEqual(new List<ProductMapped>
+            {
+                new ProductMapped { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
+                new ProductMapped { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
+                new ProductMapped { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
+            }, products);
+        }
+
+        [Test]
+        public void NormalizeTypeTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+
+            excel.AddMapping<ProductMapped>("NameY", p => p.NameX);
+            excel.AddMapping<ProductMapped>("NumberY", p => p.NumberX);
+            excel.AddMapping<ProductMapped>("PriceY", p => p.PriceX);
+
+            excel.NormalizeUsing<ProductMapped>(n => n + "Y");
+
+            var products = excel.Fetch<ProductMapped>().ToList();
+
+            CollectionAssert.AreEqual(new List<ProductMapped>
+            {
+                new ProductMapped { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
+                new ProductMapped { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
+                new ProductMapped { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
+            }, products);
+        }
+
+        [Test]
+        public void NormalizeType2Test()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+
+            excel.AddMapping<ProductMapped>("NameY", p => p.NameX);
+            excel.AddMapping<ProductMapped>("NumberY", p => p.NumberX);
+            excel.AddMapping<ProductMapped>("PriceY", p => p.PriceX);
+
+            excel.NormalizeUsing(typeof(ProductMapped), n => n + "Y");
+
+            var products = excel.Fetch<ProductMapped>().ToList();
+
+            CollectionAssert.AreEqual(new List<ProductMapped>
+            {
+                new ProductMapped { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
+                new ProductMapped { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
+                new ProductMapped { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
+            }, products);
         }
     }
 }

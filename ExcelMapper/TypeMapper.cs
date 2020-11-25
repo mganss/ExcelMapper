@@ -31,6 +31,8 @@ namespace Ganss.Excel
         /// </value>
         public Dictionary<int, List<ColumnInfo>> ColumnsByIndex { get; set; } = new Dictionary<int, List<ColumnInfo>>();
 
+        internal Func<string, string> NormalizeName { get; set; }
+
         /// <summary>
         /// Gets or sets the Before Mapping action.
         /// </summary>

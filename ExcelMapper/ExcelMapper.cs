@@ -90,6 +90,8 @@ namespace Ganss.Excel
         /// </value>
         public DataFormatter DataFormatter { get; set; } = new DataFormatter(CultureInfo.InvariantCulture);
 
+        private Func<string, string> NormalizeName { get; set; }
+
         Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new Dictionary<string, Dictionary<int, object>>();
         IWorkbook Workbook { get; set; }
 
@@ -662,7 +664,8 @@ namespace Ganss.Excel
                 return colByIndex;
 
             var name = cell.StringCellValue;
-            var colByName = typeMapper.GetColumnByName(name);
+            var normalizedName = NormalizeCellName(typeMapper, name);
+            var colByName = typeMapper.GetColumnByName(normalizedName);
 
             // map column by name only if it hasn't been mapped to another property by index
             if (colByName != null
@@ -670,6 +673,13 @@ namespace Ganss.Excel
                 return colByName;
 
             return new List<ColumnInfo>();
+        }
+
+        private string NormalizeCellName(TypeMapper typeMapper, string name)
+        {
+            if (typeMapper.NormalizeName != null) return typeMapper.NormalizeName(name);
+            else if (NormalizeName != null) return NormalizeName(name);
+            return name;
         }
 
         /// <summary>
@@ -1096,7 +1106,9 @@ namespace Ganss.Excel
                         .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
                         .Select(c =>
                         {
-                            var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(c.StringCellValue), ColumnName = c.StringCellValue };
+                            var name = c.StringCellValue;
+                            var normalizedName = NormalizeCellName(typeMapper, name);
+                            var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(normalizedName), ColumnName = c.StringCellValue };
                             return val;
                         })
                         .Where(c => c.ColumnInfo != null)
@@ -1307,6 +1319,51 @@ namespace Ganss.Excel
 
             typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property == prop))
                 .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
+        }
+
+        /// <summary>
+        /// Sets a name normalization function.
+        /// This function is used when the <see cref="ExcelMapper"/> object tries to find a property name from a header cell value.
+        /// It can be used if the input header cell values may contain a larger number of possible values that can be easily mapped
+        /// backed to a single property name through a function, e.g. if the header cell may contain varying amounts of whitespace.
+        /// The default is the identity function.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="normalizeName">The name normalization function.</param>
+        public void NormalizeUsing<T>(Func<string, string> normalizeName)
+        {
+            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            typeMapper.NormalizeName = normalizeName;
+        }
+
+        /// <summary>
+        /// Sets a name normalization function.
+        /// This function is used when the <see cref="ExcelMapper"/> object tries to find a property name from a header cell value.
+        /// It can be used if the input header cell values may contain a larger number of possible values that can be easily mapped
+        /// backed to a single property name through a function, e.g. if the header cell may contain varying amounts of whitespace.
+        /// The default is the identity function.
+        /// </summary>
+        /// <param name="t">The type that contains the property to map to.</param>
+        /// <param name="normalizeName">The name normalization function.</param>
+        public void NormalizeUsing(Type t, Func<string, string> normalizeName)
+        {
+            var typeMapper = TypeMapperFactory.Create(t);
+            typeMapper.NormalizeName = normalizeName;
+        }
+
+        /// <summary>
+        /// Sets a default name normalization function.
+        /// This function is used when the <see cref="ExcelMapper"/> object tries to find a property name from a header cell value.
+        /// It can be used if the input header cell values may contain a larger number of possible values that can be easily mapped
+        /// backed to a single property name through a function, e.g. if the header cell may contain varying amounts of whitespace.
+        /// This default normalization function works across types. If a normalization function is set for a specific type it takes
+        /// precedence over this default function.
+        /// The default is the identity function.
+        /// </summary>
+        /// <param name="normalizeName">The name normalization function.</param>
+        public void NormalizeUsing(Func<string, string> normalizeName)
+        {
+            NormalizeName = normalizeName;
         }
     }
 }
