@@ -1809,5 +1809,17 @@ namespace Ganss.Excel.Tests
             Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex("???"));
             Assert.Throws<ArgumentException>(() => ExcelMapper.IndexToLetter(-1));
         }
+
+        [Test]
+        public void ColumnSkipTest()
+        {
+            // see https://github.com/mganss/ExcelMapper/issues/90
+            var products = new ExcelMapper(@"..\..\..\productsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch().ToList();
+            Assert.AreEqual(1, products.Count);
+            var p = products[0];
+            Assert.IsEmpty(p.Price);
+            Assert.AreEqual("Nudossi", p.Name);
+            Assert.AreEqual(60, p.Number);
+        }
     }
 }
