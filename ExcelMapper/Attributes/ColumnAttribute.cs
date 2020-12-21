@@ -1,3 +1,4 @@
+using NPOI.SS.Util;
 using System;
 
 namespace Ganss.Excel
@@ -10,7 +11,7 @@ namespace Ganss.Excel
     public sealed class ColumnAttribute : Attribute
     {
         readonly string name = null;
-        readonly int index = -1;
+        int index = -1;
         readonly MappingDirections directions;
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace Ganss.Excel
         /// Initializes a new instance of the <see cref="ColumnAttribute"/> class.
         /// </summary>
         /// <param name="directions">mapping direction</param>
-        public ColumnAttribute(MappingDirections directions)
+        public ColumnAttribute(MappingDirections directions = MappingDirections.Both)
         {
             this.directions = directions;
         }
@@ -68,5 +69,13 @@ namespace Ganss.Excel
         /// </value>
         public int Index => index;
 
+        /// <summary>
+        /// Gets or sets the column name in Excel letter format where A refers to column 1 etc.
+        /// </summary>
+        public string Letter
+        {
+            get => ExcelMapper.IndexToLetter(Index);
+            set => index = ExcelMapper.LetterToIndex(value);
+        }
     }
 }

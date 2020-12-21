@@ -1,19 +1,21 @@
+using Ganss.Excel.Exceptions;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
+using NPOI.SS.Util;
+using NPOI.Util;
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Ganss.Excel.Exceptions;
-using System.Threading.Tasks;
-using System.Globalization;
 using System.Text.Json;
-using NPOI.Util;
-using System.Dynamic;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Ganss.Excel
 {
@@ -1364,6 +1366,30 @@ namespace Ganss.Excel
         public void NormalizeUsing(Func<string, string> normalizeName)
         {
             NormalizeName = normalizeName;
+        }
+
+        /// <summary>
+        /// Converts Excel column letters to column indexes (e.g. "A" yields 1).
+        /// </summary>
+        /// <param name="letter">The Excel column letter.</param>
+        /// <returns>The column index.</returns>
+        public static int LetterToIndex(string letter)
+        {
+            if (letter == null || !Regex.IsMatch(letter, "^$?[A-Z]+$", RegexOptions.CultureInvariant))
+                throw new ArgumentException($"Column letters out of range: {letter}", nameof(letter));
+            return CellReference.ConvertColStringToIndex(letter) + 1;
+        }
+
+        /// <summary>
+        /// Converts a column index to the corresponding Excel column letter or letters (e.g. 1 yields "A").
+        /// </summary>
+        /// <param name="index">The column index.</param>
+        /// <returns>The Excel column letter or letters.</returns>
+        public static string IndexToLetter(int index)
+        {
+            if (index < 1)
+                throw new ArgumentException($"Column index out of range: {index}", nameof(index));
+            return CellReference.ConvertNumToColString(index - 1);
         }
     }
 }

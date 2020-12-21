@@ -337,7 +337,7 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
-        public void BeforeAFterMappingTest()
+        public void BeforeAfterMappingTest()
         {
             var products = new ExcelMapper(@"..\..\..\products.xlsx")
                 // preparation before the mapping start
@@ -930,7 +930,7 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(@"..\..\..\productsnoheader.xlsx") { HeaderRow = false };
 
             excel.AddMapping<ProductNoHeaderManual>(1, p => p.Name);
-            excel.AddMapping<ProductNoHeaderManual>(3, p => p.NumberInStock);
+            excel.AddMapping<ProductNoHeaderManual>(ExcelMapper.LetterToIndex("C"), p => p.NumberInStock);
             excel.AddMapping(typeof(ProductNoHeaderManual), 4, "Price");
 
             var products = excel.Fetch<ProductNoHeader>("Products").ToList();
@@ -1430,7 +1430,7 @@ namespace Ganss.Excel.Tests
         {
             [Column(1)]
             public string Price { get; set; }
-            [Column(3)]
+            [Column(Letter = "C")]
             public string Name { get; set; }
             [Column(4)]
             public string Number { get; set; }
@@ -1794,6 +1794,20 @@ namespace Ganss.Excel.Tests
                 new ProductMapped { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
                 new ProductMapped { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
             }, products);
+        }
+
+        [Test]
+        public void LetterConversionTest()
+        {
+            Assert.AreEqual(1, ExcelMapper.LetterToIndex("A"));
+            Assert.AreEqual(649, ExcelMapper.LetterToIndex("XY"));
+            Assert.AreEqual("AB", ExcelMapper.IndexToLetter(28));
+            Assert.AreEqual("A", ExcelMapper.IndexToLetter(1));
+            Assert.AreEqual("XY", ExcelMapper.IndexToLetter(649));
+
+            Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex(null));
+            Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex("???"));
+            Assert.Throws<ArgumentException>(() => ExcelMapper.IndexToLetter(-1));
         }
     }
 }

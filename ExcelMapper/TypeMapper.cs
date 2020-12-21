@@ -116,14 +116,14 @@ namespace Ganss.Excel
             {
                 if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute))
                 {
-                    var ci = new ColumnInfo(prop); // Both direction
+                    var ci = new ColumnInfo(prop);
 
                     var attribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute)).Cast<ColumnAttribute>();
                     if (attribs.Any())
                     {
                         foreach (var columnAttribute in attribs)
                         {
-                            ci = new ColumnInfo(prop); // Both direction
+                            ci = new ColumnInfo(prop);
                             if (!string.IsNullOrEmpty(columnAttribute.Name))
                             {
                                 if (!ColumnsByName.ContainsKey(columnAttribute.Name))
