@@ -426,7 +426,7 @@ namespace Ganss.Excel
 
                     foreach (var col in columns)
                     {
-                        var cell = row.GetCell(col.Key);
+                        var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
                         if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
                         {
