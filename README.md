@@ -98,6 +98,9 @@ var products = new ExcelMapper("products.xlsx").Fetch(); // -> IEnumerable<dynam
 products.First().Price += 1.0;
 ```
 
+The returned dynamic objects are instances of `ExpandoObject` with an extra property called `__indexes__` that is a dictionary specifying the mapping from property names to
+column indexes. If you set the `HeaderRow` property to `false` on the `ExcelMapper` object, the property names of the returned dynamic objects will match the Excel "letter" column names, i.e. "A" for column 1 etc.
+
 ## Save objects
 
 ```C#
