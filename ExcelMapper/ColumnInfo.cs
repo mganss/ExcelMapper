@@ -377,7 +377,6 @@ namespace Ganss.Excel
         public override void SetProperty(object o, object val, ICell cell)
         {
             var expando = (IDictionary<string, object>)o;
-            expando.Add(Index.ToString(), val);
             if (!string.IsNullOrEmpty(Name))
                 expando.Add(Name, val);
         }

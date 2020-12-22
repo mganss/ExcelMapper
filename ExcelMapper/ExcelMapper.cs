@@ -401,7 +401,7 @@ namespace Ganss.Excel
             var cells = Enumerable.Range(0, firstRow.LastCellNum).Select(i => firstRow.GetCell(i, MissingCellPolicy.CREATE_NULL_AS_BLANK));
             var firstRowCells = cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)));
-            var typeMapper = type != null ? TypeMapperFactory.Create(type) : TypeMapper.Create(firstRowCells);
+            var typeMapper = type != null ? TypeMapperFactory.Create(type) : TypeMapper.Create(firstRowCells, HeaderRow);
             var columns = firstRowCells
                 .Select(c => new
                 {
@@ -422,7 +422,7 @@ namespace Ganss.Excel
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
                 {
-                    var o = type != null ? Activator.CreateInstance(type) : new ExpandoObject();
+                    var o = type != null ? Activator.CreateInstance(type) : typeMapper.CreateExpando();
 
                     typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
 
@@ -1368,6 +1368,8 @@ namespace Ganss.Excel
             NormalizeName = normalizeName;
         }
 
+        internal static Regex ColumnLetterRegex = new Regex("^$?[A-Z]+$", RegexOptions.CultureInvariant);
+
         /// <summary>
         /// Converts Excel column letters to column indexes (e.g. "A" yields 1).
         /// </summary>
@@ -1375,7 +1377,7 @@ namespace Ganss.Excel
         /// <returns>The column index.</returns>
         public static int LetterToIndex(string letter)
         {
-            if (letter == null || !Regex.IsMatch(letter, "^$?[A-Z]+$", RegexOptions.CultureInvariant))
+            if (letter == null || !ColumnLetterRegex.IsMatch(letter))
                 throw new ArgumentException($"Column letters out of range: {letter}", nameof(letter));
             return CellReference.ConvertColStringToIndex(letter) + 1;
         }

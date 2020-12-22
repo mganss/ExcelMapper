@@ -405,12 +405,39 @@ namespace Ganss.Excel.Tests
                     // using Dictionary notation
                     Name = dicoRow["Name"] as string,
 
-                    // using indexed notation
-                    Value = (double)dicoRow["6"],// "Value" is at column index = 6
+                    Value = (double)dicoRow["Value"],
 
                     // No casting
                     Offer = p.Offer,
                     OfferEnd = p.OfferEnd,
+                };
+                result.Add(r);
+            }
+
+            CollectionAssert.AreEqual(new List<ProductDynamic>
+            {
+                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            }, result);
+        }
+
+        [Test]
+        public void FetchDynamicIndexTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx") { HeaderRow = false, MinRowNumber = 1 }.Fetch().ToList();
+
+            var result = new List<ProductDynamic>();
+            foreach (var p in products)
+            {
+                var r = new ProductDynamic()
+                {
+                    Name = p.A,
+                    Number = (int)p.C,
+                    Price = (decimal)p.D,
+                    Offer = p.E,
+                    OfferEnd = p.F,
+                    Value = p.G,
                 };
                 result.Add(r);
             }
@@ -450,6 +477,49 @@ namespace Ganss.Excel.Tests
             dynProducts[2].OfferEnd = new DateTime(2000, 1, 2);
 
             var file = @"productssavedynamic.xlsx";
+
+            excel.Save(file);
+
+            var productsFetched = new ExcelMapper(file).Fetch<ProductDynamic>().ToList();
+
+            products[0].Name += "Test";
+            products[1].Price += 1.0m;
+            products[2].OfferEnd = new DateTime(2000, 1, 2);
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        [Test]
+        public void FetchDynamicIndexSaveTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx") { HeaderRow = false, MinRowNumber = 1 };
+            var dynProducts = excel.Fetch().ToList();
+            var products = dynProducts.Select(p => new ProductDynamic()
+            {
+                Name = p.A,
+                Number = (int)p.C,
+                Price = (decimal)p.D,
+                Offer = p.E,
+                OfferEnd = p.F,
+                Value = p.G,
+            }).ToList();
+
+            CollectionAssert.AreEqual(new List<ProductDynamic>
+            {
+                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+            }, products);
+
+            dynProducts[0].A += "Test";
+            dynProducts[1].D += 1.0;
+            dynProducts[2].F = new DateTime(2000, 1, 2);
+
+            // remove index map to test automatic letter mapping on save
+            foreach (var d in dynProducts)
+                d.__indexes__ = null;
+
+            var file = @"productssavedynamicindex.xlsx";
 
             excel.Save(file);
 

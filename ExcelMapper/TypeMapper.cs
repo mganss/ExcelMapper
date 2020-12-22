@@ -59,17 +59,20 @@ namespace Ganss.Excel
         /// Creates a <see cref="TypeMapper"/> object from a list of cells.
         /// </summary>
         /// <param name="columns">The cells.</param>
+        /// <param name="useContentAsName"><c>true</c> if the cell's contents should be used as the column name; otherwise, <c>false</c>.</param>
         /// <returns>A <see cref="TypeMapper"/> object.</returns>
-        public static TypeMapper Create(IEnumerable<ICell> columns)
+        public static TypeMapper Create(IEnumerable<ICell> columns, bool useContentAsName = true)
         {
             var typeMapper = new TypeMapper();
 
             foreach (var col in columns)
             {
                 var index = col.ColumnIndex;
-                var name = col.StringCellValue;
+                var name = useContentAsName ? col.StringCellValue : ExcelMapper.IndexToLetter(index + 1);
                 var columnInfo = new DynamicColumnInfo(index, name);
+
                 typeMapper.ColumnsByIndex.Add(index, new List<ColumnInfo> { columnInfo });
+
                 if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
                     typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
                 else
@@ -87,19 +90,33 @@ namespace Ganss.Excel
         public static TypeMapper Create(ExpandoObject o)
         {
             var typeMapper = new TypeMapper();
+            var eo = (IDictionary<string, object>)o;
             var l = o.ToList();
+
+            eo.TryGetValue(IndexMapPropertyName, out var map);
 
             for (int i = 0; i < o.Count(); i++)
             {
                 var prop = l[i];
                 var name = prop.Key;
-                var columnInfo = new DynamicColumnInfo(prop.Key, prop.Value.GetType());
+                var ix = i;
 
-                if (!int.TryParse(prop.Key, out _))
+                if (name != IndexMapPropertyName)
                 {
-                    if ((i % 2) == 0 || !int.TryParse(l[i - 1].Key, out var ix))
-                        ix = i;
+                    if (map is Dictionary<string, int> indexMap)
+                    {
+                        if (indexMap.TryGetValue(name, out var im))
+                            ix = im;
+                    }
+                    else if (ExcelMapper.ColumnLetterRegex.IsMatch(name))
+                    {
+                        ix = ExcelMapper.LetterToIndex(name) - 1;
+                    }
+
+                    var columnInfo = new DynamicColumnInfo(prop.Key, prop.Value.GetType());
+
                     typeMapper.ColumnsByIndex.Add(ix, new List<ColumnInfo> { columnInfo });
+
                     if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
                         typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
                     else
@@ -108,6 +125,23 @@ namespace Ganss.Excel
             }
 
             return typeMapper;
+        }
+
+        const string IndexMapPropertyName = "__indexes__";
+
+        /// <summary>
+        /// Creates an <see cref="ExpandoObject"/> object that includes type mapping information.
+        /// </summary>
+        /// <returns>An <see cref="ExpandoObject"/> object.</returns>
+        public ExpandoObject CreateExpando()
+        {
+            var eo = new ExpandoObject();
+            var expando = (IDictionary<string, object>)eo;
+            var map = ColumnsByName.ToDictionary(c => c.Key, c => ColumnsByIndex.First(ci => ci.Value.First() == c.Value.First()).Key);
+
+            expando[IndexMapPropertyName] = map;
+
+            return eo;
         }
 
         void Analyze()
