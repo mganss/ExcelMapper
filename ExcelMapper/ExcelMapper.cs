@@ -1368,7 +1368,7 @@ namespace Ganss.Excel
             NormalizeName = normalizeName;
         }
 
-        internal static Regex ColumnLetterRegex = new Regex("^$?[A-Z]+$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        internal static readonly Regex ColumnLetterRegex = new Regex("^$?[A-Z]+$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Converts Excel column letters to column indexes (e.g. "A" yields 1).

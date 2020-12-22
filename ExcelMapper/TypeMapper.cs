@@ -44,6 +44,8 @@ namespace Ganss.Excel
         /// </summary>
         internal ActionInvoker AfterMappingActionInvoker { get; set; }
 
+        static readonly Regex OneTwoLetterRegex = new Regex("^[A-Z]{1,2}$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
         /// <summary>
         /// Creates a <see cref="TypeMapper"/> object from the specified type.
         /// </summary>
@@ -82,8 +84,6 @@ namespace Ganss.Excel
 
             return typeMapper;
         }
-
-        static readonly Regex OneTwoLetterRegex = new Regex("^[A-Z]{1,2}$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Creates a <see cref="TypeMapper"/> object from an <see cref="ExpandoObject"/> object.
