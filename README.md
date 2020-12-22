@@ -51,7 +51,7 @@ public class Product
 {
     [Column(1)]
     public string Name { get; set; }
-    [Column(3)]
+    [Column(Letter="C")]
     public int NumberInStock { get; set; }
     [Column(4)]
     public decimal Price { get; set; }
@@ -69,7 +69,7 @@ var excel = new ExcelMapper("products.xls");
 excel.AddMapping<Product>("Number", p => p.NumberInStock);
 excel.AddMapping<Product>(1, p => p.NumberInStock);
 excel.AddMapping(typeof(Product), "Number", "NumberInStock");
-excel.AddMapping(typeof(Product), 1, "NumberInStock");
+excel.AddMapping(typeof(Product), ExcelMapper.LetterToIndex("A"), "NumberInStock");
 ```
 
 ## Multiple mappings
