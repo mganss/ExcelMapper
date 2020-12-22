@@ -1871,6 +1871,7 @@ namespace Ganss.Excel.Tests
         {
             Assert.AreEqual(1, ExcelMapper.LetterToIndex("A"));
             Assert.AreEqual(649, ExcelMapper.LetterToIndex("XY"));
+            Assert.AreEqual(649, ExcelMapper.LetterToIndex("xy"));
             Assert.AreEqual("AB", ExcelMapper.IndexToLetter(28));
             Assert.AreEqual("A", ExcelMapper.IndexToLetter(1));
             Assert.AreEqual("XY", ExcelMapper.IndexToLetter(649));

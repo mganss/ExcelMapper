@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Ganss.Excel
 {
@@ -82,6 +83,8 @@ namespace Ganss.Excel
             return typeMapper;
         }
 
+        static readonly Regex OneTwoLetterRegex = new Regex("^[A-Z]{1,2}$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
         /// <summary>
         /// Creates a <see cref="TypeMapper"/> object from an <see cref="ExpandoObject"/> object.
         /// </summary>
@@ -94,6 +97,7 @@ namespace Ganss.Excel
             var l = o.ToList();
 
             eo.TryGetValue(IndexMapPropertyName, out var map);
+            var oneTwoLetter = map == null && eo.Keys.Where(k => k != IndexMapPropertyName).All(k => OneTwoLetterRegex.IsMatch(k));
 
             for (int i = 0; i < o.Count(); i++)
             {
@@ -108,7 +112,7 @@ namespace Ganss.Excel
                         if (indexMap.TryGetValue(name, out var im))
                             ix = im;
                     }
-                    else if (ExcelMapper.ColumnLetterRegex.IsMatch(name))
+                    else if (oneTwoLetter)
                     {
                         ix = ExcelMapper.LetterToIndex(name) - 1;
                     }
