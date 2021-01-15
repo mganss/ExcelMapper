@@ -410,15 +410,18 @@ namespace Ganss.Excel
                 })
                 .Where(c => c.ColumnInfo?.Any() ?? false)
                 .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
-            var i = MinRowNumber;
-            IRow row = null;
 
             if (TrackObjects) Objects[sheet.SheetName] = new Dictionary<int, object>();
 
             var objInstanceIdx = 0;
 
-            while (i <= MaxRowNumber && (row = sheet.GetRow(i)) != null)
+            foreach (IRow row in sheet)
             {
+                var i = row.RowNum;
+
+                if (i < MinRowNumber) continue;
+                if (i > MaxRowNumber) break;
+
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
                 {
@@ -458,8 +461,6 @@ namespace Ganss.Excel
 
                     yield return o;
                 }
-
-                i++;
             }
         }
 

@@ -1892,5 +1892,19 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual("Nudossi", p.Name);
             Assert.AreEqual(60, p.Number);
         }
+
+        class NullProduct
+        {
+            public string Number { get; set; }
+            public string Color { get; set; }
+        }
+
+        [Test]
+        public void NullTest()
+        {
+            // see https://github.com/mganss/ExcelMapper/issues/96
+            var products = new ExcelMapper(@"..\..\..\null_test.xlsx").Fetch<NullProduct>().ToList();
+            Assert.AreEqual(20, products.Count);
+        }
     }
 }
