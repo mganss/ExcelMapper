@@ -978,19 +978,19 @@ namespace Ganss.Excel.Tests
 
         private class ProductNoHeaderManual
         {
-            public string Name { get; set; }
-            public int NumberInStock { get; set; }
-            public decimal Price { get; set; }
+            public string NameX { get; set; }
+            public int NumberInStockX { get; set; }
+            public decimal PriceX { get; set; }
 
             public override bool Equals(object obj)
             {
-                if (obj is not ProductNoHeader o) return false;
-                return o.Name == Name && o.NumberInStock == NumberInStock && o.Price == Price;
+                if (obj is not ProductNoHeaderManual o) return false;
+                return o.NameX == NameX && o.NumberInStockX == NumberInStockX && o.PriceX == PriceX;
             }
 
             public override int GetHashCode()
             {
-                return (Name + NumberInStock + Price).GetHashCode();
+                return (NameX + NumberInStockX + PriceX).GetHashCode();
             }
         }
 
@@ -999,17 +999,17 @@ namespace Ganss.Excel.Tests
         {
             var excel = new ExcelMapper(@"..\..\..\productsnoheader.xlsx") { HeaderRow = false };
 
-            excel.AddMapping<ProductNoHeaderManual>(1, p => p.Name);
-            excel.AddMapping<ProductNoHeaderManual>(ExcelMapper.LetterToIndex("C"), p => p.NumberInStock);
-            excel.AddMapping(typeof(ProductNoHeaderManual), 4, "Price");
+            excel.AddMapping<ProductNoHeaderManual>(1, p => p.NameX);
+            excel.AddMapping<ProductNoHeaderManual>(ExcelMapper.LetterToIndex("C"), p => p.NumberInStockX);
+            excel.AddMapping(typeof(ProductNoHeaderManual), 4, "PriceX");
 
-            var products = excel.Fetch<ProductNoHeader>("Products").ToList();
+            var products = excel.Fetch<ProductNoHeaderManual>("Products").ToList();
 
-            CollectionAssert.AreEqual(new List<ProductNoHeader>
+            CollectionAssert.AreEqual(new List<ProductNoHeaderManual>
             {
-                new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
-                new ProductNoHeader { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
-                new ProductNoHeader { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+                new ProductNoHeaderManual { NameX = "Nudossi", NumberInStockX = 60, PriceX = 1.99m },
+                new ProductNoHeaderManual { NameX = "Halloren", NumberInStockX = 33, PriceX = 2.99m },
+                new ProductNoHeaderManual { NameX = "Filinchen", NumberInStockX = 100, PriceX = 0.99m },
             }, products);
         }
 
@@ -1905,6 +1905,70 @@ namespace Ganss.Excel.Tests
             // see https://github.com/mganss/ExcelMapper/issues/96
             var products = new ExcelMapper(@"..\..\..\null_test.xlsx").Fetch<NullProduct>().ToList();
             Assert.AreEqual(20, products.Count);
+        }
+
+        private record ProductRecord
+        {
+            public string Name { get; set; }
+            [Column("Number")]
+            public int NumberInStock { get; set; }
+            public decimal Price { get; set; }
+            public string Value { get; set; }
+        }
+
+        [Test]
+        public void RecordFetchTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductRecord>().ToList();
+            CollectionAssert.AreEqual(new List<ProductRecord>
+            {
+                new ProductRecord { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new ProductRecord { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new ProductRecord { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void SaveFetchedRecordTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+            var products = excel.Fetch<ProductRecord>().ToList();
+
+            products[2].Price += 1.0m;
+
+            var file = @"productssavefetchedrecord.xlsx";
+
+            excel.Save(file, products);
+
+            var productsFetched = new ExcelMapper(file).Fetch<ProductRecord>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        private record ProductRecordNoHeaderManual
+        {
+            public string NameX { get; set; }
+            public int NumberInStockX { get; set; }
+            public decimal PriceX { get; set; }
+        }
+
+        [Test]
+        public void FetchRecordNoHeaderManualTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\productsnoheader.xlsx") { HeaderRow = false };
+
+            excel.AddMapping<ProductRecordNoHeaderManual>(1, p => p.NameX);
+            excel.AddMapping<ProductRecordNoHeaderManual>(ExcelMapper.LetterToIndex("C"), p => p.NumberInStockX);
+            excel.AddMapping(typeof(ProductRecordNoHeaderManual), 4, "PriceX");
+
+            var products = excel.Fetch<ProductRecordNoHeaderManual>("Products").ToList();
+
+            CollectionAssert.AreEqual(new List<ProductRecordNoHeaderManual>
+            {
+                new ProductRecordNoHeaderManual { NameX = "Nudossi", NumberInStockX = 60, PriceX = 1.99m },
+                new ProductRecordNoHeaderManual { NameX = "Halloren", NumberInStockX = 33, PriceX = 2.99m },
+                new ProductRecordNoHeaderManual { NameX = "Filinchen", NumberInStockX = 100, PriceX = 0.99m },
+            }, products);
         }
     }
 }

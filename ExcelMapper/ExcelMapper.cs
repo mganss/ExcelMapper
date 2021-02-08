@@ -1234,15 +1234,16 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
+            var idx = columnIndex - 1;
 
-            if (!typeMapper.ColumnsByIndex.ContainsKey(columnIndex))
-                typeMapper.ColumnsByIndex.Add(columnIndex, new List<ColumnInfo>());
+            if (!typeMapper.ColumnsByIndex.ContainsKey(idx))
+                typeMapper.ColumnsByIndex.Add(idx, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);
+            var columnInfo = typeMapper.ColumnsByIndex[idx].FirstOrDefault(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
-                typeMapper.ColumnsByIndex[columnIndex].Add(columnInfo);
+                typeMapper.ColumnsByIndex[idx].Add(columnInfo);
             }
 
             return columnInfo;
@@ -1282,15 +1283,16 @@ namespace Ganss.Excel
         {
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            var idx = columnIndex - 1;
 
-            if (!typeMapper.ColumnsByIndex.ContainsKey(columnIndex))
-                typeMapper.ColumnsByIndex.Add(columnIndex, new List<ColumnInfo>());
+            if (!typeMapper.ColumnsByIndex.ContainsKey(idx))
+                typeMapper.ColumnsByIndex.Add(idx, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByIndex[columnIndex].FirstOrDefault(ci => ci.Property.Name == prop.Name);
+            var columnInfo = typeMapper.ColumnsByIndex[idx].FirstOrDefault(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
-                typeMapper.ColumnsByIndex[columnIndex].Add(columnInfo);
+                typeMapper.ColumnsByIndex[idx].Add(columnInfo);
             }
 
             return columnInfo;
