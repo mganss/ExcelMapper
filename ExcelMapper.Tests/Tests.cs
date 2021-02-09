@@ -1951,9 +1951,11 @@ namespace Ganss.Excel.Tests
             public bool Offer { get; set; }
             public string NameX { get; }
             public int NumberInStockX { get; }
+            public string Unmapped { get; set; }
             public decimal PriceX { get; }
 
-            public ProductRecordNoHeaderManual(bool offer, string name, int num, decimal price) => (Offer, NameX, NumberInStockX, PriceX) = (offer, name, num, price);
+            public ProductRecordNoHeaderManual(bool offer, string name, int num, string unmapped, decimal price) =>
+                (Offer, NameX, NumberInStockX, Unmapped, PriceX) = (offer, name, num, unmapped, price);
         }
 
         [Test]
@@ -1969,9 +1971,9 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(new List<ProductRecordNoHeaderManual>
             {
-                new ProductRecordNoHeaderManual(false, "Nudossi", 60, 1.99m),
-                new ProductRecordNoHeaderManual(false, "Halloren", 33, 2.99m),
-                new ProductRecordNoHeaderManual(false, "Filinchen", 100, 0.99m),
+                new ProductRecordNoHeaderManual(false, "Nudossi", 60, null, 1.99m),
+                new ProductRecordNoHeaderManual(false, "Halloren", 33, null, 2.99m),
+                new ProductRecordNoHeaderManual(false, "Filinchen", 100, null, 0.99m),
             }, products);
         }
 

@@ -460,11 +460,12 @@ namespace Ganss.Excel
                         {
                             try
                             {
-                                var vals = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                    .Select(p => (Prop: p, Val: initValues.Where(v => v.Col.Property == p).FirstOrDefault()))
-                                    .Select(v => v.Val.Col?.GetPropertyValue(v.Val.CellValue, v.Val.Cell) ?? GetDefault(v.Prop.PropertyType))
+                                var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                    .Select(p => (Prop: p, Val: initValues.Where(v => v.Col.Property == p).FirstOrDefault()));
+                                var vals = props
+                                    .Select(p => p.Val.Col?.GetPropertyValue(p.Val.CellValue, p.Val.Cell) ?? GetDefault(p.Prop.PropertyType))
                                     .ToArray();
-                                var types = vals.Select(v => v.GetType()).ToArray();
+                                var types = props.Select(p => p.Prop.PropertyType).ToArray();
                                 var constructor = type.GetConstructor(types);
                                 o = constructor.Invoke(vals);
                                 initialized = true;
