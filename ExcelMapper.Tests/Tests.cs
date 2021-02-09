@@ -897,7 +897,7 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
-        public void FetchExcpetionWhenFieldTooBigTest()
+        public void FetchExceptionWhenFieldTooBigTest()
         {
             var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionTooBig.xlsx").Fetch<ProductException>().ToList());
             //2147483649 is Int.MaxValue + 1
@@ -906,7 +906,7 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
-        public void FetchExcpetionWhenFieldInvalidTest()
+        public void FetchExceptionWhenFieldInvalidTest()
         {
             var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"..\..\..\productsExceptionInvalid.xlsx").Fetch<ProductException>().ToList());
             Assert.That(ex.Message.Contains("FALSEd"));
@@ -1909,11 +1909,13 @@ namespace Ganss.Excel.Tests
 
         private record ProductRecord
         {
-            public string Name { get; set; }
+            public string Name { get; }
             [Column("Number")]
-            public int NumberInStock { get; set; }
-            public decimal Price { get; set; }
-            public string Value { get; set; }
+            public int NumberInStock { get; }
+            public decimal Price { get; }
+            public string Value { get; }
+
+            public ProductRecord(string name, int num, decimal price, string val) => (Name, NumberInStock, Price, Value) = (name, num, price, val);
         }
 
         [Test]
@@ -1922,9 +1924,9 @@ namespace Ganss.Excel.Tests
             var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductRecord>().ToList();
             CollectionAssert.AreEqual(new List<ProductRecord>
             {
-                new ProductRecord { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new ProductRecord { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new ProductRecord { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new ProductRecord("Nudossi", 60, 1.99m, "C2*D2"),
+                new ProductRecord("Halloren", 33, 2.99m, "C3*D3"),
+                new ProductRecord("Filinchen", 100, 0.99m, "C5*D5"),
             }, products);
         }
 
@@ -1933,8 +1935,6 @@ namespace Ganss.Excel.Tests
         {
             var excel = new ExcelMapper(@"..\..\..\products.xlsx");
             var products = excel.Fetch<ProductRecord>().ToList();
-
-            products[2].Price += 1.0m;
 
             var file = @"productssavefetchedrecord.xlsx";
 
@@ -1947,9 +1947,11 @@ namespace Ganss.Excel.Tests
 
         private record ProductRecordNoHeaderManual
         {
-            public string NameX { get; set; }
-            public int NumberInStockX { get; set; }
-            public decimal PriceX { get; set; }
+            public string NameX { get; }
+            public int NumberInStockX { get; }
+            public decimal PriceX { get; }
+
+            public ProductRecordNoHeaderManual(string name, int num, decimal price) => (NameX, NumberInStockX, PriceX) = (name, num, price);
         }
 
         [Test]
@@ -1965,9 +1967,23 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(new List<ProductRecordNoHeaderManual>
             {
-                new ProductRecordNoHeaderManual { NameX = "Nudossi", NumberInStockX = 60, PriceX = 1.99m },
-                new ProductRecordNoHeaderManual { NameX = "Halloren", NumberInStockX = 33, PriceX = 2.99m },
-                new ProductRecordNoHeaderManual { NameX = "Filinchen", NumberInStockX = 100, PriceX = 0.99m },
+                new ProductRecordNoHeaderManual("Nudossi", 60, 1.99m),
+                new ProductRecordNoHeaderManual("Halloren", 33, 2.99m),
+                new ProductRecordNoHeaderManual("Filinchen", 100, 0.99m),
+            }, products);
+        }
+
+        private record ProductPosRecord(string Name, int Number, decimal Price, string Value);
+
+        [Test]
+        public void PosRecordFetchTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductPosRecord>().ToList();
+            CollectionAssert.AreEqual(new List<ProductPosRecord>
+            {
+                new ProductPosRecord("Nudossi", 60, 1.99m, "C2*D2"),
+                new ProductPosRecord("Halloren", 33, 2.99m, "C3*D3"),
+                new ProductPosRecord("Filinchen", 100, 0.99m, "C5*D5"),
             }, products);
         }
     }

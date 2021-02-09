@@ -82,7 +82,7 @@ namespace Ganss.Excel.Exceptions
         /// <param name="line">The line number of the cell where the error occurred.</param>
         /// <param name="column">The column number of the cell where the error occurred.</param>
         /// <param name="innerException">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
-        public ExcelMapperConvertException(object cellValue, Type targetType, int line, int column, Exception innerException) 
+        public ExcelMapperConvertException(object cellValue, Type targetType, int line, int column, Exception innerException)
             : this(FormatMessage(cellValue, targetType, line, column), innerException)
         {
             CellValue = cellValue;

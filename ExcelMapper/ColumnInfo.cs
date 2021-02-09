@@ -219,12 +219,12 @@ namespace Ganss.Excel
         }
 
         /// <summary>
-        /// Sets the property of the specified object to the specified value.
+        /// Computes value that can be assigned to property from cell value.
         /// </summary>
-        /// <param name="o">The object whose property to set.</param>
         /// <param name="val">The value.</param>
         /// <param name="cell">The cell where the value originates from.</param>
-        public virtual void SetProperty(object o, object val, ICell cell)
+        /// <returns>Value that can be assigned to property.</returns>
+        public virtual object GetPropertyValue(object val, ICell cell)
         {
             object v;
             if (SetProp != null)
@@ -234,6 +234,18 @@ namespace Ganss.Excel
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 
+            return v;
+        }
+
+        /// <summary>
+        /// Sets the property of the specified object to the specified value.
+        /// </summary>
+        /// <param name="o">The object whose property to set.</param>
+        /// <param name="val">The value.</param>
+        /// <param name="cell">The cell where the value originates from.</param>
+        public virtual void SetProperty(object o, object val, ICell cell)
+        {
+            var v = GetPropertyValue(val, cell);
             Property.SetValue(o, v, null);
         }
 

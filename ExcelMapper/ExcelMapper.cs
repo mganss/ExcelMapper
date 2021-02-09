@@ -140,7 +140,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(string file, string sheetName, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             return Fetch(file, typeof(T), sheetName, valueParser).OfType<T>();
         }
@@ -181,7 +180,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(string file, int sheetIndex, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             return Fetch(file, typeof(T), sheetIndex, valueParser).OfType<T>();
         }
@@ -222,7 +220,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             return Fetch(stream, typeof(T), sheetName, valueParser).OfType<T>();
         }
@@ -263,7 +260,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             return Fetch(stream, typeof(T), sheetIndex, valueParser).OfType<T>();
         }
@@ -304,7 +300,6 @@ namespace Ganss.Excel
         /// <returns>The objects read from the Excel file.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
         public IEnumerable<T> Fetch<T>(string sheetName, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             return Fetch(typeof(T), sheetName, valueParser).OfType<T>();
         }
@@ -353,7 +348,7 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
-        public IEnumerable<T> Fetch<T>(int sheetIndex = 0, Func<string, object, object> valueParser = null) where T : new()
+        public IEnumerable<T> Fetch<T>(int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             var sheet = Workbook.GetSheetAt(sheetIndex);
             return Fetch<T>(sheet, valueParser);
@@ -386,7 +381,7 @@ namespace Ganss.Excel
             return Fetch(sheet, valueParser);
         }
 
-        IEnumerable<T> Fetch<T>(ISheet sheet, Func<string, object, object> valueParser = null) where T : new()
+        IEnumerable<T> Fetch<T>(ISheet sheet, Func<string, object, object> valueParser = null)
         {
             return Fetch(sheet, typeof(T), valueParser).OfType<T>();
         }
@@ -425,9 +420,7 @@ namespace Ganss.Excel
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
                 {
-                    var o = type != null ? Activator.CreateInstance(type) : typeMapper.CreateExpando();
-
-                    typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
+                    List<(ColumnInfo Col, object CellValue, ICell Cell, int ColumnIndex)> initValues = new();
 
                     foreach (var col in columns)
                     {
@@ -443,7 +436,7 @@ namespace Ganss.Excel
                                     if (valueParser != null)
                                         cellValue = valueParser(string.IsNullOrWhiteSpace(ci.Name) ? col.Key.ToString() : ci.Name, cellValue);
 
-                                    ci.SetProperty(o, cellValue, cell);
+                                    initValues.Add((ci, cellValue, cell, col.Key));
                                 }
                                 catch (Exception e)
                                 {
@@ -452,6 +445,50 @@ namespace Ganss.Excel
                             }
                         }
                     }
+
+                    object o;
+                    var initialized = false;
+
+                    if (type == null)
+                        o = typeMapper.CreateExpando();
+                    else
+                    {
+                        var hasDefaultConstructor = type.IsValueType || type.GetConstructor(Type.EmptyTypes) != null;
+                        if (hasDefaultConstructor)
+                            o = Activator.CreateInstance(type);
+                        else
+                        {
+                            try
+                            {
+                                var vals = initValues.Select(v => v.Col.GetPropertyValue(v.CellValue, v.Cell)).ToArray();
+                                var types = vals.Select(v => v.GetType()).ToArray();
+                                var constructor = type.GetConstructor(types);
+                                o = constructor.Invoke(vals);
+                                initialized = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new ExcelMapperConvertException($"Error initializing type {type}", ex);
+                            }
+                        }
+                    }
+
+                    if (!initialized)
+                    {
+                        foreach (var val in initValues)
+                        {
+                            try
+                            {
+                                val.Col.SetProperty(o, val.CellValue, val.Cell);
+                            }
+                            catch (Exception e)
+                            {
+                                throw new ExcelMapperConvertException(val.CellValue, val.Col.PropertyType, i, val.ColumnIndex, e);
+                            }
+                        }
+                    }
+
+                    typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
 
@@ -476,7 +513,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public async Task<IEnumerable<T>> FetchAsync<T>(string file, string sheetName, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             return (await FetchAsync(file, typeof(T), sheetName, valueParser)).OfType<T>();
         }
@@ -517,7 +553,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             using var ms = await ReadAsync(file);
             return Fetch(ms, typeof(T), sheetIndex, valueParser).OfType<T>();
@@ -559,7 +594,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             using var ms = await ReadAsync(stream);
             return Fetch(ms, typeof(T), sheetName, valueParser).OfType<T>();
@@ -601,7 +635,6 @@ namespace Ganss.Excel
         /// <param name="valueParser">Allow value parsing</param>
         /// <returns>The objects read from the Excel file.</returns>
         public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0, Func<string, object, object> valueParser = null)
-            where T : new()
         {
             using var ms = await ReadAsync(stream);
             return Fetch(ms, typeof(T), sheetIndex, valueParser).OfType<T>();
