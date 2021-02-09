@@ -461,7 +461,7 @@ namespace Ganss.Excel
                             try
                             {
                                 var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                    .Select(p => (Prop: p, Val: initValues.Where(v => v.Col.Property == p).FirstOrDefault()));
+                                    .Select(p => (Prop: p, Val: initValues.FirstOrDefault(v => v.Col.Property == p)));
                                 var vals = props
                                     .Select(p => p.Val.Col?.GetPropertyValue(p.Val.CellValue, p.Val.Cell) ?? GetDefault(p.Prop.PropertyType))
                                     .ToArray();
