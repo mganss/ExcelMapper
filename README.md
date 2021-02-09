@@ -21,6 +21,7 @@ A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) obje
 * Map formulas or formula results depending on property type
 * Map JSON
 * Fetch/Save dynamic objects
+* Use records
 
 ## Read objects from an Excel file
 
@@ -235,3 +236,7 @@ excel.NormalizeUsing(n => Regex.Replace(n, "\w", ""));
 ```
 
 This removes all whitespace so that columns with the string " First Name " map to a property named `FirstName`.
+
+## Records
+
+Records are supported. Record types must have a constructor that takes an argument for each of the mapped properties in the order they are declared.
