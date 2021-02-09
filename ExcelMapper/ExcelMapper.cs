@@ -460,7 +460,10 @@ namespace Ganss.Excel
                         {
                             try
                             {
-                                var vals = initValues.Select(v => v.Col.GetPropertyValue(v.CellValue, v.Cell)).ToArray();
+                                var vals = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                    .Select(p => (Prop: p, Val: initValues.Where(v => v.Col.Property == p).FirstOrDefault()))
+                                    .Select(v => v.Val.Col?.GetPropertyValue(v.Val.CellValue, v.Val.Cell) ?? GetDefault(v.Prop.PropertyType))
+                                    .ToArray();
                                 var types = vals.Select(v => v.GetType()).ToArray();
                                 var constructor = type.GetConstructor(types);
                                 o = constructor.Invoke(vals);
@@ -503,6 +506,8 @@ namespace Ganss.Excel
 
         IEnumerable<dynamic> Fetch(ISheet sheet, Func<string, object, object> valueParser = null) =>
             Fetch(sheet, type: null, valueParser).Cast<dynamic>();
+
+        static object GetDefault(Type t) => t.GetTypeInfo().IsValueType ? Activator.CreateInstance(t) : null;
 
         /// <summary>
         /// Fetches objects from the specified sheet name using async I/O.

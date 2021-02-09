@@ -1947,11 +1947,13 @@ namespace Ganss.Excel.Tests
 
         private record ProductRecordNoHeaderManual
         {
+            [Ignore]
+            public bool Offer { get; set; }
             public string NameX { get; }
             public int NumberInStockX { get; }
             public decimal PriceX { get; }
 
-            public ProductRecordNoHeaderManual(string name, int num, decimal price) => (NameX, NumberInStockX, PriceX) = (name, num, price);
+            public ProductRecordNoHeaderManual(bool offer, string name, int num, decimal price) => (Offer, NameX, NumberInStockX, PriceX) = (offer, name, num, price);
         }
 
         [Test]
@@ -1967,13 +1969,13 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(new List<ProductRecordNoHeaderManual>
             {
-                new ProductRecordNoHeaderManual("Nudossi", 60, 1.99m),
-                new ProductRecordNoHeaderManual("Halloren", 33, 2.99m),
-                new ProductRecordNoHeaderManual("Filinchen", 100, 0.99m),
+                new ProductRecordNoHeaderManual(false, "Nudossi", 60, 1.99m),
+                new ProductRecordNoHeaderManual(false, "Halloren", 33, 2.99m),
+                new ProductRecordNoHeaderManual(false, "Filinchen", 100, 0.99m),
             }, products);
         }
 
-        private record ProductPosRecord(string Name, int Number, decimal Price, string Value);
+        private record ProductPosRecord(int Number, string Name, decimal Price, string Value);
 
         [Test]
         public void PosRecordFetchTest()
@@ -1981,9 +1983,9 @@ namespace Ganss.Excel.Tests
             var products = new ExcelMapper(@"..\..\..\products.xlsx").Fetch<ProductPosRecord>().ToList();
             CollectionAssert.AreEqual(new List<ProductPosRecord>
             {
-                new ProductPosRecord("Nudossi", 60, 1.99m, "C2*D2"),
-                new ProductPosRecord("Halloren", 33, 2.99m, "C3*D3"),
-                new ProductPosRecord("Filinchen", 100, 0.99m, "C5*D5"),
+                new ProductPosRecord(60, "Nudossi", 1.99m, "C2*D2"),
+                new ProductPosRecord(33, "Halloren", 2.99m, "C3*D3"),
+                new ProductPosRecord(100, "Filinchen", 0.99m, "C5*D5"),
             }, products);
         }
     }
