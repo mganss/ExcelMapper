@@ -1915,7 +1915,7 @@ namespace Ganss.Excel.Tests
             public decimal Price { get; }
             public string Value { get; }
 
-            public ProductRecord(string name, int num, decimal price, string val) => (Name, NumberInStock, Price, Value) = (name, num, price, val);
+            public ProductRecord(string name, int numberinstock, decimal price, string value) => (Name, NumberInStock, Price, Value) = (name, numberinstock, price, value);
         }
 
         [Test]
@@ -1954,8 +1954,8 @@ namespace Ganss.Excel.Tests
             public string Unmapped { get; set; }
             public decimal PriceX { get; }
 
-            public ProductRecordNoHeaderManual(bool offer, string name, int num, string unmapped, decimal price) =>
-                (Offer, NameX, NumberInStockX, Unmapped, PriceX) = (offer, name, num, unmapped, price);
+            public ProductRecordNoHeaderManual(bool offer, string namex, int numberinstockx, string unmapped, decimal pricex) =>
+                (Offer, NameX, NumberInStockX, Unmapped, PriceX) = (offer, namex, numberinstockx, unmapped, pricex);
         }
 
         [Test]

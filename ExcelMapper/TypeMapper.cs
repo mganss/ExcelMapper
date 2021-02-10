@@ -1,4 +1,5 @@
-﻿using NPOI.SS.UserModel;
+﻿using Ganss.Excel.Exceptions;
+using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -148,9 +149,21 @@ namespace Ganss.Excel
             return eo;
         }
 
+        /// <summary>
+        /// Gets or sets the constructor to initialize the mapped type. Only used if the mapped type has no default constructor.
+        /// </summary>
+        public ConstructorInfo Constructor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the constructor parameters by name.
+        /// </summary>
+        public Dictionary<string, ParameterInfo> ConstructorParams { get; set; }
+
         void Analyze()
         {
-            foreach (var prop in Type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            var props = Type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+            foreach (var prop in props)
             {
                 if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute))
                 {
@@ -199,6 +212,22 @@ namespace Ganss.Excel
                     if (Attribute.GetCustomAttribute(prop, typeof(JsonAttribute)) is JsonAttribute)
                         ci.Json = true;
                 }
+            }
+
+            var hasDefaultConstructor = Type.IsValueType || Type.GetConstructor(Type.EmptyTypes) != null;
+
+            if (!hasDefaultConstructor)
+            {
+                Constructor = Type.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+                    .OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
+
+                if (Constructor == null)
+                    throw new ExcelMapperConvertException($"Type {Type.FullName} has no suitable constructor.");
+
+                ConstructorParams = Constructor.GetParameters()
+                    .Select((p, i) => (Param: p, Index: i, HasProp: props.Any(r => string.Equals(r.Name, p.Name, StringComparison.OrdinalIgnoreCase))))
+                    .Where(p => p.HasProp)
+                    .ToDictionary(p => p.Param.Name, p => p.Param, StringComparer.OrdinalIgnoreCase);
             }
         }
 

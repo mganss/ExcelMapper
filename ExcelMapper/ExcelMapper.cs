@@ -453,46 +453,60 @@ namespace Ganss.Excel
                         o = typeMapper.CreateExpando();
                     else
                     {
-                        var hasDefaultConstructor = type.IsValueType || type.GetConstructor(Type.EmptyTypes) != null;
-                        if (hasDefaultConstructor)
-                            o = Activator.CreateInstance(type);
-                        else
+                        if (typeMapper.Constructor != null)
                         {
+                            var parms = typeMapper.Constructor.GetParameters();
+                            var vals = parms.Select(p => GetDefault(p.ParameterType)).ToArray();
+
+                            foreach (var initVal in initValues)
+                            {
+                                if (typeMapper.ConstructorParams.TryGetValue(initVal.Col.Property.Name, out var parm))
+                                {
+                                    try
+                                    {
+                                        var v = initVal.Col.GetPropertyValue(initVal.CellValue, initVal.Cell);
+                                        vals[parm.Position] = v;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        throw new ExcelMapperConvertException(initVal.CellValue, initVal.Col.PropertyType, i, initVal.ColumnIndex, ex);
+                                    }
+                                }
+                            }
+
                             try
                             {
-                                var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                    .Select(p => (Prop: p, Val: initValues.FirstOrDefault(v => v.Col.Property == p)));
-                                var vals = props
-                                    .Select(p => p.Val.Col?.GetPropertyValue(p.Val.CellValue, p.Val.Cell) ?? GetDefault(p.Prop.PropertyType))
-                                    .ToArray();
-                                var types = props.Select(p => p.Prop.PropertyType).ToArray();
-                                var constructor = type.GetConstructor(types);
-                                o = constructor.Invoke(vals);
-                                initialized = true;
+                                o = typeMapper.Constructor.Invoke(vals);
                             }
                             catch (Exception ex)
                             {
-                                throw new ExcelMapperConvertException($"Error initializing type {type}", ex);
+                                throw new ExcelMapperConvertException($"Failed to initialize type {type.FullName}.", ex);
                             }
+
+                            initialized = true;
+                        }
+                        else
+                        {
+                            o = Activator.CreateInstance(type);
                         }
                     }
 
                     if (!initialized)
                     {
+                        typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
+
                         foreach (var val in initValues)
                         {
                             try
                             {
                                 val.Col.SetProperty(o, val.CellValue, val.Cell);
                             }
-                            catch (Exception e)
+                            catch (Exception ex)
                             {
-                                throw new ExcelMapperConvertException(val.CellValue, val.Col.PropertyType, i, val.ColumnIndex, e);
+                                throw new ExcelMapperConvertException(val.CellValue, val.Col.PropertyType, i, val.ColumnIndex, ex);
                             }
                         }
                     }
-
-                    typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
 
                     if (TrackObjects) Objects[sheet.SheetName][i] = o;
 
