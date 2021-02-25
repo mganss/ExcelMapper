@@ -1990,5 +1990,34 @@ namespace Ganss.Excel.Tests
                 new ProductPosRecord(100, "Filinchen", 0.99m, "C5*D5"),
             }, products);
         }
+
+        private record CustomProduct
+        {
+            public string Name { get; set; }
+            [Column("Number")]
+            public int NumberInStock { get; set; }
+            public decimal Price { get; set; }
+        }
+
+        [Test]
+        public void SaveMissingHeadersTest()
+        {
+            var products = new List<CustomProduct>
+            {
+                new CustomProduct { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
+                new CustomProduct { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
+                new CustomProduct { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+            };
+
+            var excelMapper = new ExcelMapper(@"..\..\..\productsmissingheaders.xlsx") { CreateMissingHeaders = true };
+
+            var file = "productsmissingheaders.xlsx";
+
+            excelMapper.Save(file, products, "PROD");
+
+            var productsFetched = new ExcelMapper(file).Fetch<CustomProduct>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
     }
 }

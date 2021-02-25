@@ -85,6 +85,17 @@ namespace Ganss.Excel
         public bool SkipBlankRows { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to create columns in existing Excel files for properties where
+        /// the corresponding header does not yet exist. If this is false and properties are mapped by name,
+        /// their corresponding headers must already be present in existing files.
+        /// Default is false.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if missing headers should be created; otherwise, <c>false</c>.
+        /// </value>
+        public bool CreateMissingHeaders { get; set; }
+
+        /// <summary>
         /// Gets or sets the <see cref="DataFormatter"/> object to use when formatting cell values.
         /// </summary>
         /// <value>
@@ -1117,9 +1128,9 @@ namespace Ganss.Excel
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
-        void GetColumns(ISheet sheet, TypeMapper typeMapper
-            , ref Dictionary<int, List<ColumnInfo>> columnsByIndex
-            , ref Dictionary<string, List<ColumnInfo>> columnsByName
+        void GetColumns(ISheet sheet, TypeMapper typeMapper,
+            ref Dictionary<int, List<ColumnInfo>> columnsByIndex,
+            ref Dictionary<string, List<ColumnInfo>> columnsByName
         )
         {
             if (HeaderRow)
@@ -1169,6 +1180,25 @@ namespace Ganss.Excel
                         })
                         .Where(c => c.ColumnInfo != null)
                         .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
+                }
+
+                if (CreateMissingHeaders)
+                {
+                    var columnInfos = columnsByIndex.Values;
+
+                    foreach (var col in columnsByName.Where(c => !columnInfos.Contains(c.Value)))
+                    {
+                        var columnIndex = 0;
+                        for (; columnIndex < headerRow.LastCellNum; columnIndex++)
+                        {
+                            var c = headerRow.GetCell(columnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                            if (c == null || (c.CellType == CellType.String && string.IsNullOrEmpty(c.StringCellValue)))
+                                break;
+                        }
+                        var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                        columnsByIndex[columnIndex] = col.Value;
+                        cell.SetCellValue(col.Key);
+                    }
                 }
             }
         }
