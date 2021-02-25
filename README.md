@@ -239,4 +239,7 @@ This removes all whitespace so that columns with the string " First Name " map t
 
 ## Records
 
-Records are supported. Record types must have a constructor that takes an argument for each of the mapped properties in the order they are declared.
+Records are supported. 
+If the type has no default constructor (as is the case for positional records) the constructor with the highest number of arguments is used to initialize objects. 
+This constructor must have a parameter for each of the mapped properties with the same name as the corresponding property (ignoring case). 
+The remanining parameters will receive the default value of their type.
