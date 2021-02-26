@@ -1167,37 +1167,52 @@ namespace Ganss.Excel
                         j++;
                     }
                 }
-                else if (!hasColumnsByIndex)
+                else
                 {
-                    columnsByIndex = headerRow.Cells
-                        .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
-                        .Select(c =>
-                        {
-                            var name = c.StringCellValue;
-                            var normalizedName = NormalizeCellName(typeMapper, name);
-                            var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(normalizedName), ColumnName = c.StringCellValue };
-                            return val;
-                        })
-                        .Where(c => c.ColumnInfo != null)
-                        .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
-                }
-
-                if (CreateMissingHeaders)
-                {
-                    var columnInfos = columnsByIndex.Values;
-
-                    foreach (var col in columnsByName.Where(c => !columnInfos.Contains(c.Value)))
+                    if (CreateMissingHeaders)
                     {
-                        var columnIndex = 0;
-                        for (; columnIndex < headerRow.LastCellNum; columnIndex++)
+                        foreach (var col in columnsByName)
                         {
-                            var c = headerRow.GetCell(columnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                            if (c == null || (c.CellType == CellType.String && string.IsNullOrEmpty(c.StringCellValue)))
-                                break;
+                            var columnInfo = col.Value.FirstOrDefault(c => c.Directions != MappingDirections.ExcelToObject);
+                            if (columnInfo != null)
+                            {
+                                var columnIndex = 0;
+                                var columnInfoByIndex = columnsByIndex.FirstOrDefault(c => c.Value.Any(v =>
+                                    v.Directions != MappingDirections.ObjectToExcel && v.Property == columnInfo.Property));
+
+                                if (columnInfoByIndex.Value == null)
+                                {
+                                    for (; columnIndex < headerRow.LastCellNum; columnIndex++)
+                                    {
+                                        var c = headerRow.GetCell(columnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                                        if (c == null || (c.CellType == CellType.String && string.IsNullOrEmpty(c.StringCellValue)))
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    columnIndex = columnInfoByIndex.Key;
+                                }
+
+                                var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                                columnsByIndex[columnIndex] = col.Value;
+                                cell.SetCellValue(col.Key);
+                            }
                         }
-                        var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                        columnsByIndex[columnIndex] = col.Value;
-                        cell.SetCellValue(col.Key);
+                    }
+                    else if (!hasColumnsByIndex)
+                    {
+                        columnsByIndex = headerRow.Cells
+                            .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
+                            .Select(c =>
+                            {
+                                var name = c.StringCellValue;
+                                var normalizedName = NormalizeCellName(typeMapper, name);
+                                var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(normalizedName), ColumnName = c.StringCellValue };
+                                return val;
+                            })
+                            .Where(c => c.ColumnInfo != null)
+                            .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
                     }
                 }
             }

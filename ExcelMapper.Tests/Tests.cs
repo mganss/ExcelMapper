@@ -1993,9 +1993,11 @@ namespace Ganss.Excel.Tests
 
         private record CustomProduct
         {
+            [Column(Letter = "B")]
             public string Name { get; set; }
-            [Column("Number")]
+            [Column("Number", Letter = "C")]
             public int NumberInStock { get; set; }
+            [Column(Letter = "D")]
             public decimal Price { get; set; }
         }
 
@@ -2009,13 +2011,23 @@ namespace Ganss.Excel.Tests
                 new CustomProduct { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
             };
 
-            var excelMapper = new ExcelMapper(@"..\..\..\productsmissingheaders.xlsx") { CreateMissingHeaders = true };
+            var excelMapper = new ExcelMapper(@"..\..\..\productsmissingheaders.xlsx")
+            {
+                HeaderRowNumber = 2,
+                MinRowNumber = 3,
+                CreateMissingHeaders = true
+            };
 
             var file = "productsmissingheaders.xlsx";
 
             excelMapper.Save(file, products, "PROD");
 
-            var productsFetched = new ExcelMapper(file).Fetch<CustomProduct>().ToList();
+            var productsFetched = new ExcelMapper(file)
+            {
+                HeaderRowNumber = 2,
+                MinRowNumber = 3,
+                CreateMissingHeaders = true
+            }.Fetch<CustomProduct>().ToList();
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
