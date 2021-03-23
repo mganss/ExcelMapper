@@ -399,7 +399,13 @@ namespace Ganss.Excel
 
         IEnumerable Fetch(ISheet sheet, Type type, Func<string, object, object> valueParser = null)
         {
-            var firstRow = sheet.GetRow(HeaderRow ? HeaderRowNumber : MinRowNumber);
+            var firstRowNumber = HeaderRowNumber;
+
+            if (!HeaderRow)
+                firstRowNumber = sheet.Rows().Where(r => r.RowNum >= MinRowNumber && r.RowNum <= MaxRowNumber)
+                    .OrderByDescending(r => r.LastCellNum).FirstOrDefault()?.RowNum ?? 0;
+
+            var firstRow = sheet.GetRow(firstRowNumber);
 
             if (firstRow == null)
                 yield break;

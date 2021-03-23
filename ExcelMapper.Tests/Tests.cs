@@ -2031,5 +2031,15 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
+
+        [Test]
+        public void LongRowsTest()
+        {
+            var rows = new ExcelMapper(@"..\..\..\JaggedRows.xlsx") { HeaderRow = false, SkipBlankRows = false }.Fetch().ToList();
+
+            Assert.AreEqual(2, rows.Count);
+            Assert.AreEqual(13, ((IDictionary<string, object>)rows[0]).Count);
+            Assert.AreEqual("TestL", rows[1].L);
+        }
     }
 }
