@@ -481,7 +481,7 @@ namespace Ganss.Excel
                                 {
                                     try
                                     {
-                                        var v = initVal.Col.GetPropertyValue(initVal.CellValue, initVal.Cell);
+                                        var v = initVal.Col.GetPropertyValue(null, initVal.CellValue, initVal.Cell);
                                         vals[parm.Position] = v;
                                     }
                                     catch (Exception ex)

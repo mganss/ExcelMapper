@@ -93,7 +93,7 @@ namespace Ganss.Excel
         /// <value>
         /// The property setter.
         /// </value>
-        public Func<object, ICell, object> SetProp { get; set; }
+        public Func<object, object, ICell, object> SetProp { get; set; }
 
         /// <summary>
         /// Gets or sets the builtin format.
@@ -221,14 +221,15 @@ namespace Ganss.Excel
         /// <summary>
         /// Computes value that can be assigned to property from cell value.
         /// </summary>
+        /// <param name="o">The object which contains the property.</param>
         /// <param name="val">The value.</param>
         /// <param name="cell">The cell where the value originates from.</param>
         /// <returns>Value that can be assigned to property.</returns>
-        public virtual object GetPropertyValue(object val, ICell cell)
+        public virtual object GetPropertyValue(object o, object val, ICell cell)
         {
             object v;
             if (SetProp != null)
-                v = SetProp(val, cell);
+                v = SetProp(o, val, cell);
             else if (IsNullable && (val == null || (val is string s && s.Length == 0)))
                 v = null;
             else
@@ -245,7 +246,7 @@ namespace Ganss.Excel
         /// <param name="cell">The cell where the value originates from.</param>
         public virtual void SetProperty(object o, object val, ICell cell)
         {
-            var v = GetPropertyValue(val, cell);
+            var v = GetPropertyValue(o, val, cell);
             Property.SetValue(o, v, null);
         }
 
@@ -268,12 +269,21 @@ namespace Ganss.Excel
             return this;
         }
 
+        /// <summary>Specifies a method to use when setting the cell value from an object.</summary>
+        /// <param name="setCell">The method to use when setting the cell value from an object.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetCellUsing<T>(Action<ICell, T> setCell)
+        {
+            SetCell = (c, o) => setCell(c, (T)o);
+            return this;
+        }
+
         /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
         /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing(Func<object, object> setProp)
         {
-            SetProp = (v, c) => setProp(v);
+            SetProp = (o, v, c) => setProp(v);
             return this;
         }
 
@@ -282,7 +292,34 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing(Func<object, ICell, object> setProp)
         {
+            SetProp = (o, v, c) => setProp(v, c);
+            return this;
+        }
+
+        /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
+        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetPropertyUsing(Func<object, object, ICell, object> setProp)
+        {
             SetProp = setProp;
+            return this;
+        }
+
+        /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
+        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetPropertyUsing<T>(Func<T, object, object> setProp)
+        {
+            SetProp = (o, v, c) => setProp((T)o, v);
+            return this;
+        }
+
+        /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
+        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetPropertyUsing<T>(Func<T, object, ICell, object> setProp)
+        {
+            SetProp = (o, v, c) => setProp((T)o, v, c);
             return this;
         }
 

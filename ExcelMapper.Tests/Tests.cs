@@ -2041,5 +2041,50 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(13, ((IDictionary<string, object>)rows[0]).Count);
             Assert.AreEqual("TestL", rows[1].L);
         }
+
+        private class OfferDetails
+        {
+            public bool IsOffer { get; set; }
+            public DateTime End { get; set; }
+        }
+
+        private class NestedProduct
+        {
+            public string Name { get; set; }
+            public int Number { get; set; }
+            public decimal Price { get; set; }
+            [Ignore]
+            public OfferDetails Offer { get; set; } = new();
+        }
+
+        [Test]
+        public void NestedTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\Products.xlsx");
+
+            excel.AddMapping<NestedProduct>("Offer", p => p.Offer)
+                .SetCellUsing<OfferDetails>((c, o) => c.SetCellValue(o.IsOffer))
+                .SetPropertyUsing<NestedProduct>((p, v) =>
+                {
+                    p.Offer.IsOffer = (bool)Convert.ChangeType(v, typeof(bool), CultureInfo.InvariantCulture);
+                    return p.Offer;
+                });
+
+            excel.AddMapping<NestedProduct>("OfferEnd", p => p.Offer)
+                .SetCellUsing<OfferDetails>((c, o) => c.SetCellValue(o.End))
+                .SetPropertyUsing<NestedProduct>((p, v) =>
+                {
+                    p.Offer.End = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
+                    return p.Offer;
+                });
+
+            var products = excel.Fetch<NestedProduct>().ToList();
+
+            Assert.AreEqual(3, products.Count);
+            Assert.AreEqual(false, products[0].Offer.IsOffer);
+            Assert.AreEqual(new DateTime(1970, 1, 1), products[0].Offer.End);
+            Assert.AreEqual(true, products[1].Offer.IsOffer);
+            Assert.AreEqual(new DateTime(2015, 12, 31), products[1].Offer.End);
+        }
     }
 }
