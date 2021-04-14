@@ -253,7 +253,7 @@ namespace Ganss.Excel
         /// <summary>
         /// Gets the property value of the specified object.
         /// </summary>
-        /// <param name="o">The o.</param>
+        /// <param name="o">The object from which to get the property value.</param>
         /// <returns>The property value.</returns>
         public virtual object GetProperty(object o)
         {
