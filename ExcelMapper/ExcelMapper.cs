@@ -1238,8 +1238,6 @@ namespace Ganss.Excel
                     }
                     else if (DateUtil.IsCellDateFormatted(cell))
                     {
-                        // temporary workaround for https://github.com/tonyqus/npoi/issues/412
-                        LocaleUtil.SetUserTimeZone(TimeZone.CurrentTimeZone);
                         return cell.DateCellValue;
                     }
                     else
