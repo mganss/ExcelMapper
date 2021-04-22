@@ -414,14 +414,6 @@ namespace Ganss.Excel
             var firstRowCells = cells
                 .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)));
             var typeMapper = type != null ? TypeMapperFactory.Create(type) : TypeMapper.Create(firstRowCells, HeaderRow);
-            var columns = firstRowCells
-                .Select(c => new
-                {
-                    c.ColumnIndex,
-                    ColumnInfo = GetColumnInfo(typeMapper, c)
-                })
-                .Where(c => c.ColumnInfo?.Any() ?? false)
-                .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
 
             if (TrackObjects) Objects[sheet.SheetName] = new Dictionary<int, object>();
 
@@ -437,103 +429,135 @@ namespace Ganss.Excel
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
                 {
-                    List<(ColumnInfo Col, object CellValue, ICell Cell, int ColumnIndex)> initValues = new();
-
-                    foreach (var col in columns)
-                    {
-                        var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-
-                        if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
-                        {
-                            foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ExcelToObject)))
-                            {
-                                var cellValue = GetCellValue(cell, ci);
-                                try
-                                {
-                                    if (valueParser != null)
-                                        cellValue = valueParser(string.IsNullOrWhiteSpace(ci.Name) ? col.Key.ToString() : ci.Name, cellValue);
-
-                                    initValues.Add((ci, cellValue, cell, col.Key));
-                                }
-                                catch (Exception e)
-                                {
-                                    throw new ExcelMapperConvertException(cellValue, ci.PropertyType, i, col.Key, e);
-                                }
-                            }
-                        }
-                    }
-
-                    object o;
-                    var initialized = false;
-
-                    if (type == null)
-                        o = typeMapper.CreateExpando();
-                    else
-                    {
-                        if (typeMapper.Constructor != null)
-                        {
-                            var parms = typeMapper.Constructor.GetParameters();
-                            var vals = parms.Select(p => GetDefault(p.ParameterType)).ToArray();
-
-                            foreach (var initVal in initValues)
-                            {
-                                if (typeMapper.ConstructorParams.TryGetValue(initVal.Col.Property.Name, out var parm))
-                                {
-                                    try
-                                    {
-                                        var v = initVal.Col.GetPropertyValue(null, initVal.CellValue, initVal.Cell);
-                                        vals[parm.Position] = v;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        throw new ExcelMapperConvertException(initVal.CellValue, initVal.Col.PropertyType, i, initVal.ColumnIndex, ex);
-                                    }
-                                }
-                            }
-
-                            try
-                            {
-                                o = typeMapper.Constructor.Invoke(vals);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new ExcelMapperConvertException($"Failed to initialize type {type.FullName}.", ex);
-                            }
-
-                            initialized = true;
-                        }
-                        else
-                        {
-                            o = Activator.CreateInstance(type);
-                        }
-                    }
-
-                    if (!initialized)
-                    {
-                        typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
-
-                        foreach (var val in initValues)
-                        {
-                            try
-                            {
-                                val.Col.SetProperty(o, val.CellValue, val.Cell);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new ExcelMapperConvertException(val.CellValue, val.Col.PropertyType, i, val.ColumnIndex, ex);
-                            }
-                        }
-                    }
-
-                    if (TrackObjects) Objects[sheet.SheetName][i] = o;
-
-                    typeMapper?.AfterMappingActionInvoker?.Invoke(o, objInstanceIdx);
-
-                    objInstanceIdx++;
-
+                    object o = MapCells(sheet, type, valueParser, typeMapper, firstRowCells, ref objInstanceIdx, row, new HashSet<Type> { type });
                     yield return o;
                 }
             }
+        }
+
+        private object MapCells(ISheet sheet, Type type, Func<string, object, object> valueParser, TypeMapper typeMapper,
+            IEnumerable<ICell> cells, ref int objInstanceIdx, IRow row, ISet<Type> callChain)
+        {
+            var i = row.RowNum;
+            List<(ColumnInfo Col, object CellValue, ICell Cell, int ColumnIndex)> initValues = new();
+            var columns = cells
+                .Select(c => (Index: c.ColumnIndex,
+                    Columns: GetColumnInfo(typeMapper, c).Where(c => c.Directions.HasFlag(MappingDirections.ExcelToObject) && !c.IsSubType).ToList()))
+                .Where(c => c.Columns.Any())
+                .ToList();
+
+            foreach (var (columnIndex, columnInfos) in columns)
+            {
+                var cell = row.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+
+                if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
+                {
+                    foreach (var ci in columnInfos)
+                    {
+                        var cellValue = GetCellValue(cell, ci);
+                        try
+                        {
+                            if (valueParser != null)
+                                cellValue = valueParser(string.IsNullOrWhiteSpace(ci.Name) ? columnIndex.ToString() : ci.Name, cellValue);
+
+                            initValues.Add((ci, cellValue, cell, columnIndex));
+                        }
+                        catch (Exception e)
+                        {
+                            throw new ExcelMapperConvertException(cellValue, ci.PropertyType, i, columnIndex, e);
+                        }
+                    }
+                }
+            }
+
+            foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value).Where(c => c.IsSubType))
+            {
+                if (!callChain.Contains(ci.PropertyType)) // check for cycle in type hierarchy
+                {
+                    callChain.Add(ci.PropertyType);
+                    var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
+                    var subObject = MapCells(sheet, ci.PropertyType, valueParser, subTypeMapper, cells, ref objInstanceIdx, row, callChain);
+                    initValues.Add((ci, subObject, null, -1));
+                }
+            }
+
+            object o;
+            var initialized = false;
+
+            if (type == null)
+                o = typeMapper.CreateExpando();
+            else
+            {
+                if (typeMapper.Constructor != null)
+                {
+                    var parms = typeMapper.Constructor.GetParameters();
+                    var vals = parms.Select(p => GetDefault(p.ParameterType)).ToArray();
+
+                    foreach (var initVal in initValues)
+                    {
+                        if (typeMapper.ConstructorParams.TryGetValue(initVal.Col.Property.Name, out var parm))
+                        {
+                            try
+                            {
+                                object v;
+
+                                if (initVal.Cell != null)
+                                    v = initVal.Col.GetPropertyValue(null, initVal.CellValue, initVal.Cell);
+                                else
+                                    v = initVal.CellValue;
+
+                                vals[parm.Position] = v;
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new ExcelMapperConvertException(initVal.CellValue, initVal.Col.PropertyType, i, initVal.ColumnIndex, ex);
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        o = typeMapper.Constructor.Invoke(vals);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ExcelMapperConvertException($"Failed to initialize type {type.FullName}.", ex);
+                    }
+
+                    initialized = true;
+                }
+                else
+                {
+                    o = Activator.CreateInstance(type);
+                }
+            }
+
+            if (!initialized)
+            {
+                typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
+
+                foreach (var val in initValues)
+                {
+                    try
+                    {
+                        if (val.Cell != null)
+                            val.Col.SetProperty(o, val.CellValue, val.Cell);
+                        else
+                            val.Col.Property.SetValue(o, val.CellValue);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ExcelMapperConvertException(val.CellValue, val.Col.PropertyType, i, val.ColumnIndex, ex);
+                    }
+                }
+            }
+
+            if (TrackObjects) Objects[sheet.SheetName][i] = o;
+
+            typeMapper?.AfterMappingActionInvoker?.Invoke(o, objInstanceIdx);
+
+            objInstanceIdx++;
+            return o;
         }
 
         IEnumerable<dynamic> Fetch(ISheet sheet, Func<string, object, object> valueParser = null) =>
@@ -734,7 +758,7 @@ namespace Ganss.Excel
             var colByIndex = typeMapper.GetColumnByIndex(cell.ColumnIndex);
 
             if (!HeaderRow || colByIndex != null)
-                return colByIndex;
+                return colByIndex ?? new();
 
             var name = cell.StringCellValue;
             var normalizedName = NormalizeCellName(typeMapper, name);
@@ -745,7 +769,7 @@ namespace Ganss.Excel
                 && !typeMapper.ColumnsByIndex.SelectMany(ci => ci.Value).Any(c => c.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 return colByName;
 
-            return new List<ColumnInfo>();
+            return new();
         }
 
         private string NormalizeCellName(TypeMapper typeMapper, string name)
@@ -887,11 +911,11 @@ namespace Ganss.Excel
             var objects = Objects[sheet.SheetName];
             var typeMapper = TypeMapperFactory.Create(objects.First().Value);
             var columnsByIndex = typeMapper.ColumnsByIndex;
-            var columnsByName = typeMapper.ColumnsByName;
 
-            PrepareColumnsForSaving(ref columnsByIndex, ref columnsByName);
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            GetColumns(sheet, typeMapper, ref columnsByIndex, ref columnsByName);
+            GetColumns(sheet, typeMapper, columnsByIndex);
 
             SetColumnStyles(sheet, columnsByIndex);
 
@@ -901,14 +925,7 @@ namespace Ganss.Excel
                 var row = sheet.GetRow(i);
                 if (row == null) row = sheet.CreateRow(i);
 
-                foreach (var col in columnsByIndex)
-                {
-                    var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)))
-                    {
-                        SetCell(valueConverter, o.Value, cell, ci);
-                    }
-                }
+                SetCells(typeMapper, columnsByIndex, o.Value, row, valueConverter);
             }
 
             Workbook.Write(stream);
@@ -922,9 +939,10 @@ namespace Ganss.Excel
             var columnsByName = typeMapper.ColumnsByName;
             var i = MinRowNumber;
 
-            PrepareColumnsForSaving(ref columnsByIndex, ref columnsByName);
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            GetColumns(sheet, typeMapper, ref columnsByIndex, ref columnsByName);
+            GetColumns(sheet, typeMapper, columnsByIndex);
 
             SetColumnStyles(sheet, columnsByIndex);
 
@@ -938,15 +956,7 @@ namespace Ganss.Excel
                 var row = sheet.GetRow(i);
                 if (row == null) row = sheet.CreateRow(i);
 
-                foreach (var col in columnsByIndex)
-                {
-                    var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-
-                    foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)))
-                    {
-                        SetCell(valueConverter, o, cell, ci);
-                    }
-                }
+                SetCells(typeMapper, columnsByIndex, o, row, valueConverter);
 
                 i++;
             }
@@ -963,6 +973,36 @@ namespace Ganss.Excel
             }
 
             Workbook.Write(stream);
+        }
+
+        private void SetCells(TypeMapper typeMapper,
+            Dictionary<int, List<ColumnInfo>> columnsByIndex,
+            object o, IRow row,
+            Func<string, object, object> valueConverter = null)
+        {
+            var columnsByName = typeMapper.ColumnsByName;
+
+            foreach (var col in columnsByIndex)
+            {
+                var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+
+                foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)
+                    && c?.Property?.DeclaringType == typeMapper.Type))
+                {
+                    SetCell(valueConverter, o, cell, ci);
+                }
+            }
+
+            foreach (var col in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel) && c.IsSubType)))
+            {
+                var subTypeMapper = TypeMapperFactory.Create(col.PropertyType);
+                var subObject = col.Property.GetValue(o);
+
+                if (subObject != null)
+                {
+                    SetCells(subTypeMapper, columnsByIndex, subObject, row, valueConverter);
+                }
+            }
         }
 
         private static void SetCell<T>(Func<string, object, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci)
@@ -983,16 +1023,6 @@ namespace Ganss.Excel
             ci.SetCell(cell, val);
             if (oldType != null)
                 ci.ChangeSetterType(oldType);
-        }
-
-        private static void PrepareColumnsForSaving(ref Dictionary<int, List<ColumnInfo>> columnsByIndex, ref Dictionary<string, List<ColumnInfo>> columnsByName)
-        {
-            // All columns with <see cref="MappingDirections.ExcelToObject"/> direction only should not be saved
-            columnsByName = columnsByName.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         /// <summary>
@@ -1134,92 +1164,181 @@ namespace Ganss.Excel
                     .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
-        void GetColumns(ISheet sheet, TypeMapper typeMapper,
-            ref Dictionary<int, List<ColumnInfo>> columnsByIndex,
-            ref Dictionary<string, List<ColumnInfo>> columnsByName
-        )
+        void GetColumns(ISheet sheet, TypeMapper typeMapper, Dictionary<int, List<ColumnInfo>> columnsByIndex)
         {
+            var callChain = new HashSet<Type> { typeMapper.Type };
+
             if (HeaderRow)
             {
                 var headerRow = sheet.GetRow(HeaderRowNumber);
-                var hasColumnsByIndex = columnsByIndex.Any();
 
                 if (headerRow == null)
                 {
-                    var j = 0;
                     headerRow = sheet.CreateRow(HeaderRowNumber);
-
-                    foreach (var getter in columnsByName)
-                    {
-                        var columnIndex = j;
-
-                        if (hasColumnsByIndex)
-                        {
-                            columnIndex = (
-                                from kvpi in columnsByIndex
-                                from kvpci in kvpi.Value
-                                join gci in getter.Value on kvpci.Name equals gci.Name
-                                select kvpi
-                            ).First().Key;
-                        }
-
-                        var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-
-                        if (!hasColumnsByIndex)
-                            columnsByIndex[j] = getter.Value;
-
-                        cell.SetCellValue(getter.Key);
-
-                        j++;
-                    }
+                    var columnIndex = 0;
+                    PopulateHeaderRow(typeMapper, columnsByIndex, headerRow, ref columnIndex, callChain);
                 }
                 else
                 {
                     if (CreateMissingHeaders)
                     {
-                        foreach (var col in columnsByName)
+                        UpdateHeaderRow(typeMapper, columnsByIndex, headerRow, callChain);
+                    }
+                    else
+                    {
+                        ReadHeaderRow(typeMapper, columnsByIndex, headerRow, callChain);
+                    }
+                }
+            }
+            else
+            {
+                columnsByIndex.Clear();
+                GatherColumnIndexes(typeMapper, columnsByIndex, callChain);
+            }
+        }
+
+        private void GatherColumnIndexes(TypeMapper typeMapper, Dictionary<int, List<ColumnInfo>> columnsByIndex, ISet<Type> callChain)
+        {
+            var columnsByName = typeMapper.ColumnsByName;
+
+            foreach (var (index, columns) in typeMapper.ColumnsByIndex.Select(p => (Index: p.Key,
+                Columns: p.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && !c.IsSubType))))
+            {
+                if (!columnsByIndex.TryGetValue(index, out var columnInfos))
+                    columnsByIndex[index] = columnInfos = new();
+                columnInfos.AddRange(columns);
+            }
+
+            foreach (var columnInfo in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && c.IsSubType)))
+            {
+                if (!callChain.Contains(columnInfo.PropertyType))
+                {
+                    callChain.Add(columnInfo.PropertyType);
+                    var subTypeMapper = TypeMapperFactory.Create(columnInfo.PropertyType);
+                    GatherColumnIndexes(subTypeMapper, columnsByIndex, callChain);
+                }
+            }
+        }
+
+        private void UpdateHeaderRow(TypeMapper typeMapper, Dictionary<int, List<ColumnInfo>> columnsByIndex, IRow headerRow, ISet<Type> callChain)
+        {
+            var columnsByName = typeMapper.ColumnsByName;
+
+            foreach (var col in columnsByName)
+            {
+                foreach (var columnInfo in col.Value.Where(c => c.Directions != MappingDirections.ExcelToObject))
+                {
+                    if (!columnInfo.IsSubType)
+                    {
+                        var columnInfoByIndex = columnsByIndex.FirstOrDefault(c => c.Value.Any(v =>
+                            v.Directions != MappingDirections.ObjectToExcel && v.Property == columnInfo.Property));
+                        var columnIndex = 0;
+
+                        if (columnInfoByIndex.Value == null)
                         {
-                            var columnInfo = col.Value.FirstOrDefault(c => c.Directions != MappingDirections.ExcelToObject);
-                            if (columnInfo != null)
+                            for (; columnIndex < headerRow.LastCellNum; columnIndex++)
                             {
-                                var columnIndex = 0;
-                                var columnInfoByIndex = columnsByIndex.FirstOrDefault(c => c.Value.Any(v =>
-                                    v.Directions != MappingDirections.ObjectToExcel && v.Property == columnInfo.Property));
-
-                                if (columnInfoByIndex.Value == null)
-                                {
-                                    for (; columnIndex < headerRow.LastCellNum; columnIndex++)
-                                    {
-                                        var c = headerRow.GetCell(columnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                                        if (c == null || (c.CellType == CellType.String && string.IsNullOrEmpty(c.StringCellValue)))
-                                            break;
-                                    }
-                                }
-                                else
-                                {
-                                    columnIndex = columnInfoByIndex.Key;
-                                }
-
-                                var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                                columnsByIndex[columnIndex] = col.Value;
-                                cell.SetCellValue(col.Key);
+                                var c = headerRow.GetCell(columnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                                if (c == null || (c.CellType == CellType.String && string.IsNullOrEmpty(c.StringCellValue)))
+                                    break;
                             }
                         }
+                        else
+                        {
+                            columnIndex = columnInfoByIndex.Key;
+                        }
+
+                        var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                        columnsByIndex[columnIndex] = col.Value;
+                        cell.SetCellValue(col.Key);
                     }
-                    else if (!hasColumnsByIndex)
+                    else
                     {
-                        columnsByIndex = headerRow.Cells
-                            .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
-                            .Select(c =>
-                            {
-                                var name = c.StringCellValue;
-                                var normalizedName = NormalizeCellName(typeMapper, name);
-                                var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(normalizedName), ColumnName = c.StringCellValue };
-                                return val;
-                            })
-                            .Where(c => c.ColumnInfo != null)
-                            .ToDictionary(c => c.ColumnIndex, c => c.ColumnInfo);
+                        if (!callChain.Contains(columnInfo.PropertyType))
+                        {
+                            callChain.Add(columnInfo.PropertyType);
+                            var subTypeMapper = TypeMapperFactory.Create(columnInfo.PropertyType);
+                            UpdateHeaderRow(subTypeMapper, columnsByIndex, headerRow, callChain);
+                        }
                     }
+                }
+            }
+        }
+
+        private void ReadHeaderRow(TypeMapper typeMapper, Dictionary<int, List<ColumnInfo>> columnsByIndex, IRow headerRow, ISet<Type> callChain)
+        {
+            foreach (var cols in headerRow.Cells
+                .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
+                .Select(c =>
+                {
+                    var name = c.StringCellValue;
+                    var normalizedName = NormalizeCellName(typeMapper, name);
+                    var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(normalizedName), ColumnName = c.StringCellValue };
+                    return val;
+                })
+                .Where(c => c.ColumnInfo != null))
+            {
+                var columnIndex = cols.ColumnIndex;
+                if (!columnsByIndex.TryGetValue(columnIndex, out var columnInfos))
+                    columnsByIndex[columnIndex] = columnInfos = new();
+
+                foreach (var col in cols.ColumnInfo.Where(c => c.Directions != MappingDirections.ExcelToObject && !c.IsSubType))
+                {
+                    columnInfos.Add(col);
+                }
+            }
+
+            foreach (var columns in typeMapper.ColumnsByName)
+            {
+                foreach (var subTypeColumn in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType)))
+                {
+                    callChain.Add(subTypeColumn.PropertyType);
+                    var subTypeMapper = TypeMapperFactory.Create(subTypeColumn.PropertyType);
+                    ReadHeaderRow(subTypeMapper, columnsByIndex, headerRow, callChain);
+                }
+            }
+        }
+
+        private void PopulateHeaderRow(TypeMapper typeMapper, Dictionary<int, List<ColumnInfo>> columnsByIndex,
+            IRow headerRow, ref int columnIndex, ISet<Type> callChain)
+        {
+            var typeColumnsByName = typeMapper.ColumnsByName;
+            var typeColumnsByIndex = typeMapper.ColumnsByIndex;
+
+            foreach (var columns in typeColumnsByName)
+            {
+                var noSubTypeColumns = columns.Value.Where(c => !c.IsSubType && c.Directions != MappingDirections.ExcelToObject).ToList();
+
+                if (noSubTypeColumns.Any())
+                {
+                    var columnIndexes = typeColumnsByIndex.Where(c =>
+                        c.Value.Any(v => v.Directions != MappingDirections.ExcelToObject && noSubTypeColumns.Any(n => n.Name == v.Name)))
+                        .Select(c => c.Key);
+
+                    if (columnIndexes.Any())
+                    {
+                        columnIndex = columnIndexes.First();
+                    }
+                    else
+                    {
+                        if (!columnsByIndex.TryGetValue(columnIndex, out var columnInfos))
+                            columnsByIndex[columnIndex] = noSubTypeColumns;
+                        else
+                            columnInfos.AddRange(noSubTypeColumns);
+                    }
+
+                    var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+
+                    cell.SetCellValue(columns.Key);
+
+                    columnIndex++;
+                }
+
+                foreach (var subTypeColumn in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType)))
+                {
+                    callChain.Add(subTypeColumn.PropertyType);
+                    var subTypeMapper = TypeMapperFactory.Create(subTypeColumn.PropertyType);
+                    PopulateHeaderRow(subTypeMapper, columnsByIndex, headerRow, ref columnIndex, callChain);
                 }
             }
         }

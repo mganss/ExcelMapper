@@ -21,6 +21,7 @@ namespace Ganss.Excel
         public MappingDirections Directions { get; internal set; } = MappingDirections.Both;
 
         private PropertyInfo property;
+        private bool isSubType;
 
         /// <summary>
         /// Sets the property type.
@@ -31,6 +32,12 @@ namespace Ganss.Excel
             var underlyingType = Nullable.GetUnderlyingType(propertyType);
             IsNullable = underlyingType != null;
             PropertyType = underlyingType ?? propertyType;
+
+            isSubType = PropertyType != null
+                && !PropertyType.IsPrimitive
+                && PropertyType != typeof(decimal)
+                && PropertyType != typeof(string)
+                && PropertyType != typeof(DateTime);
         }
 
         /// <summary>
@@ -60,6 +67,17 @@ namespace Ganss.Excel
                     PropertyType = null;
                     IsNullable = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the mapped property has a nested type.
+        /// </summary>
+        public bool IsSubType
+        {
+            get
+            {
+                return isSubType && !Json;
             }
         }
 

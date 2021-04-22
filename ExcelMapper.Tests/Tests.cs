@@ -304,7 +304,7 @@ namespace Ganss.Excel.Tests
             CheckDynamicObjectsValueConvert(products);
 
             // Save
-            var excpectedResult = new List<ProductDynamicValueConvertSave>
+            var expectedResult = new List<ProductDynamicValueConvertSave>
             {
                 new ProductDynamicValueConvertSave { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
                 new ProductDynamicValueConvertSave { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
@@ -315,25 +315,25 @@ namespace Ganss.Excel.Tests
 
             await new ExcelMapper().SaveAsync(filesave, products, "Products", valueConverter: valueConverter);
             var productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+            CollectionAssert.AreEqual(expectedResult, productsFetched);
 
             await new ExcelMapper().SaveAsync(filesave, products, valueConverter: valueConverter);
             productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+            CollectionAssert.AreEqual(expectedResult, productsFetched);
 
             using (var fs = File.OpenWrite(filesave))
             {
                 await new ExcelMapper().SaveAsync(fs, products, "Products", valueConverter: valueConverter);
             }
             productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+            CollectionAssert.AreEqual(expectedResult, productsFetched);
 
             using (var fs = File.OpenWrite(filesave))
             {
                 await new ExcelMapper().SaveAsync(fs, products, valueConverter: valueConverter);
             }
             productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(excpectedResult, productsFetched);
+            CollectionAssert.AreEqual(expectedResult, productsFetched);
         }
 
         [Test]
@@ -2044,8 +2044,29 @@ namespace Ganss.Excel.Tests
 
         private class OfferDetails
         {
+            [Column("Offer")]
             public bool IsOffer { get; set; }
+            [Column("OfferEnd")]
             public DateTime End { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is not OfferDetails o) return false;
+                return o.IsOffer == IsOffer && o.End == End;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(IsOffer, End);
+            }
+
+            public OfferDetails(bool isOffer, DateTime end)
+            {
+                IsOffer = isOffer;
+                End = end;
+            }
+
+            public OfferDetails() { }
         }
 
         private class NestedProduct
@@ -2054,29 +2075,33 @@ namespace Ganss.Excel.Tests
             public int Number { get; set; }
             public decimal Price { get; set; }
             public OfferDetails Offer { get; set; } = new();
+
+            public override bool Equals(object obj)
+            {
+                if (obj is not NestedProduct o) return false;
+                return o.Name == Name && o.Number == Number && o.Price == Price && o.Offer.Equals(Offer);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Name, Number, Price, Offer);
+            }
+
+            public NestedProduct(string name, int number, decimal price, OfferDetails offer)
+            {
+                Name = name;
+                Number = number;
+                Price = price;
+                Offer = offer;
+            }
+
+            public NestedProduct() { }
         }
 
         [Test]
         public void NestedTest()
         {
             var excel = new ExcelMapper(@"..\..\..\Products.xlsx");
-
-            excel.AddMapping<NestedProduct>("Offer", p => p.Offer)
-                .SetCellUsing<OfferDetails>((c, o) => c.SetCellValue(o.IsOffer))
-                .SetPropertyUsing<NestedProduct>((p, v) =>
-                {
-                    p.Offer.IsOffer = (bool)Convert.ChangeType(v, typeof(bool), CultureInfo.InvariantCulture);
-                    return p.Offer;
-                });
-
-            excel.AddMapping<NestedProduct>("OfferEnd", p => p.Offer)
-                .SetCellUsing<OfferDetails>((c, o) => c.SetCellValue(o.End))
-                .SetPropertyUsing<NestedProduct>((p, v) =>
-                {
-                    p.Offer.End = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
-                    return p.Offer;
-                });
-
             var products = excel.Fetch<NestedProduct>().ToList();
 
             Assert.AreEqual(3, products.Count);
@@ -2084,6 +2109,204 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(new DateTime(1970, 1, 1), products[0].Offer.End);
             Assert.AreEqual(true, products[1].Offer.IsOffer);
             Assert.AreEqual(new DateTime(2015, 12, 31), products[1].Offer.End);
+        }
+
+        [Test]
+        public void NestedSaveTest()
+        {
+            var products = new List<NestedProduct>
+            {
+                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails(true, new DateTime(2015, 12, 31))),
+                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+            };
+
+            var file = "nestedsave.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var excel = new ExcelMapper(file);
+            var productsFetched = excel.Fetch<NestedProduct>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+
+            productsFetched[0].Name = "Nudossi2";
+            productsFetched[0].Offer.End = new DateTime(2021, 4, 21);
+
+            excel.Save(file);
+
+            var productsFetched2 = excel.Fetch<NestedProduct>().ToList();
+
+            CollectionAssert.AreEqual(productsFetched, productsFetched2);
+        }
+
+        private record OfferDetailsRecord(bool Offer, DateTime OfferEnd);
+        private record NestedRecord(string Name, int Number, decimal Price, decimal Value, OfferDetailsRecord OfferDetails);
+
+        [Test]
+        public void NestedRecordTest()
+        {
+            var products = new ExcelMapper(@"..\..\..\Products.xlsx").Fetch<NestedRecord>().ToList();
+
+            CollectionAssert.AreEqual(new List<NestedRecord>
+            {
+                new NestedRecord("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new NestedRecord("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
+                new NestedRecord("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+            }, products);
+        }
+
+        [Test]
+        public void NestedRecordSaveTest()
+        {
+            var products = new List<NestedRecord>
+            {
+                new NestedRecord("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new NestedRecord("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
+                new NestedRecord("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+            };
+
+            var file = "nestedrecordssave.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var excel = new ExcelMapper(file);
+            var productsFetched = excel.Fetch<NestedRecord>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        [Test]
+        public void NestedRecordSaveMissingHeadersTest()
+        {
+            var products = new List<NestedRecord>
+            {
+                new NestedRecord("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new NestedRecord("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
+                new NestedRecord("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+            };
+
+            var excelMapper = new ExcelMapper(@"..\..\..\productsmissingheaders.xlsx")
+            {
+                CreateMissingHeaders = true,
+                HeaderRowNumber = 2,
+                MinRowNumber = 3,
+            };
+
+            var file = "nestedrecordssavemissingheaders.xlsx";
+
+            excelMapper.Save(file, products, "PROD");
+
+            var productsFetched = new ExcelMapper(file)
+            {
+                HeaderRowNumber = 2,
+                MinRowNumber = 3
+            }.Fetch<NestedRecord>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        private class NestedOfferMapped
+        {
+            public bool O { get; set; }
+            public DateTime E { get; set; }
+            public NestedProductMapped Cycle { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is not NestedOfferMapped o) return false;
+                return o.O == O && o.E == E;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(O, E);
+            }
+        }
+
+        private class NestedProductMapped
+        {
+            public string N { get; set; }
+            public int Num { get; set; }
+            public decimal P { get; set; }
+            public NestedOfferMapped O { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is not NestedProductMapped o) return false;
+                return o.N == N && o.Num == Num && o.P == P && o.O.Equals(O);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(N, Num, P, O);
+            }
+        }
+
+        [Test]
+        public void NestedProductMappedTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\Products.xlsx");
+
+            excel.AddMapping<NestedProductMapped>("Name", p => p.N);
+            excel.AddMapping<NestedProductMapped>("Number", p => p.Num);
+            excel.AddMapping<NestedProductMapped>("Price", p => p.P);
+            excel.AddMapping<NestedOfferMapped>("Offer", p => p.O);
+            excel.AddMapping<NestedOfferMapped>("OfferEnd", p => p.E);
+
+            var products = excel.Fetch<NestedProductMapped>().ToList();
+
+            var expectedResult = new List<NestedProductMapped>
+            {
+                new NestedProductMapped { N = "Nudossi", Num = 60, P = 1.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
+                new NestedProductMapped { N = "Halloren", Num = 33, P = 2.99m, O = new NestedOfferMapped { O = true, E = new DateTime(2015, 12, 31) } },
+                new NestedProductMapped { N = "Filinchen", Num = 100, P = 0.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
+            };
+
+            CollectionAssert.AreEqual(expectedResult, products);
+        }
+
+        [Test]
+        public void NestedProductIndexMappedTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\Products.xlsx")
+            {
+                HeaderRow = false,
+                MinRowNumber = 1
+            };
+
+            excel.AddMapping<NestedProductMapped>(ExcelMapper.LetterToIndex("A"), p => p.N);
+            excel.AddMapping<NestedProductMapped>(ExcelMapper.LetterToIndex("C"), p => p.Num);
+            excel.AddMapping<NestedProductMapped>(ExcelMapper.LetterToIndex("D"), p => p.P);
+            excel.AddMapping<NestedOfferMapped>(ExcelMapper.LetterToIndex("E"), p => p.O);
+            excel.AddMapping<NestedOfferMapped>(ExcelMapper.LetterToIndex("F"), p => p.E);
+
+            var products = excel.Fetch<NestedProductMapped>().ToList();
+
+            var expectedResult = new List<NestedProductMapped>
+            {
+                new NestedProductMapped { N = "Nudossi", Num = 60, P = 1.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
+                new NestedProductMapped { N = "Halloren", Num = 33, P = 2.99m, O = new NestedOfferMapped { O = true, E = new DateTime(2015, 12, 31) } },
+                new NestedProductMapped { N = "Filinchen", Num = 100, P = 0.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
+            };
+
+            CollectionAssert.AreEqual(expectedResult, products);
+
+            var file = "nestedindexmapped.xlsx";
+
+            new ExcelMapper()
+            {
+                HeaderRow = false
+            }.Save(file, products, "Products");
+
+            excel = new ExcelMapper(file)
+            {
+                HeaderRow = false
+            };
+
+            var productsFetched = excel.Fetch<NestedProductMapped>().ToList();
+
+            CollectionAssert.AreEqual(expectedResult, productsFetched);
         }
     }
 }

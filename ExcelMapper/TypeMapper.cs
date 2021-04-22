@@ -15,7 +15,10 @@ namespace Ganss.Excel
     /// </summary>
     public class TypeMapper
     {
-        Type Type { get; set; }
+        /// <summary>
+        /// Gets the type being mapped.
+        /// </summary>
+        public Type Type { get; private set; }
 
         /// <summary>
         /// Gets or sets the columns by name.
