@@ -429,15 +429,19 @@ namespace Ganss.Excel
                 // optionally skip header row and blank rows
                 if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
                 {
-                    object o = MapCells(sheet, type, valueParser, typeMapper, firstRowCells, ref objInstanceIdx, row, new HashSet<Type> { type });
+                    object o = MapCells(type, valueParser, typeMapper, firstRowCells, ref objInstanceIdx, row, new HashSet<Type> { type });
                     yield return o;
                 }
             }
         }
 
-        private object MapCells(ISheet sheet, Type type, Func<string, object, object> valueParser, TypeMapper typeMapper,
+        IEnumerable<dynamic> Fetch(ISheet sheet, Func<string, object, object> valueParser = null) =>
+            Fetch(sheet, type: null, valueParser).Cast<dynamic>();
+
+        private object MapCells(Type type, Func<string, object, object> valueParser, TypeMapper typeMapper,
             IEnumerable<ICell> cells, ref int objInstanceIdx, IRow row, ISet<Type> callChain)
         {
+            var sheet = row.Sheet;
             var i = row.RowNum;
             List<(ColumnInfo Col, object CellValue, ICell Cell, int ColumnIndex)> initValues = new();
             var columns = cells
@@ -476,7 +480,7 @@ namespace Ganss.Excel
                 {
                     callChain.Add(ci.PropertyType);
                     var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
-                    var subObject = MapCells(sheet, ci.PropertyType, valueParser, subTypeMapper, cells, ref objInstanceIdx, row, callChain);
+                    var subObject = MapCells(ci.PropertyType, valueParser, subTypeMapper, cells, ref objInstanceIdx, row, callChain);
                     initValues.Add((ci, subObject, null, -1));
                 }
             }
@@ -559,9 +563,6 @@ namespace Ganss.Excel
             objInstanceIdx++;
             return o;
         }
-
-        IEnumerable<dynamic> Fetch(ISheet sheet, Func<string, object, object> valueParser = null) =>
-            Fetch(sheet, type: null, valueParser).Cast<dynamic>();
 
         static object GetDefault(Type t) => t.GetTypeInfo().IsValueType ? Activator.CreateInstance(t) : null;
 
@@ -936,7 +937,6 @@ namespace Ganss.Excel
             var firstObject = objects.FirstOrDefault();
             var typeMapper = firstObject is ExpandoObject ? TypeMapperFactory.Create(firstObject) : TypeMapperFactory.Create(typeof(T));
             var columnsByIndex = typeMapper.ColumnsByIndex;
-            var columnsByName = typeMapper.ColumnsByName;
             var i = MinRowNumber;
 
             columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
