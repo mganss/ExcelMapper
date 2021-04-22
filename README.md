@@ -243,3 +243,33 @@ Records are supported.
 If the type has no default constructor (as is the case for positional records) the constructor with the highest number of arguments is used to initialize objects. 
 This constructor must have a parameter for each of the mapped properties with the same name as the corresponding property (ignoring case). 
 The remanining parameters will receive the default value of their type.
+
+## Nested objects
+
+Nested objects are supported and should work out of the box for most use cases. For example, if you have a sheet with columns Name, Street, City, Zip, Birthday, you can map
+to the following class hierarchy without any configuration:
+
+```c#
+public class Person
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+    public Address Address { get; set; }
+}
+
+public class Address
+{
+    public string Street { get; set; }
+    public string City { get; set; }
+    public string Zip { get; set; }
+}
+
+var customers = new ExcelMapper("customers.xlsx").Fetch<Person>();
+```
+
+This works with records, too:
+
+```c#
+public record Person(string Name, DateTime Birthday, Address Address);
+public record Address(string Street, string City, string Zip);
+```
