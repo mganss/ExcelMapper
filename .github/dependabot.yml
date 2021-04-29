@@ -1,0 +1,13 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: NPOI
+    versions:
+    - 2.5.2
+    - 2.5.3
