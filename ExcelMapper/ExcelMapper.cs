@@ -1082,11 +1082,32 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
-        {
-            using var ms = new MemoryStream();
+        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null) {
+            using var ms = new NpoiMemoryStream() { AllowClose = false };
             Save(ms, objects, sheetIndex, xlsx, valueConverter);
-            await SaveAsync(stream, ms);
+            await SaveAsync(stream, ms);            
+        }
+
+        /// <summary>
+        /// The above code fails because the Workbook.Save closes the stream 
+        /// before it can copy the data between the streams.
+        /// </summary>
+        public class NpoiMemoryStream : MemoryStream {
+            public NpoiMemoryStream() {
+                // We always want to close streams by default to
+                // force the developer to make the conscious decision
+                // to disable it.  Then, they're more apt to remember
+                // to re-enable it.  The last thing you want is to
+                // enable memory leaks by default.  ;-)
+                AllowClose = true;
+            }
+
+            public bool AllowClose { get; set; }
+
+            public override void Close() {
+                if (AllowClose)
+                    base.Close();
+            }
         }
 
         /// <summary>
