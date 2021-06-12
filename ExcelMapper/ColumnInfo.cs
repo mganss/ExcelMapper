@@ -77,7 +77,8 @@ namespace Ganss.Excel
         {
             get
             {
-                return isSubType && !Json;
+                return isSubType && !Json
+                    && SetProp == null;
             }
         }
 

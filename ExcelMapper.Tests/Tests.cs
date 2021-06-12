@@ -2308,5 +2308,33 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(expectedResult, productsFetched);
         }
+
+        class ProductStringArray
+        {
+            [Ignore]
+            public string[] Products { get; set; }
+        }
+
+        [Test]
+        public void StringArrayTest()
+        {
+            var excel = new ExcelMapper("../../../ProductsJson.xlsx");
+            excel.AddMapping<ProductStringArray>("Product", p => p.Products)
+                .SetCellUsing((c, o) =>
+                {
+                    if (o is string[] s) c.SetCellValue(string.Join(",", s));
+                    else c.SetCellValue((string)null);
+                })
+                .SetPropertyUsing(v =>
+                {
+                    if (v is string s) return s.Split(',');
+                    else return Array.Empty<string>();
+                });
+
+            var ps = excel.Fetch<ProductStringArray>().ToList();
+
+            Assert.AreEqual(3, ps.Count);
+            Assert.True(ps.All(p => p.Products.Length == 4));
+        }
     }
 }
