@@ -476,7 +476,8 @@ namespace Ganss.Excel
 
             foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value).Where(c => c.IsSubType))
             {
-                if (!callChain.Contains(ci.PropertyType)) // check for cycle in type hierarchy
+                if (!callChain.Contains(ci.PropertyType) // check for cycle in type hierarchy
+                    && !initValues.Any(v => v.Col.Property == ci.Property)) // map subtypes only if not already mapped
                 {
                     callChain.Add(ci.PropertyType);
                     var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);

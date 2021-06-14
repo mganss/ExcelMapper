@@ -2311,7 +2311,6 @@ namespace Ganss.Excel.Tests
 
         class ProductStringArray
         {
-            [Ignore]
             public string[] Products { get; set; }
         }
 
