@@ -1033,6 +1033,26 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void SaveTableTest()
+        {
+            var products = new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },                
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+            };
+
+            var file = "productssavetable.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products",tableStyle:"TableStyleMedium3");
+
+            var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+
+        }
+
+        [Test]
         public void SaveNoHeaderSaveTest()
         {
             var products = new List<ProductNoHeader>
