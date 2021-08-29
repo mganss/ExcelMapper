@@ -12,6 +12,7 @@ using NPOI.OpenXmlFormats.Spreadsheet;
 using System.Data.Common;
 using System.Runtime.Serialization.Json;
 using System.Text.RegularExpressions;
+using NPOI.SS.Formula.Functions;
 
 namespace Ganss.Excel.Tests
 {
@@ -942,11 +943,21 @@ namespace Ganss.Excel.Tests
                 { 2, "Tabelle3" },
             }, sheetNamesAndIndexed);
         }
-        
+
         [Test]
-        public void FetchSheetNamesWithFileTest()
+        public void FetchSheetNamesExceptionWhenNoFileProvidedTest()
         {
-            var sheetNamesAndIndexed = new ExcelMapper().FetchSheetNames(@"..\..\..\products.xlsx");
+            var workbook = new ExcelMapper();
+            var ex = Assert.Throws<ArgumentNullException>(() => workbook.FetchSheetNames());
+            Assert.That(ex.Message.Contains("Excel file not found"));
+        }
+
+        [Test]
+        [TestCase(@"..\..\..\products.xlsx")]
+        [TestCase(@"..\..\..\productslegacy.xls")]
+        public void FetchSheetNamesWithFileTest(string file)
+        {
+            var sheetNamesAndIndexed = new ExcelMapper().FetchSheetNames(file);
 
             CollectionAssert.AreEqual(new Dictionary<int, string>
             {
