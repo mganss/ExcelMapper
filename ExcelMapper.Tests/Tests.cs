@@ -932,12 +932,27 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchSheetNamesTest()
         {
+            var workbook = new ExcelMapper(@"..\..\..\products.xlsx");
+            var sheetNamesAndIndexed = workbook.FetchSheetNames();
+
+            CollectionAssert.AreEqual(new Dictionary<int, string>
+            {
+                { 0, "Tabelle1" },
+                { 1, "Tabelle2" },
+                { 2, "Tabelle3" },
+            }, sheetNamesAndIndexed);
+        }
+        
+        [Test]
+        public void FetchSheetNamesWithFileTest()
+        {
             var sheetNamesAndIndexed = new ExcelMapper().FetchSheetNames(@"..\..\..\products.xlsx");
 
             CollectionAssert.AreEqual(new Dictionary<int, string>
             {
                 { 0, "Tabelle1" },
                 { 1, "Tabelle2" },
+                { 2, "Tabelle3" },
             }, sheetNamesAndIndexed);
         }
 

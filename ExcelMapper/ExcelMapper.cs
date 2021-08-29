@@ -748,7 +748,7 @@ namespace Ganss.Excel
         {
             var fileInfo = new FileInfo(file);
 
-            if (fileInfo.Extension == "xlsx")
+            if (fileInfo.Extension == ".xlsx")
             {
                 return FetchSheetNames(new XSSFWorkbook(file));
             }
