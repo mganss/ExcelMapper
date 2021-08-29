@@ -27,9 +27,9 @@ A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) obje
 ## Read objects from an Excel file
 
 ```C#
-var products = new ExcelMapper("products.xlsx").Fetch<Product>();   // Objects are read from the first worksheet
-var products = new ExcelMapper("products.xlsx").Fetch<Product>(2);  // Objects are read from the third worksheet
-var products = new ExcelMapper("products.xlsx").Fetch<Product>("Sheet Name"); // Objects are read from the specified worksheet name
+var products = new ExcelMapper("products.xlsx").Fetch<Product>();   // Read from first worksheet
+var products = new ExcelMapper("products.xlsx").Fetch<Product>(2);  // Read from third worksheet
+var products = new ExcelMapper("products.xlsx").Fetch<Product>("Sheet Name"); // Read from specified worksheet name
 ```
 
 This expects the Excel file to contain a header row with the column names. Objects are read from the worksheet specified by index or name. If the column names equal the property names (ignoring case) no other configuration is necessary. The format of the Excel file (xlsx or xls) is autodetected.
