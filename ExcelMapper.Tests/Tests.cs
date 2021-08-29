@@ -929,6 +929,18 @@ namespace Ganss.Excel.Tests
             Assert.That(ex.Message.Contains("Sheet not found"));
         }
 
+        [Test]
+        public void FetchSheetNamesTest()
+        {
+            var sheetNamesAndIndexed = new ExcelMapper().FetchSheetNames(@"..\..\..\products.xlsx");
+
+            CollectionAssert.AreEqual(new Dictionary<int, string>
+            {
+                { 0, "Tabelle1" },
+                { 1, "Tabelle2" },
+            }, sheetNamesAndIndexed);
+        }
+
         private class ProductNoHeader
         {
             [Column(1)]

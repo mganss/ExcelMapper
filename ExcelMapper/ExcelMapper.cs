@@ -730,6 +730,60 @@ namespace Ganss.Excel
             return Fetch(ms, type, sheetIndex, valueParser);
         }
 
+        /// <summary>
+        /// Fetches the names of all sheets along with their indexes.
+        /// </summary>
+        /// <returns>A dictionary of index and name of all sheets from the Excel file.</returns>
+        public Dictionary<int, string> FetchSheetNames()
+        {
+            return FetchSheetNames(Workbook);
+        }
+
+        /// <summary>
+        /// Fetches the names of all sheets along with their indexes.
+        /// </summary>
+        /// <param name="file">The path to the Excel file.</param>
+        /// <returns>A dictionary of index and name of all sheets from the Excel file.</returns>
+        public Dictionary<int, string> FetchSheetNames(string file)
+        {
+            var fileInfo = new FileInfo(file);
+
+            if (fileInfo.Extension == "xlsx")
+            {
+                return FetchSheetNames(new XSSFWorkbook(file));
+            }
+            else
+            {
+                using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                {
+                    var workbook = new HSSFWorkbook(stream);
+                    return FetchSheetNames(workbook);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fetches the names of all sheets along with their indexes.
+        /// </summary>
+        /// <param name="workbook">The excel workbook.</param>
+        /// <returns>A dictionary of index and name of all sheets from the Excel file.</returns>
+        public Dictionary<int, string> FetchSheetNames(IWorkbook workbook)
+        {
+            if (workbook == null)
+            {
+                throw new ArgumentNullException(nameof(workbook), "Excel file not found");
+            }
+
+            var sheetProperties = new Dictionary<int, string>();
+
+            for (int i = 0; i < workbook.NumberOfSheets; i++)
+            {
+                sheetProperties.Add(i, workbook.GetSheetName(i));
+            }
+
+            return sheetProperties;
+        }
+
         static async Task<Stream> ReadAsync(string file)
         {
             using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
