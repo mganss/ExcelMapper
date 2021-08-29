@@ -280,7 +280,7 @@ namespace Ganss.Excel
         }
 
         /// <summary>Specifies a method to use when setting the cell value from an object.</summary>
-        /// <param name="setCell">The method to use when setting the cell value from an object.</param>
+        /// <param name="setCell">The method to use when setting the cell value from an object. Action&lt;cell: ICell, property: object&gt;</param>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing(Action<ICell, object> setCell)
         {
@@ -289,7 +289,7 @@ namespace Ganss.Excel
         }
 
         /// <summary>Specifies a method to use when setting the cell value from an object.</summary>
-        /// <param name="setCell">The method to use when setting the cell value from an object.</param>
+        /// <param name="setCell">The method to use when setting the cell value from an object. Action&lt;cell: ICell, property: T&gt;</param>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing<T>(Action<ICell, T> setCell)
         {
@@ -298,7 +298,7 @@ namespace Ganss.Excel
         }
 
         /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
-        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <param name="setProp">The method to use when setting the property value from the cell value. Func&lt;cellValue: object, out property: object&gt;</param>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing(Func<object, object> setProp)
         {
@@ -307,7 +307,7 @@ namespace Ganss.Excel
         }
 
         /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
-        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <param name="setProp">The method to use when setting the property value from the cell value. Func&lt;cellValue: object, cell: ICell, out property: object&gt;</param>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing(Func<object, ICell, object> setProp)
         {
