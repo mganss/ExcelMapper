@@ -2373,5 +2373,34 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(3, ps.Count);
             Assert.True(ps.All(p => p.Products.Length == 4));
         }
+
+        public record GuidProduct(Guid? Id, string Name, int NumberInStock, decimal Price);
+
+        [Test]
+        public void GuidTest()
+        {
+            var excel = new ExcelMapper("../../../ProductsGuid.xlsx");
+
+            var productsFetched = excel.Fetch<GuidProduct>().ToList();
+
+            var expectedProducts = new List<GuidProduct>
+            {
+              new GuidProduct(new Guid("{6bba457c-00ee-4dc7-8002-967c760b428c}"), "Nudossi", 60, 1.99m),
+              new GuidProduct(new Guid("{f833727a-63dd-483f-8ec0-4a667e707ebb}"), "Halloren", 33, 2.99m),
+              new GuidProduct(new Guid("{eb966e28-b9b4-4dcc-b7b1-1521b53cb37f}"), "Filinchen", 100, 0.99m),
+            };
+
+            CollectionAssert.AreEqual(expectedProducts, productsFetched);
+
+            var file = "guid.xlsx";
+
+            new ExcelMapper().Save(file, expectedProducts, "Products");
+
+            excel = new ExcelMapper(file);
+
+            productsFetched = excel.Fetch<GuidProduct>().ToList();
+
+            CollectionAssert.AreEqual(expectedProducts, productsFetched);
+        }
     }
 }
