@@ -5,7 +5,6 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Runtime;
 using System.Text.Json;
 
 namespace Ganss.Excel
@@ -37,7 +36,8 @@ namespace Ganss.Excel
                 && !PropertyType.IsPrimitive
                 && PropertyType != typeof(decimal)
                 && PropertyType != typeof(string)
-                && PropertyType != typeof(DateTime);
+                && PropertyType != typeof(DateTime)
+                && PropertyType != typeof(Guid);
         }
 
         /// <summary>
@@ -251,6 +251,8 @@ namespace Ganss.Excel
                 v = SetProp(o, val, cell);
             else if (IsNullable && (val == null || (val is string s && s.Length == 0)))
                 v = null;
+            else if (val is string g && PropertyType == typeof(Guid))
+                v = Guid.Parse(g);
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 
