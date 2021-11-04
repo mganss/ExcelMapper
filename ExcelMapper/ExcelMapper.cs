@@ -1,5 +1,6 @@
 using Ganss.Excel.Exceptions;
 using NPOI.HSSF.UserModel;
+using NPOI.OpenXmlFormats.Spreadsheet;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.Util;
@@ -790,10 +791,11 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle = null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, objects, sheetName, xlsx, valueConverter);
+            Save(fs, objects, sheetName, xlsx, valueConverter,tableStyle);
         }
 
         /// <summary>
@@ -805,10 +807,11 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, objects, sheetIndex, xlsx, valueConverter);
+            Save(fs, objects, sheetIndex, xlsx, valueConverter, tableStyle);
         }
 
         /// <summary>
@@ -820,13 +823,14 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheet(sheetName);
             if (sheet == null) sheet = Workbook.CreateSheet(sheetName);
-            Save(stream, sheet, objects, valueConverter);
+            Save(stream, sheet, objects, valueConverter, tableStyle);
         }
 
         /// <summary>
@@ -838,7 +842,8 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
@@ -847,7 +852,7 @@ namespace Ganss.Excel
                 sheet = Workbook.GetSheetAt(sheetIndex);
             else
                 sheet = Workbook.CreateSheet();
-            Save(stream, sheet, objects, valueConverter);
+            Save(stream, sheet, objects, valueConverter, tableStyle);
         }
 
         /// <summary>
@@ -857,10 +862,11 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, sheetName, xlsx, valueConverter);
+            Save(fs, sheetName, xlsx, valueConverter, tableStyle);
         }
 
         /// <summary>
@@ -870,10 +876,11 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle = null)
         {
             using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
-            Save(fs, sheetIndex, xlsx, valueConverter);
+            Save(fs, sheetIndex, xlsx, valueConverter, tableStyle);
         }
 
         /// <summary>
@@ -883,13 +890,14 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheet(sheetName);
             if (sheet == null) sheet = Workbook.CreateSheet(sheetName);
-            Save(stream, sheet, valueConverter);
+            Save(stream, sheet, valueConverter, tableStyle);
         }
 
         /// <summary>
@@ -899,16 +907,17 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle = null)
         {
             if (Workbook == null)
                 Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheetAt(sheetIndex);
             if (sheet == null) sheet = Workbook.CreateSheet();
-            Save(stream, sheet, valueConverter);
+            Save(stream, sheet, valueConverter, tableStyle);
         }
 
-        void Save(Stream stream, ISheet sheet, Func<string, object, object> valueConverter = null)
+        void Save(Stream stream, ISheet sheet, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             var objects = Objects[sheet.SheetName];
             var typeMapper = TypeMapperFactory.Create(objects.First().Value);
@@ -929,11 +938,20 @@ namespace Ganss.Excel
 
                 SetCells(typeMapper, columnsByIndex, o.Value, row, valueConverter);
             }
+            if (HeaderRow && tableStyle != null && sheet is XSSFSheet xsheet)
+            {
+                //Defines the range for the table
+                int firstColumn = columnsByIndex.Keys.Min();
+                int firstRow = MinRowNumber;
+                int lastColumn = columnsByIndex.Keys.Max();
+                int lastRow = sheet.LastRowNum;
 
+                FormatTable(xsheet, tableStyle, firstRow, firstColumn, lastRow, lastColumn);
+            }
             Workbook.Write(stream);
         }
 
-        void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects, Func<string, object, object> valueConverter = null)
+        void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             var firstObject = objects.FirstOrDefault();
             var typeMapper = firstObject is ExpandoObject ? TypeMapperFactory.Create(firstObject) : TypeMapperFactory.Create(typeof(T));
@@ -972,8 +990,72 @@ namespace Ganss.Excel
                     i++;
                 }
             }
+            if (HeaderRow && tableStyle != null && sheet is XSSFSheet xsheet)
+            {
+                //Defines the range for the table
+                int firstColumn = columnsByIndex.Keys.Min();
+                int firstRow = HeaderRowNumber;
+                int lastColumn = columnsByIndex.Keys.Max();
+                int lastRow = sheet.LastRowNum;
 
+                FormatTable(xsheet, tableStyle, firstRow, firstColumn, lastRow, lastColumn);
+            }
             Workbook.Write(stream);
+        }
+
+        private static void FormatTable(XSSFSheet xsheet, string tableStyle,  int firstRow, int firstColumn, int lastRow, int lastColumn)
+        {
+            //Generates an unique ID for this table
+            var tableId = xsheet.GetTables().Any() ?
+                xsheet.GetTables().Max(x => x.GetCTTable().id) + 1 :
+                1;
+
+            XSSFTable xssfTable = xsheet.CreateTable();
+            CT_Table ctTable = xssfTable.GetCTTable();
+
+            //Table Range
+            AreaReference myDataRange = new AreaReference(
+                new CellReference(firstRow, firstColumn),
+                new CellReference(lastRow, lastColumn));
+            ctTable.@ref = myDataRange.FormatAsString();
+
+            //General table configuration
+            ctTable.displayName = $"Table{tableId}";
+            ctTable.name = $"Table{tableId}";
+            ctTable.id = tableId;
+            ctTable.autoFilter = new();
+
+            //Table style configuration
+            ctTable.tableStyleInfo = new CT_TableStyleInfo
+            {
+                name = tableStyle,
+                showRowStripes = true,
+                showColumnStripes = false                
+            };
+
+            //Define the table columns
+            ctTable.tableColumns = new CT_TableColumns
+            {
+                count = (uint)(lastColumn + 1 - firstColumn),
+                tableColumn = new List<CT_TableColumn>()
+            };
+            uint columnIndex = 1;
+            for (int c = firstColumn; c <= lastColumn; c++)
+            {
+                var cell = xsheet.GetRow(firstRow)?.GetCell(c);
+
+                string columnName = (cell?.CellType == CellType.String && !string.IsNullOrWhiteSpace(cell?.StringCellValue)) ? 
+                    cell.StringCellValue : 
+                    $"Column {columnIndex}";
+
+                ctTable.tableColumns.tableColumn.Add(
+                    new CT_TableColumn()
+                    {
+                        id = columnIndex,                        
+                        name = columnName
+                    });
+                ++columnIndex;
+            }
         }
 
         private void SetCells(TypeMapper typeMapper,
@@ -1035,10 +1117,11 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var ms = new MemoryStream();
-            Save(ms, objects, sheetName, xlsx, valueConverter);
+            Save(ms, objects, sheetName, xlsx, valueConverter, tableStyle);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -1051,10 +1134,11 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var ms = new MemoryStream();
-            Save(ms, objects, sheetIndex, xlsx, valueConverter);
+            Save(ms, objects, sheetIndex, xlsx, valueConverter, tableStyle);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -1067,10 +1151,11 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var ms = new MemoryStream();
-            Save(ms, objects, sheetName, xlsx, valueConverter);
+            Save(ms, objects, sheetName, xlsx, valueConverter, tableStyle);
             await SaveAsync(stream, ms);
         }
 
@@ -1083,10 +1168,11 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var ms = new MemoryStream();
-            Save(ms, objects, sheetIndex, xlsx, valueConverter);
+            Save(ms, objects, sheetIndex, xlsx, valueConverter, tableStyle);
             await SaveAsync(stream, ms);
         }
 
@@ -1097,10 +1183,11 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var ms = new MemoryStream();
-            Save(ms, sheetName, xlsx, valueConverter);
+            Save(ms, sheetName, xlsx, valueConverter, tableStyle);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -1111,10 +1198,11 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var ms = new MemoryStream();
-            Save(ms, sheetIndex, xlsx, valueConverter);
+            Save(ms, sheetIndex, xlsx, valueConverter, tableStyle);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -1125,10 +1213,11 @@ namespace Ganss.Excel
         /// <param name="sheetName">Name of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle = null)
         {
             using var ms = new MemoryStream();
-            Save(ms, sheetName, xlsx, valueConverter);
+            Save(ms, sheetName, xlsx, valueConverter, tableStyle);
             await SaveAsync(stream, ms);
         }
 
@@ -1139,10 +1228,11 @@ namespace Ganss.Excel
         /// <param name="sheetIndex">Index of the sheet.</param>
         /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
         /// <param name="valueConverter">converter receiving property name and value</param>
-        public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+        /// <param name="tableStyle">Name of the Excel table style to apply on the data. If null, the data will not be formatted as table</param>
+        public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null, string tableStyle=null)
         {
             using var ms = new MemoryStream();
-            Save(ms, sheetIndex, xlsx, valueConverter);
+            Save(ms, sheetIndex, xlsx, valueConverter, tableStyle);
             await SaveAsync(stream, ms);
         }
 
