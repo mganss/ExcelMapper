@@ -1024,8 +1024,17 @@ namespace Ganss.Excel.Tests
             };
 
             var file = "productssave.xlsx";
+            var excelMapper = new ExcelMapper();
 
-            new ExcelMapper().Save(file, products, "Products");
+            excelMapper.Saving += (s, e) =>
+            {
+                var cols = e.Sheet.GetRow(excelMapper.HeaderRowNumber).LastCellNum;
+
+                for (int i = 0; i < cols; i++)
+                    e.Sheet.AutoSizeColumn(i);
+            };
+
+            excelMapper.Save(file, products, "Products");
 
             var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
 
