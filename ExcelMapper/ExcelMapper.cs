@@ -103,6 +103,11 @@ namespace Ganss.Excel
         /// </value>
         public DataFormatter DataFormatter { get; set; } = new DataFormatter(CultureInfo.InvariantCulture);
 
+        /// <summary>
+        /// Occurs before saving and allows the workbook to be manipulated.
+        /// </summary>
+        public event EventHandler<SavingEventArgs> Saving;
+
         private Func<string, string> NormalizeName { get; set; }
 
         Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new Dictionary<string, Dictionary<int, object>>();
@@ -984,6 +989,8 @@ namespace Ganss.Excel
                 SetCells(typeMapper, columnsByIndex, o.Value, row, valueConverter);
             }
 
+            Saving?.Invoke(this, new SavingEventArgs(sheet));
+
             Workbook.Write(stream);
         }
 
@@ -1026,6 +1033,8 @@ namespace Ganss.Excel
                     i++;
                 }
             }
+
+            Saving?.Invoke(this, new SavingEventArgs(sheet));
 
             Workbook.Write(stream);
         }
