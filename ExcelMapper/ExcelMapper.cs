@@ -1273,12 +1273,13 @@ namespace Ganss.Excel
                 columnInfos.AddRange(columns);
             }
 
-            foreach (var columnInfo in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && c.IsSubType)))
+            foreach (var propertyType in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && c.IsSubType))
+                .Select(c => c.PropertyType))
             {
-                if (!callChain.Contains(columnInfo.PropertyType))
+                if (!callChain.Contains(propertyType))
                 {
-                    callChain.Add(columnInfo.PropertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(columnInfo.PropertyType);
+                    callChain.Add(propertyType);
+                    var subTypeMapper = TypeMapperFactory.Create(propertyType);
                     GatherColumnIndexes(subTypeMapper, columnsByIndex, callChain);
                 }
             }
@@ -1354,10 +1355,11 @@ namespace Ganss.Excel
 
             foreach (var columns in typeMapper.ColumnsByName)
             {
-                foreach (var subTypeColumn in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType)))
+                foreach (var propertyType in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType))
+                    .Select(c => c.PropertyType))
                 {
-                    callChain.Add(subTypeColumn.PropertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(subTypeColumn.PropertyType);
+                    callChain.Add(propertyType);
+                    var subTypeMapper = TypeMapperFactory.Create(propertyType);
                     ReadHeaderRow(subTypeMapper, columnsByIndex, headerRow, callChain);
                 }
             }
@@ -1398,10 +1400,11 @@ namespace Ganss.Excel
                     columnIndex++;
                 }
 
-                foreach (var subTypeColumn in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType)))
+                foreach (var propertyType in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType))
+                    .Select(c => c.PropertyType))
                 {
-                    callChain.Add(subTypeColumn.PropertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(subTypeColumn.PropertyType);
+                    callChain.Add(propertyType);
+                    var subTypeMapper = TypeMapperFactory.Create(propertyType);
                     PopulateHeaderRow(subTypeMapper, columnsByIndex, headerRow, ref columnIndex, callChain);
                 }
             }
