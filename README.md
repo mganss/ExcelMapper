@@ -23,6 +23,7 @@ A library to map [POCO](https://en.wikipedia.org/wiki/Plain_Old_CLR_Object) obje
 * Map JSON
 * Fetch/Save dynamic objects
 * Use records
+* Provide custom object factories
 
 ## Read objects from an Excel file
 
@@ -273,4 +274,18 @@ This works with records, too:
 ```c#
 public record Person(string Name, DateTime Birthday, Address Address);
 public record Address(string Street, string City, string Zip);
+```
+
+## Object factories
+
+You can specify a custom object factory for any type which will be used to create object instances for mapped properties of that type. This can be useful to handle cases where object creation is otherwise not possible (such as for properties that have interface types) or where you want to execute specific initialization logic.
+
+```c#
+public class Person
+{
+    public string Name { get; set; }
+    public IAddress Address { get; set; }
+}
+
+excel.CreateInstance<IAddress>(() => new Address());
 ```
