@@ -146,7 +146,7 @@ namespace Ganss.Excel
         /// </value>
         public bool Json { get; set; }
 
-        static readonly HashSet<Type> NumericTypes = new HashSet<Type>
+        static readonly HashSet<Type> NumericTypes = new()
         {
             typeof(decimal),
             typeof(byte), typeof(sbyte),

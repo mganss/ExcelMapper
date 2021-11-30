@@ -1515,8 +1515,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void TestExcelMapperConvertException()
         {
-            ExcelMapperConvertException ex =
-                new ExcelMapperConvertException("cellvalue", typeof(string), 12, 34);
+            ExcelMapperConvertException ex = new("cellvalue", typeof(string), 12, 34);
 
             // Sanity check: Make sure custom properties are set before serialization
             Assert.AreEqual(12, ex.Line);
@@ -2451,6 +2450,42 @@ namespace Ganss.Excel.Tests
             productsFetched = excel.Fetch<GuidProduct>().ToList();
 
             CollectionAssert.AreEqual(expectedProducts, productsFetched);
+        }
+
+        class ProductBase
+        {
+            public string Name { get; set; }
+        }
+
+        class ProductDerived: ProductBase
+        {
+            public int Number { get; set; }
+        }
+
+        [Test]
+        public void DerivedSaveTest()
+        {
+            var products = new List<ProductDerived>
+            {
+                new ProductDerived { Name = "Name1", Number = 15 },
+                new ProductDerived { Name = "Name2", Number = 41 }
+            };
+
+            var file = "derived.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var excel = new ExcelMapper(file);
+
+            var productsFetched = excel.Fetch<ProductDerived>().ToList();
+
+            Assert.AreEqual(products.Count, productsFetched.Count);
+
+            for (int i = 0; i < products.Count; i++)
+            {
+                Assert.AreEqual(products[i].Name, productsFetched[i].Name);
+                Assert.AreEqual(products[i].Number, productsFetched[i].Number);
+            }
         }
     }
 }
