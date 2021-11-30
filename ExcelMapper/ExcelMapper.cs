@@ -96,6 +96,15 @@ namespace Ganss.Excel
         public bool CreateMissingHeaders { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to ignore nested types.
+        /// Default is false.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if nested types should be ignored; otherwise, <c>false</c>.
+        /// </value>
+        public bool IgnoreNestedTypes { get; set; }
+
+        /// <summary>
         /// Gets or sets the <see cref="DataFormatter"/> object to use when formatting cell values.
         /// </summary>
         /// <value>
@@ -479,15 +488,18 @@ namespace Ganss.Excel
                 }
             }
 
-            foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value).Where(c => c.IsSubType))
+            if (!IgnoreNestedTypes)
             {
-                if (!callChain.Contains(ci.PropertyType) // check for cycle in type hierarchy
-                    && !initValues.Any(v => v.Col.Property == ci.Property)) // map subtypes only if not already mapped
+                foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value).Where(c => c.IsSubType))
                 {
-                    callChain.Add(ci.PropertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
-                    var subObject = MapCells(ci.PropertyType, valueParser, subTypeMapper, cells, ref objInstanceIdx, row, callChain);
-                    initValues.Add((ci, subObject, null, -1));
+                    if (!callChain.Contains(ci.PropertyType) // check for cycle in type hierarchy
+                        && !initValues.Any(v => v.Col.Property == ci.Property)) // map subtypes only if not already mapped
+                    {
+                        callChain.Add(ci.PropertyType);
+                        var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
+                        var subObject = MapCells(ci.PropertyType, valueParser, subTypeMapper, cells, ref objInstanceIdx, row, callChain);
+                        initValues.Add((ci, subObject, null, -1));
+                    }
                 }
             }
 
@@ -1057,14 +1069,17 @@ namespace Ganss.Excel
                 }
             }
 
-            foreach (var col in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel) && c.IsSubType)))
+            if (!IgnoreNestedTypes)
             {
-                var subTypeMapper = TypeMapperFactory.Create(col.PropertyType);
-                var subObject = col.Property.GetValue(o);
-
-                if (subObject != null)
+                foreach (var col in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel) && c.IsSubType)))
                 {
-                    SetCells(subTypeMapper, columnsByIndex, subObject, row, valueConverter);
+                    var subTypeMapper = TypeMapperFactory.Create(col.PropertyType);
+                    var subObject = col.Property.GetValue(o);
+
+                    if (subObject != null)
+                    {
+                        SetCells(subTypeMapper, columnsByIndex, subObject, row, valueConverter);
+                    }
                 }
             }
         }
@@ -1273,14 +1288,17 @@ namespace Ganss.Excel
                 columnInfos.AddRange(columns);
             }
 
-            foreach (var propertyType in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && c.IsSubType))
-                .Select(c => c.PropertyType))
+            if (!IgnoreNestedTypes)
             {
-                if (!callChain.Contains(propertyType))
+                foreach (var propertyType in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && c.IsSubType))
+                    .Select(c => c.PropertyType))
                 {
-                    callChain.Add(propertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(propertyType);
-                    GatherColumnIndexes(subTypeMapper, columnsByIndex, callChain);
+                    if (!callChain.Contains(propertyType))
+                    {
+                        callChain.Add(propertyType);
+                        var subTypeMapper = TypeMapperFactory.Create(propertyType);
+                        GatherColumnIndexes(subTypeMapper, columnsByIndex, callChain);
+                    }
                 }
             }
         }
@@ -1317,7 +1335,7 @@ namespace Ganss.Excel
                         columnsByIndex[columnIndex] = col.Value;
                         cell.SetCellValue(col.Key);
                     }
-                    else
+                    else if (!IgnoreNestedTypes)
                     {
                         if (!callChain.Contains(columnInfo.PropertyType))
                         {
@@ -1353,14 +1371,17 @@ namespace Ganss.Excel
                 }
             }
 
-            foreach (var columns in typeMapper.ColumnsByName)
+            if (!IgnoreNestedTypes)
             {
-                foreach (var propertyType in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType))
-                    .Select(c => c.PropertyType))
+                foreach (var columns in typeMapper.ColumnsByName)
                 {
-                    callChain.Add(propertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(propertyType);
-                    ReadHeaderRow(subTypeMapper, columnsByIndex, headerRow, callChain);
+                    foreach (var propertyType in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType))
+                        .Select(c => c.PropertyType))
+                    {
+                        callChain.Add(propertyType);
+                        var subTypeMapper = TypeMapperFactory.Create(propertyType);
+                        ReadHeaderRow(subTypeMapper, columnsByIndex, headerRow, callChain);
+                    }
                 }
             }
         }
@@ -1400,12 +1421,15 @@ namespace Ganss.Excel
                     columnIndex++;
                 }
 
-                foreach (var propertyType in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType))
-                    .Select(c => c.PropertyType))
+                if (!IgnoreNestedTypes)
                 {
-                    callChain.Add(propertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(propertyType);
-                    PopulateHeaderRow(subTypeMapper, columnsByIndex, headerRow, ref columnIndex, callChain);
+                    foreach (var propertyType in columns.Value.Where(c => c.IsSubType && !callChain.Contains(c.PropertyType))
+                        .Select(c => c.PropertyType))
+                    {
+                        callChain.Add(propertyType);
+                        var subTypeMapper = TypeMapperFactory.Create(propertyType);
+                        PopulateHeaderRow(subTypeMapper, columnsByIndex, headerRow, ref columnIndex, callChain);
+                    }
                 }
             }
         }
