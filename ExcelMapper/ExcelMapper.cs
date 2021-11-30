@@ -1336,14 +1336,11 @@ namespace Ganss.Excel
                         columnsByIndex[columnIndex] = col.Value;
                         cell.SetCellValue(col.Key);
                     }
-                    else if (!IgnoreNestedTypes)
+                    else if (!IgnoreNestedTypes && !callChain.Contains(columnInfo.PropertyType))
                     {
-                        if (!callChain.Contains(columnInfo.PropertyType))
-                        {
-                            callChain.Add(columnInfo.PropertyType);
-                            var subTypeMapper = TypeMapperFactory.Create(columnInfo.PropertyType);
-                            UpdateHeaderRow(subTypeMapper, columnsByIndex, headerRow, callChain);
-                        }
+                        callChain.Add(columnInfo.PropertyType);
+                        var subTypeMapper = TypeMapperFactory.Create(columnInfo.PropertyType);
+                        UpdateHeaderRow(subTypeMapper, columnsByIndex, headerRow, callChain);
                     }
                 }
             }
