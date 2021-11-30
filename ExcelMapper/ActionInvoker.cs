@@ -23,7 +23,7 @@ namespace Ganss.Excel
         /// <returns></returns>
         internal static ActionInvoker CreateInstance<T>(Action<T, int> mappingAction)
         {
-            // instanciate concrete generic invoker
+            // instantiate concrete generic invoker
             var invokerType = typeof(ActionInvokerImpl<>);
             Type[] tType = { typeof(T) };
             Type constructed = invokerType.MakeGenericType(tType);
@@ -33,7 +33,7 @@ namespace Ganss.Excel
     }
 
     /// <summary>
-    /// Generic form <see cref="ActionInvoker"/> 
+    /// Generic form <see cref="ActionInvoker"/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal class ActionInvokerImpl<T> : ActionInvoker

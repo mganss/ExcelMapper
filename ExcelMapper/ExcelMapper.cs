@@ -119,7 +119,8 @@ namespace Ganss.Excel
 
         private Func<string, string> NormalizeName { get; set; }
 
-        Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new Dictionary<string, Dictionary<int, object>>();
+        readonly Dictionary<Type, Func<object>> ObjectFactories = new();
+        Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new();
         IWorkbook Workbook { get; set; }
 
         static readonly TypeMapperFactory DefaultTypeMapperFactory = new();
@@ -154,6 +155,16 @@ namespace Ganss.Excel
         public ExcelMapper(Stream stream)
         {
             Workbook = WorkbookFactory.Create(stream);
+        }
+
+        /// <summary>
+        /// Sets a factory function to create objects of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to create.</typeparam>
+        /// <param name="factory">The factory function.</param>
+        public void CreateInstance<T>(Func<T> factory)
+        {
+            ObjectFactories[typeof (T)] = () => factory();
         }
 
         /// <summary>
@@ -550,7 +561,26 @@ namespace Ganss.Excel
                 }
                 else
                 {
-                    o = Activator.CreateInstance(type);
+                    if (ObjectFactories.TryGetValue(type, out var factory))
+                    {
+                        o = factory();
+                    }
+                    else
+                    {
+                        try
+                        {
+                            o = Activator.CreateInstance(type);
+                        }
+#pragma warning disable CA1031 // Do not catch general exception types
+                        catch (Exception)
+                        {
+                            o = null;
+                        }
+#pragma warning restore CA1031 // Do not catch general exception types
+                    }
+
+                    if (o == null)
+                        return null;
                 }
             }
 

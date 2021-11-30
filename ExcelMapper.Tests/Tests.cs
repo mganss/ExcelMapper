@@ -2449,5 +2449,69 @@ namespace Ganss.Excel.Tests
                 Assert.AreEqual(products[i].Number, productsFetched[i].Number);
             }
         }
+
+        interface INumberInterface
+        {
+            int Number { get; set; }
+        }
+
+        class NumberClass: INumberInterface
+        {
+            public int Number { get; set; }
+        }
+
+        class InterfaceProduct
+        {
+            public string Name { get; set; }
+            public INumberInterface Num { get; set; }
+        }
+
+        [Test]
+        public void InterfaceTest()
+        {
+            var excel = new ExcelMapper("../../../Products.xlsx");
+
+            var productsFetched = excel.Fetch<InterfaceProduct>().ToList();
+
+            var products = new List<InterfaceProduct>
+            {
+                new InterfaceProduct { Name = "Nudossi", Num = null },
+                new InterfaceProduct { Name = "Halloren", Num = null },
+                new InterfaceProduct { Name = "Filinchen", Num = null },
+            };
+
+            Assert.AreEqual(products.Count, productsFetched.Count);
+
+            for (int i = 0; i < products.Count; i++)
+            {
+                Assert.AreEqual(products[i].Name, productsFetched[i].Name);
+                Assert.AreEqual(products[i].Num, productsFetched[i].Num);
+            }
+        }
+
+        [Test]
+        public void InterfaceFactoryTest()
+        {
+            var excel = new ExcelMapper("../../../Products.xlsx");
+
+            excel.CreateInstance<INumberInterface>(() => new NumberClass());
+
+            var productsFetched = excel.Fetch<InterfaceProduct>().ToList();
+
+            var products = new List<InterfaceProduct>
+            {
+                new InterfaceProduct { Name = "Nudossi", Num = new NumberClass { Number = 60 } },
+                new InterfaceProduct { Name = "Halloren", Num = new NumberClass { Number = 33 } },
+                new InterfaceProduct { Name = "Filinchen", Num = new NumberClass { Number = 100 } },
+            };
+
+            Assert.AreEqual(products.Count, productsFetched.Count);
+
+            for (int i = 0; i < products.Count; i++)
+            {
+                Assert.AreEqual(products[i].Name, productsFetched[i].Name);
+                Assert.AreEqual(products[i].Num.Number, productsFetched[i].Num.Number);
+            }
+        }
     }
 }
