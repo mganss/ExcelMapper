@@ -2121,6 +2121,22 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void IgnoreNestedTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\Products.xlsx") { IgnoreNestedTypes = true };
+            var products = excel.Fetch<NestedProduct>().ToList();
+
+            Assert.AreEqual(3, products.Count);
+
+            CollectionAssert.AreEqual(new List<NestedProduct>
+            {
+                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails()),
+                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails()),
+                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails()),
+            }, products);
+        }
+
+        [Test]
         public void NestedSaveTest()
         {
             var products = new List<NestedProduct>
@@ -2147,6 +2163,31 @@ namespace Ganss.Excel.Tests
             var productsFetched2 = excel.Fetch<NestedProduct>().ToList();
 
             CollectionAssert.AreEqual(productsFetched, productsFetched2);
+        }
+
+        [Test]
+        public void IgnoreNestedSaveTest()
+        {
+            var products = new List<NestedProduct>
+            {
+                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails(true, new DateTime(2015, 12, 31))),
+                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+            };
+
+            var file = "ignorenestedsave.xlsx";
+
+            new ExcelMapper() { IgnoreNestedTypes = true }.Save(file, products, "Products");
+
+            var excel = new ExcelMapper(file) { IgnoreNestedTypes = true };
+            var productsFetched = excel.Fetch<NestedProduct>().ToList();
+
+            CollectionAssert.AreEqual(new List<NestedProduct>
+            {
+                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails()),
+                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails()),
+                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails()),
+            }, productsFetched);
         }
 
         private record OfferDetailsRecord(bool Offer, DateTime OfferEnd);
