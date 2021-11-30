@@ -224,13 +224,13 @@ namespace Ganss.Excel
                 Constructor = Type.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                     .OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
 
-                if (Constructor == null)
-                    throw new ExcelMapperConvertException($"Type {Type.FullName} has no suitable constructor.");
-
-                ConstructorParams = Constructor.GetParameters()
-                    .Select((p, i) => (Param: p, Index: i, HasProp: props.Any(r => string.Equals(r.Name, p.Name, StringComparison.OrdinalIgnoreCase))))
-                    .Where(p => p.HasProp)
-                    .ToDictionary(p => p.Param.Name, p => p.Param, StringComparer.OrdinalIgnoreCase);
+                if (Constructor != null)
+                {
+                    ConstructorParams = Constructor.GetParameters()
+                        .Select((p, i) => (Param: p, Index: i, HasProp: props.Any(r => string.Equals(r.Name, p.Name, StringComparison.OrdinalIgnoreCase))))
+                        .Where(p => p.HasProp)
+                        .ToDictionary(p => p.Param.Name, p => p.Param, StringComparer.OrdinalIgnoreCase);
+                }
             }
         }
 
