@@ -122,7 +122,7 @@ namespace Ganss.Excel
         Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new Dictionary<string, Dictionary<int, object>>();
         IWorkbook Workbook { get; set; }
 
-        static readonly TypeMapperFactory DefaultTypeMapperFactory = new TypeMapperFactory();
+        static readonly TypeMapperFactory DefaultTypeMapperFactory = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExcelMapper"/> class.
@@ -1008,8 +1008,9 @@ namespace Ganss.Excel
             {
                 var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
-                foreach (var ci in col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel)
-                    && c?.Property?.DeclaringType == typeMapper.Type))
+                foreach (var ci in col.Value.Where(c => (c is DynamicColumnInfo)
+                    || (c.Directions.HasFlag(MappingDirections.ObjectToExcel)
+                        && (c?.Property?.DeclaringType.IsAssignableFrom(typeMapper.Type) == true))))
                 {
                     SetCell(valueConverter, o, cell, ci);
                 }
@@ -1629,7 +1630,7 @@ namespace Ganss.Excel
             NormalizeName = normalizeName;
         }
 
-        internal static readonly Regex ColumnLetterRegex = new Regex("^$?[A-Z]+$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        internal static readonly Regex ColumnLetterRegex = new("^$?[A-Z]+$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Converts Excel column letters to column indexes (e.g. "A" yields 1).
