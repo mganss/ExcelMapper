@@ -49,6 +49,8 @@ This maps the column named `Number` to the `NumberInStock` property.
 
 ## Map to column indexes
 
+Column indexes start at 1.
+
 ```C#
 public class Product
 {
