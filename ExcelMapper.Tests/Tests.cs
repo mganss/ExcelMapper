@@ -933,38 +933,22 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchSheetNamesTest()
         {
-            var workbook = new ExcelMapper(@"..\..\..\products.xlsx");
-            var sheetNamesAndIndexed = workbook.FetchSheetNames();
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+            var sheetNames = excel.FetchSheetNames().ToList();
 
-            CollectionAssert.AreEqual(new Dictionary<int, string>
+            CollectionAssert.AreEqual(new List<string>
             {
-                { 0, "Tabelle1" },
-                { 1, "Tabelle2" },
-                { 2, "Tabelle3" },
-            }, sheetNamesAndIndexed);
+                "Tabelle1",
+                "Tabelle2",
+                "Tabelle3",
+            }, sheetNames);
         }
 
         [Test]
-        public void FetchSheetNamesExceptionWhenNoFileProvidedTest()
+        public void FetchSheetNamesEmptyTest()
         {
-            var workbook = new ExcelMapper();
-            var ex = Assert.Throws<ArgumentNullException>(() => workbook.FetchSheetNames());
-            Assert.That(ex.Message.Contains("Excel file not found"));
-        }
-
-        [Test]
-        [TestCase(@"..\..\..\products.xlsx")]
-        [TestCase(@"..\..\..\productslegacy.xls")]
-        public void FetchSheetNamesWithFileTest(string file)
-        {
-            var sheetNamesAndIndexed = new ExcelMapper().FetchSheetNames(file);
-
-            CollectionAssert.AreEqual(new Dictionary<int, string>
-            {
-                { 0, "Tabelle1" },
-                { 1, "Tabelle2" },
-                { 2, "Tabelle3" },
-            }, sheetNamesAndIndexed);
+            var excel = new ExcelMapper();
+            CollectionAssert.IsEmpty(excel.FetchSheetNames());
         }
 
         private class ProductNoHeader
