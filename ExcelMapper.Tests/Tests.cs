@@ -12,6 +12,7 @@ using NPOI.OpenXmlFormats.Spreadsheet;
 using System.Data.Common;
 using System.Runtime.Serialization.Json;
 using System.Text.RegularExpressions;
+using NPOI.SS.Formula.Functions;
 
 namespace Ganss.Excel.Tests
 {
@@ -927,6 +928,27 @@ namespace Ganss.Excel.Tests
                                                                                                                                 .OfType<ProductException>()
                                                                                                                                 .ToList());
             Assert.That(ex.Message.Contains("Sheet not found"));
+        }
+
+        [Test]
+        public void FetchSheetNamesTest()
+        {
+            var excel = new ExcelMapper(@"..\..\..\products.xlsx");
+            var sheetNames = excel.FetchSheetNames().ToList();
+
+            CollectionAssert.AreEqual(new List<string>
+            {
+                "Tabelle1",
+                "Tabelle2",
+                "Tabelle3",
+            }, sheetNames);
+        }
+
+        [Test]
+        public void FetchSheetNamesEmptyTest()
+        {
+            var excel = new ExcelMapper();
+            CollectionAssert.IsEmpty(excel.FetchSheetNames());
         }
 
         private class ProductNoHeader

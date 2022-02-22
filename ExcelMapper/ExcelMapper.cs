@@ -777,6 +777,12 @@ namespace Ganss.Excel
             return Fetch(ms, type, sheetIndex, valueParser);
         }
 
+        /// <summary>
+        /// Fetches the names of all sheets.
+        /// </summary>
+        /// <returns>The sheet names.</returns>
+        public IEnumerable<string> FetchSheetNames() => Workbook == null ? Array.Empty<string>() : Enumerable.Range(0, Workbook.NumberOfSheets).Select(i => Workbook.GetSheetName(i));
+
         static async Task<Stream> ReadAsync(string file)
         {
             using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
