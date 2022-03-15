@@ -158,6 +158,33 @@ namespace Ganss.Excel
         }
 
         /// <summary>
+        /// Attaches the Excel file from the provided <see cref="IWorkbook"/>.
+        /// </summary>
+        /// <param name="workbook">The workbook.</param>
+        public void AttachFile(IWorkbook workbook)
+        {
+            Workbook = workbook;
+        }
+
+        /// <summary>
+        /// Attaches the Excel file from the provided path.
+        /// </summary>
+        /// <param name="file">The path to the Excel file.</param>
+        public void AttachFile(string file)
+        {
+            Workbook = WorkbookFactory.Create(file);
+        }
+
+        /// <summary>
+        /// Attaches the Excel file read from the provided <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The stream the Excel file is read from.</param>
+        public void AttachFile(Stream stream)
+        {
+            Workbook = WorkbookFactory.Create(stream);
+        }
+
+        /// <summary>
         /// Sets a factory function to create objects of type <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T">The type of objects to create.</typeparam>
