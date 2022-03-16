@@ -161,7 +161,7 @@ namespace Ganss.Excel
         /// Attaches the Excel file from the provided <see cref="IWorkbook"/>.
         /// </summary>
         /// <param name="workbook">The workbook.</param>
-        public void AttachFile(IWorkbook workbook)
+        public void Attach(IWorkbook workbook)
         {
             Workbook = workbook;
         }
@@ -170,7 +170,7 @@ namespace Ganss.Excel
         /// Attaches the Excel file from the provided path.
         /// </summary>
         /// <param name="file">The path to the Excel file.</param>
-        public void AttachFile(string file)
+        public void Attach(string file)
         {
             Workbook = WorkbookFactory.Create(file);
         }
@@ -179,7 +179,7 @@ namespace Ganss.Excel
         /// Attaches the Excel file read from the provided <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The stream the Excel file is read from.</param>
-        public void AttachFile(Stream stream)
+        public void Attach(Stream stream)
         {
             Workbook = WorkbookFactory.Create(stream);
         }
