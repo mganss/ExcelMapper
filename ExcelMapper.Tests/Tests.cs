@@ -2535,5 +2535,59 @@ namespace Ganss.Excel.Tests
                 Assert.AreEqual(products[i].Num.Number, productsFetched[i].Num.Number);
             }
         }
+
+        [Test]
+        public void AttachWithPathUsingFetchTest()
+        {
+            var mapper = new ExcelMapper();
+
+            mapper.Attach(@"..\..\..\products.xlsx");
+
+            var products = mapper.Fetch<Product>();
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
+
+        [Test]
+        public void AttachWithStreamUsingFetchTest()
+        {
+            var stream = new FileStream(@"..\..\..\products.xlsx", FileMode.Open, FileAccess.Read);
+            var mapper = new ExcelMapper();
+
+            mapper.Attach(stream);
+
+            var products = mapper.Fetch<Product>();
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+            stream.Close();
+        }
+
+        [Test]
+        public void AttachWithWorkbookUsingFetchTest()
+        {
+            var workbook = WorkbookFactory.Create(@"..\..\..\products.xlsx");
+            var mapper = new ExcelMapper();
+
+            mapper.Attach(workbook);
+
+            var products = mapper.Fetch<Product>();
+
+            CollectionAssert.AreEqual(new List<Product>
+            {
+                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products);
+        }
     }
 }
