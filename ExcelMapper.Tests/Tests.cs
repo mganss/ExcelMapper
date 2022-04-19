@@ -2626,25 +2626,26 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products, productsFetched);
         }
 
-        private record DashedProduct
+        private record MixedRecordProduct
         {
-            [Column("Name-1")]
             public string Name { get; }
 
-            public DashedProduct(string name) => Name = name;
+            public int Number { get; set; }
+
+            public MixedRecordProduct(string name) => Name = name;
         }
 
         [Test]
-        public void DashedTest()
+        public void MixedRecordTest()
         {
-            var excel = new ExcelMapper("../../../ProductsDashed.xlsx");
-            var products = excel.Fetch<DashedProduct>().ToList();
+            var excel = new ExcelMapper("../../../Products.xlsx");
+            var products = excel.Fetch<MixedRecordProduct>().ToList();
 
-            CollectionAssert.AreEqual(new List<DashedProduct>
+            CollectionAssert.AreEqual(new List<MixedRecordProduct>
             {
-                new DashedProduct("Nudossi"),
-                new DashedProduct("Halloren"),
-                new DashedProduct("Filinchen"),
+                new MixedRecordProduct("Nudossi") { Number = 60 },
+                new MixedRecordProduct("Halloren") { Number = 33 },
+                new MixedRecordProduct("Filinchen") { Number = 100 },
             }, products);
         }
     }

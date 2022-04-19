@@ -542,7 +542,6 @@ namespace Ganss.Excel
             }
 
             object o;
-            var initialized = false;
 
             if (type == null)
                 o = typeMapper.CreateExpando();
@@ -553,7 +552,7 @@ namespace Ganss.Excel
                     var parms = typeMapper.Constructor.GetParameters();
                     var vals = parms.Select(p => GetDefault(p.ParameterType)).ToArray();
 
-                    foreach (var initVal in initValues)
+                    foreach (var initVal in initValues.ToList())
                     {
                         if (typeMapper.ConstructorParams.TryGetValue(initVal.Col.Property.Name, out var parm))
                         {
@@ -567,6 +566,8 @@ namespace Ganss.Excel
                                     v = initVal.CellValue;
 
                                 vals[parm.Position] = v;
+
+                                initValues.Remove(initVal);
                             }
                             catch (Exception ex)
                             {
@@ -583,8 +584,6 @@ namespace Ganss.Excel
                     {
                         throw new ExcelMapperConvertException($"Failed to initialize type {type.FullName}.", ex);
                     }
-
-                    initialized = true;
                 }
                 else
                 {
@@ -611,7 +610,7 @@ namespace Ganss.Excel
                 }
             }
 
-            if (!initialized)
+            if (initValues.Any())
             {
                 typeMapper?.BeforeMappingActionInvoker?.Invoke(o, objInstanceIdx);
 
