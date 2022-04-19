@@ -34,6 +34,7 @@ namespace Ganss.Excel
 
             isSubType = PropertyType != null
                 && !PropertyType.IsPrimitive
+                && !PropertyType.IsEnum
                 && PropertyType != typeof(decimal)
                 && PropertyType != typeof(string)
                 && PropertyType != typeof(DateTime)
@@ -237,6 +238,12 @@ namespace Ganss.Excel
                 c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
         }
 
+        private object ParseEnum(Type t, string s)
+        {
+            var name = Enum.GetNames(t).FirstOrDefault(n => n.Equals(s, StringComparison.OrdinalIgnoreCase));
+            return name == null ? Activator.CreateInstance(t) : Enum.Parse(t, name);
+        }
+
         /// <summary>
         /// Computes value that can be assigned to property from cell value.
         /// </summary>
@@ -253,6 +260,8 @@ namespace Ganss.Excel
                 v = null;
             else if (val is string g && PropertyType == typeof(Guid))
                 v = Guid.Parse(g);
+            else if (val is string es && PropertyType.IsEnum)
+                v = ParseEnum(PropertyType, es);
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 

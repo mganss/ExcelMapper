@@ -2589,5 +2589,41 @@ namespace Ganss.Excel.Tests
                 new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
+
+        private enum NameEnum
+        {
+            Nudossi,
+            Halloren,
+            Filinchen
+        }
+
+        private record EnumProduct
+        {
+            public NameEnum Name { get; }
+
+            public EnumProduct(NameEnum name) => Name = name;
+        }
+
+        [Test]
+        public void EnumTest()
+        {
+            var excel = new ExcelMapper("../../../Products.xlsx");
+            var products = excel.Fetch<EnumProduct>().ToList();
+
+            CollectionAssert.AreEqual(new List<EnumProduct>
+            {
+                new EnumProduct(NameEnum.Nudossi),
+                new EnumProduct(NameEnum.Halloren),
+                new EnumProduct(NameEnum.Filinchen),
+            }, products);
+
+            var file = "enumsave.xlsx";
+
+            excel.Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file).Fetch<EnumProduct>().ToList();
+
+            CollectionAssert.AreEqual(products, productsFetched);
+        }
     }
 }
