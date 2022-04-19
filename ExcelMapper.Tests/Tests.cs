@@ -2625,5 +2625,27 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
+
+        private record DashedProduct
+        {
+            [Column("Name-1")]
+            public string Name { get; }
+
+            public DashedProduct(string name) => Name = name;
+        }
+
+        [Test]
+        public void DashedTest()
+        {
+            var excel = new ExcelMapper("../../../ProductsDashed.xlsx");
+            var products = excel.Fetch<DashedProduct>().ToList();
+
+            CollectionAssert.AreEqual(new List<DashedProduct>
+            {
+                new DashedProduct("Nudossi"),
+                new DashedProduct("Halloren"),
+                new DashedProduct("Filinchen"),
+            }, products);
+        }
     }
 }
