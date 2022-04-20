@@ -39,6 +39,19 @@ namespace Ganss.Excel
         /// <summary>
         /// Initializes a new instance of the <see cref="ColumnAttribute"/> class.
         /// </summary>
+        /// <param name="index">The index of the column.</param>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="directions">mapping direction</param>
+        public ColumnAttribute(int index, string name, MappingDirections directions = MappingDirections.Both)
+        {
+            this.index = index;
+            this.name = name;
+            this.directions = directions;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ColumnAttribute"/> class.
+        /// </summary>
         /// <param name="directions">mapping direction</param>
         public ColumnAttribute(MappingDirections directions = MappingDirections.Both)
         {
