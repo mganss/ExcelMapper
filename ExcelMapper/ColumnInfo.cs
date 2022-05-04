@@ -140,6 +140,14 @@ namespace Ganss.Excel
         public bool FormulaResult { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to save the property as a formula cell. Only needed when saving.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the cell will contain a formula; otherwise, <c>false</c>.
+        /// </value>
+        public bool Formula { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether to serialize as JSON.
         /// </summary>
         /// <value>
@@ -205,6 +213,8 @@ namespace Ganss.Excel
                 {
                     if (o == null)
                         c.SetCellValue((string)null);
+                    else if (Formula)
+                        c.SetCellFormula(o.ToString());
                     else if (!Json)
                         c.SetCellValue(o.ToString());
                     else
@@ -358,6 +368,14 @@ namespace Ganss.Excel
         public ColumnInfo AsFormulaResult()
         {
             FormulaResult = true;
+            return this;
+        }
+
+        /// <summary>Selects the property to be saved as a formula.</summary>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo AsFormula()
+        {
+            Formula = true;
             return this;
         }
 

@@ -212,6 +212,9 @@ namespace Ganss.Excel
                     if (Attribute.GetCustomAttribute(prop, typeof(FormulaResultAttribute)) is FormulaResultAttribute)
                         ci.FormulaResult = true;
 
+                    if (Attribute.GetCustomAttribute(prop, typeof(FormulaAttribute)) is FormulaAttribute)
+                        ci.Formula = true;
+
                     if (Attribute.GetCustomAttribute(prop, typeof(JsonAttribute)) is JsonAttribute)
                         ci.Json = true;
                 }

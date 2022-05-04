@@ -2648,5 +2648,52 @@ namespace Ganss.Excel.Tests
                 new MixedRecordProduct("Filinchen") { Number = 100 },
             }, products);
         }
+
+        private record LinkRow
+        {
+            [Formula]
+            public string Url { get; set; }
+        }
+
+        public void LinkTest<T>(IEnumerable<T> rows)
+        {
+            var file = "linksave.xlsx";
+
+            new ExcelMapper().Save(file, rows, "Links");
+
+            var workbook = WorkbookFactory.Create(file);
+            var excel = new ExcelMapper(workbook);
+            var links = excel.Fetch<T>().ToList();
+
+            CollectionAssert.AreEqual(rows, links);
+
+            var sheet = workbook.GetSheetAt(0);
+
+            foreach (var rownum in new[] { 1, 2 })
+            {
+                var row = sheet.GetRow(rownum);
+                Assert.AreEqual(CellType.Formula, row.Cells.First().CellType);
+            }
+        }
+
+        [Test]
+        public void FormulaAttributeTest()
+        {
+            var rows = new[] { new LinkRow { Url = "HYPERLINK(\"https://www.google.com/\")" }, new LinkRow { Url = "HYPERLINK(\"https://www.microsoft.com/\")" } };
+            LinkTest(rows);
+        }
+
+        private record LinkMappedRow
+        {
+            public string Url { get; set; }
+        }
+
+        [Test]
+        public void FormulaMappedTest()
+        {
+            new ExcelMapper().AddMapping<LinkMappedRow>("Url", l => l.Url).AsFormula();
+            var rows = new[] { new LinkMappedRow { Url = "HYPERLINK(\"https://www.google.com/\")" }, new LinkMappedRow { Url = "HYPERLINK(\"https://www.microsoft.com/\")" } };
+            LinkTest(rows);
+        }
     }
 }
