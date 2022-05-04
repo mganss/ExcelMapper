@@ -192,6 +192,8 @@ public class Product
 excel.AddMapping<Product>("Formula" p => p.Formula).AsFormula();
 ```
 
+☝️ The string values of formula properties must not start with the `=` sign. So instead of `=A1+B1` set the property's value to `A1+B1`.
+
 ## Custom mapping
 
 If you have specific requirements for mapping between cells and objects, you can use custom conversion methods. Here, cells that contain the string "NULL" are mapped to null:
