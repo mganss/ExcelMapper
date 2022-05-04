@@ -163,7 +163,7 @@ You can use both [builtin formats](https://poi.apache.org/apidocs/org/apache/poi
 
 ## Map formulas or results
 
-Formula columns are mapped according to the type of the property they are mapped to: for string properties, the formula itself (e.g. "=A1+B1") is mapped, for other property types the formula result is mapped. If you need the formula result in a string property, use the `FormulaResult` attribute.
+Formula columns are mapped according to the type of the property they are mapped to: for string properties, the formula itself (e.g. "A1+B1") is mapped, for other property types the formula result is mapped. If you need the formula result in a string property, use the `FormulaResult` attribute.
 
 ```C#
 public class Product
@@ -175,6 +175,21 @@ public class Product
 // or
 
 excel.AddMapping<Product>("Result" p => p.Result).AsFormulaResult();
+```
+
+If you want to save formulas you need to use the `FormulaAttribute` attribute or call `AsFormula()` if mapping manually. 
+It's not needed if you only want to map from Excel to objects (deserialize).
+
+```C#
+public class Product
+{
+    [Formula]
+    public string Formula { get; set; }
+}
+
+// or
+
+excel.AddMapping<Product>("Formula" p => p.Formula).AsFormula();
 ```
 
 ## Custom mapping
