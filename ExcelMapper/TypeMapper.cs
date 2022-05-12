@@ -75,7 +75,7 @@ namespace Ganss.Excel
             foreach (var col in columns)
             {
                 var index = col.ColumnIndex;
-                var name = useContentAsName ? col.StringCellValue : ExcelMapper.IndexToLetter(index + 1);
+                var name = useContentAsName ? col.ToString() : ExcelMapper.IndexToLetter(index + 1);
                 var columnInfo = new DynamicColumnInfo(index, name);
 
                 typeMapper.ColumnsByIndex.Add(index, new List<ColumnInfo> { columnInfo });

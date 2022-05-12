@@ -464,7 +464,7 @@ namespace Ganss.Excel
 
             var cells = Enumerable.Range(0, firstRow.LastCellNum).Select(i => firstRow.GetCell(i, MissingCellPolicy.CREATE_NULL_AS_BLANK));
             var firstRowCells = cells
-                .Where(c => !HeaderRow || (c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue)));
+                .Where(c => !HeaderRow || !string.IsNullOrWhiteSpace(c.ToString()));
             var typeMapper = type != null ? TypeMapperFactory.Create(type) : TypeMapper.Create(firstRowCells, HeaderRow);
 
             if (TrackObjects) Objects[sheet.SheetName] = new Dictionary<int, object>();
@@ -841,7 +841,7 @@ namespace Ganss.Excel
             if (!HeaderRow || colByIndex != null)
                 return colByIndex ?? new();
 
-            var name = cell.StringCellValue;
+            var name = cell.ToString();
             var normalizedName = NormalizeCellName(typeMapper, name);
             var colByName = typeMapper.GetColumnByName(normalizedName);
 
@@ -1331,7 +1331,7 @@ namespace Ganss.Excel
                             for (; columnIndex < headerRow.LastCellNum; columnIndex++)
                             {
                                 var c = headerRow.GetCell(columnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                                if (c == null || (c.CellType == CellType.String && string.IsNullOrEmpty(c.StringCellValue)))
+                                if (c == null || string.IsNullOrEmpty(c.ToString()))
                                     break;
                             }
                         }
@@ -1357,12 +1357,12 @@ namespace Ganss.Excel
         private void ReadHeaderRow(TypeMapper typeMapper, Dictionary<int, List<ColumnInfo>> columnsByIndex, IRow headerRow, ISet<Type> callChain)
         {
             foreach (var cols in headerRow.Cells
-                .Where(c => c.CellType == CellType.String && !string.IsNullOrWhiteSpace(c.StringCellValue))
+                .Where(c => !string.IsNullOrWhiteSpace(c.ToString()))
                 .Select(c =>
                 {
-                    var name = c.StringCellValue;
+                    var name = c.ToString();
                     var normalizedName = NormalizeCellName(typeMapper, name);
-                    var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(normalizedName), ColumnName = c.StringCellValue };
+                    var val = new { c.ColumnIndex, ColumnInfo = typeMapper.GetColumnByName(normalizedName), ColumnName = c.ToString() };
                     return val;
                 })
                 .Where(c => c.ColumnInfo != null))

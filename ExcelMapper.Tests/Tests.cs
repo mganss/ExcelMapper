@@ -2695,5 +2695,28 @@ namespace Ganss.Excel.Tests
             var rows = new[] { new LinkMappedRow { Url = "HYPERLINK(\"https://www.google.com/\")" }, new LinkMappedRow { Url = "HYPERLINK(\"https://www.microsoft.com/\")" } };
             LinkTest(rows);
         }
+
+        record ExcelRow
+        {
+            [Column(1)]
+            public string Column1 { get; set; }
+            [Column(2)]
+            public string Column2 { get; set; }
+            [Column(3)]
+            public string Column3 { get; set; }
+        }
+
+        [Test]
+        public void NumericColumnTest()
+        {
+            var excel = new ExcelMapper("../../../numeric-header.xlsx");
+            var rows = excel.Fetch<ExcelRow>().ToList();
+
+            CollectionAssert.AreEqual(new List<ExcelRow>
+            {
+                new ExcelRow { Column1 = "value1", Column2 = "value2", Column3 = "value3" },
+                new ExcelRow { Column1 = "value4", Column2 = "value5", Column3 = "value6" },
+            }, rows);
+        }
     }
 }
