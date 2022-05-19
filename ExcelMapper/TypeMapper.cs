@@ -172,7 +172,13 @@ namespace Ganss.Excel
                 {
                     var ci = new ColumnInfo(prop);
 
-                    var attribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute)).Cast<ColumnAttribute>();
+                    // make sure inherited attributes come before attributes defined on the type itself
+                    // so the latter ones can overwrite the inherited ones in the dictionary below
+                    // (see #192)
+                    var selfAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: false).Cast<ColumnAttribute>();
+                    var allAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: true).Cast<ColumnAttribute>().Except(selfAttribs);
+                    var attribs = allAttribs.Concat(selfAttribs);
+
                     if (attribs.Any())
                     {
                         foreach (var columnAttribute in attribs)

@@ -2718,5 +2718,28 @@ namespace Ganss.Excel.Tests
                 new ExcelRow { Column1 = "value4", Column2 = "value5", Column3 = "value6" },
             }, rows);
         }
+
+        public class BaseClass
+        {
+            [Column("Text base")]
+            public virtual string Text { get; set; }
+        }
+
+        public class ClildClass : BaseClass
+        {
+            [Column("Text new")]
+            public override string Text { get; set; }
+        }
+
+        [Test]
+        public void VirtualTest()
+        {
+            var tf = new TypeMapperFactory();
+            var tm = tf.Create(typeof(ClildClass));
+            var ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<ClildClass>().ToList();
+
+            Assert.AreEqual(1, ccs.Count);
+            Assert.AreEqual("new", ccs[0].Text);
+        }
     }
 }
