@@ -2441,7 +2441,7 @@ namespace Ganss.Excel.Tests
             public string Name { get; set; }
         }
 
-        class ProductDerived: ProductBase
+        class ProductDerived : ProductBase
         {
             public int Number { get; set; }
         }
@@ -2477,7 +2477,7 @@ namespace Ganss.Excel.Tests
             int Number { get; set; }
         }
 
-        class NumberClass: INumberInterface
+        class NumberClass : INumberInterface
         {
             public int Number { get; set; }
         }
@@ -2725,7 +2725,7 @@ namespace Ganss.Excel.Tests
             public virtual string Text { get; set; }
         }
 
-        public class ClildClass : BaseClass
+        public class ChildClass : BaseClass
         {
             [Column("Text new")]
             public override string Text { get; set; }
@@ -2735,11 +2735,78 @@ namespace Ganss.Excel.Tests
         public void VirtualTest()
         {
             var tf = new TypeMapperFactory();
-            var tm = tf.Create(typeof(ClildClass));
-            var ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<ClildClass>().ToList();
+            var tm = tf.Create(typeof(ChildClass));
+            var ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<ChildClass>().ToList();
 
             Assert.AreEqual(1, ccs.Count);
             Assert.AreEqual("new", ccs[0].Text);
+        }
+
+        record VirtualSaveTestRecord
+        {
+            [Column("Text base")]
+            public string TextBase { get; set; }
+            [Column("Text new")]
+            public string TextNew { get; set; }
+        }
+
+        [Test]
+        public void VirtualSaveTest()
+        {
+            var tf = new TypeMapperFactory();
+            var tm = tf.Create(typeof(ChildClass));
+
+            new ExcelMapper().Save("virtualsave.xlsx", new[] { new ChildClass { Text = "test" } });
+
+            var ccs = new ExcelMapper("virtualsave.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
+
+            Assert.AreEqual(1, ccs.Count);
+            Assert.AreEqual("test", ccs[0].TextBase);
+            Assert.AreEqual("test", ccs[0].TextNew);
+
+            ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
+
+            Assert.AreEqual(1, ccs.Count);
+            Assert.AreEqual("base", ccs[0].TextBase);
+            Assert.AreEqual("new", ccs[0].TextNew);
+        }
+
+        class NoInheritBase
+        {
+            [Column("Text base", Inherit = false)]
+            public virtual string Text { get; set; }
+        }
+
+        class NoInheritChild : NoInheritBase
+        {
+            [Column("Text new")]
+            public override string Text { get; set; }
+        }
+
+        [Test]
+        public void VirtualNoInheritTest()
+        {
+            var tf = new TypeMapperFactory();
+            var tm = tf.Create(typeof(NoInheritChild));
+            var ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<NoInheritChild>().ToList();
+
+            Assert.AreEqual(1, ccs.Count);
+            Assert.AreEqual("new", ccs[0].Text);
+        }
+
+        [Test]
+        public void VirtualNoInheritSaveTest()
+        {
+            var tf = new TypeMapperFactory();
+            var tm = tf.Create(typeof(NoInheritChild));
+
+            new ExcelMapper().Save("virtualnoinheritsave.xlsx", new[] { new NoInheritChild { Text = "test" } });
+
+            var ccs = new ExcelMapper("virtualnoinheritsave.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
+
+            Assert.AreEqual(1, ccs.Count);
+            Assert.IsNull(ccs[0].TextBase);
+            Assert.AreEqual("test", ccs[0].TextNew);
         }
     }
 }

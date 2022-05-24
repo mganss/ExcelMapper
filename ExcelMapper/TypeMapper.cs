@@ -176,8 +176,11 @@ namespace Ganss.Excel
                     // so the latter ones can overwrite the inherited ones in the dictionary below
                     // (see #192)
                     var selfAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: false).Cast<ColumnAttribute>();
-                    var allAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: true).Cast<ColumnAttribute>().Except(selfAttribs);
-                    var attribs = allAttribs.Concat(selfAttribs);
+                    var inheritedAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: true)
+                        .Cast<ColumnAttribute>()
+                        .Where(c => c.Inherit)
+                        .Except(selfAttribs);
+                    var attribs = inheritedAttribs.Concat(selfAttribs);
 
                     if (attribs.Any())
                     {

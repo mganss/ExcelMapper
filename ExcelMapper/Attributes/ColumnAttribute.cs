@@ -90,5 +90,12 @@ namespace Ganss.Excel
             get => ExcelMapper.IndexToLetter(Index);
             set => index = ExcelMapper.LetterToIndex(value);
         }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether this attribute is inherited by derived classes.
+        /// It is useful if you want to prevent multiple mappings created by attributes in derived classes.
+        /// The default value is true.
+        /// </summary>
+        public bool Inherit { get; set; } = true;
     }
 }
