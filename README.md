@@ -94,6 +94,9 @@ public class Product
 excel.AddMapping<Product>("Price", p => p.PriceString).FromExcelOnly();
 ```
 
+`Column` attributes are inherited by default, resulting in multiple mappings for a single overridden property if you add a `Column` attribute to the property in base
+and derived classes. To prevent this, set the `Inherit` property to false on the `Column` attribute in the base class.
+
 ## Dynamic mapping
 
 You don't have to specify a mapping to static types, you can also fetch a collection of dynamic objects.
