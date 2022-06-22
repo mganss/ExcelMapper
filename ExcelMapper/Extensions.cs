@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,12 @@ namespace Ganss.Excel
             var e = sheet.GetRowEnumerator();
             while (e.MoveNext())
                 yield return e.Current as IRow;
+        }
+
+        internal static bool IsIdenticalTo(this MemberInfo memberInfo, MemberInfo other)
+        {
+            if (memberInfo == null || other == null) return false;
+            return memberInfo.Equals(other) || memberInfo.MetadataToken == other.MetadataToken;
         }
     }
 }
