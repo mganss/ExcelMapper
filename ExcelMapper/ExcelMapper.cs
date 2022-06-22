@@ -531,7 +531,7 @@ namespace Ganss.Excel
                 foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value).Where(c => c.IsSubType))
                 {
                     if (!callChain.Contains(ci.PropertyType) // check for cycle in type hierarchy
-                        && !initValues.Any(v => v.Col.Property == ci.Property)) // map subtypes only if not already mapped
+                        && !initValues.Any(v => v.Col.Property.MetadataToken == ci.Property.MetadataToken)) // map subtypes only if not already mapped
                     {
                         callChain.Add(ci.PropertyType);
                         var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
@@ -597,12 +597,10 @@ namespace Ganss.Excel
                         {
                             o = Activator.CreateInstance(type);
                         }
-#pragma warning disable CA1031 // Do not catch general exception types
                         catch (Exception)
                         {
                             o = null;
                         }
-#pragma warning restore CA1031 // Do not catch general exception types
                     }
 
                     if (o == null)
@@ -1323,7 +1321,7 @@ namespace Ganss.Excel
                     if (!columnInfo.IsSubType)
                     {
                         var columnInfoByIndex = columnsByIndex.FirstOrDefault(c => c.Value.Any(v =>
-                            v.Directions != MappingDirections.ObjectToExcel && v.Property == columnInfo.Property));
+                            v.Directions != MappingDirections.ObjectToExcel && v.Property.MetadataToken == columnInfo.Property.MetadataToken));
                         var columnIndex = 0;
 
                         if (columnInfoByIndex.Value == null)
@@ -1626,7 +1624,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
 
-            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property == prop))
+            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property.MetadataToken == prop.MetadataToken))
                 .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
 
@@ -1640,7 +1638,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 
-            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property == prop))
+            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property.MetadataToken == prop.MetadataToken))
                 .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
 

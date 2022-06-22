@@ -2655,7 +2655,7 @@ namespace Ganss.Excel.Tests
             public string Url { get; set; }
         }
 
-        public void LinkTest<T>(IEnumerable<T> rows)
+        public static void LinkTest<T>(IEnumerable<T> rows)
         {
             var file = "linksave.xlsx";
 
@@ -2807,6 +2807,33 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual(1, ccs.Count);
             Assert.IsNull(ccs[0].TextBase);
             Assert.AreEqual("test", ccs[0].TextNew);
+        }
+
+        public record RowDef : RowDefInner
+        {
+            public bool Ignore { get; set; }
+        }
+
+        public record RowDefInner
+        {
+            public string Value { get; set; }
+
+            public Func<dynamic, string> CustomOutput { get; set; } = null;
+        }
+
+        [Test]
+        public void IgnoreInnerTest()
+        {
+            var mapper = new ExcelMapper(@"../../../Repro.xlsx");
+            mapper.Ignore<RowDef>(i => i.CustomOutput);
+            var rows = mapper.Fetch<RowDef>().ToList();
+
+            CollectionAssert.AreEqual(new List<RowDef>
+            {
+                new RowDef { Value = "A", Ignore = true },
+                new RowDef { Value = "B", Ignore = true },
+                new RowDef { Value = "C", Ignore = false },
+            }, rows);
         }
     }
 }
