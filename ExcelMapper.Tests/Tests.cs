@@ -2824,7 +2824,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void IgnoreInnerTest()
         {
-            var mapper = new ExcelMapper(@"../../../Repro.xlsx");
+            var mapper = new ExcelMapper(@"../../../IgnoreInner.xlsx");
             mapper.Ignore<RowDef>(i => i.CustomOutput);
             var rows = mapper.Fetch<RowDef>().ToList();
 
@@ -2834,6 +2834,16 @@ namespace Ganss.Excel.Tests
                 new RowDef { Value = "B", Ignore = true },
                 new RowDef { Value = "C", Ignore = false },
             }, rows);
+        }
+
+        record InvalidDate(DateTime Date);
+
+        [Test]
+        public void InvalidDateTest()
+        {
+            var mapper = new ExcelMapper(@"../../../InvalidDate.xlsx");
+            Assert.Throws<ExcelMapperConvertException>(() => mapper.Fetch<InvalidDate>().ToList(),
+                "Unable to convert \"55555555\" from [L:1]:[C:0] to System.DateTime.");
         }
     }
 }
