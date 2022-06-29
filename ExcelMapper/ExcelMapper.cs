@@ -1442,6 +1442,7 @@ namespace Ganss.Excel
         {
             var formulaResult = cell.CellType == CellType.Formula && (targetColumn.PropertyType != typeof(string) || targetColumn.FormulaResult);
             var cellType = formulaResult ? cell.CachedFormulaResultType : cell.CellType;
+            const int maxDate = 2958465; // 31/12/9999
 
             switch (cellType)
             {
@@ -1450,7 +1451,7 @@ namespace Ganss.Excel
                     {
                         return DataFormatter.FormatCellValue(cell);
                     }
-                    else if (DateUtil.IsCellDateFormatted(cell))
+                    else if (cell.NumericCellValue < maxDate && DateUtil.IsCellDateFormatted(cell))
                     {
                         return cell.DateCellValue;
                     }
