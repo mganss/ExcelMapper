@@ -2845,5 +2845,19 @@ namespace Ganss.Excel.Tests
             Assert.Throws<ExcelMapperConvertException>(() => mapper.Fetch<InvalidDate>().ToList(),
                 "Unable to convert \"55555555\" from [L:1]:[C:0] to System.DateTime.");
         }
+
+        record InvalidJson
+        {
+            [Json]
+            public string Json { get; set; }
+        }
+
+        [Test]
+        public void InvalidJsonTest()
+        {
+            var mapper = new ExcelMapper(@"../../../InvalidJson.xlsx");
+            Assert.Throws<ExcelMapperConvertException>(() => mapper.Fetch<InvalidJson>().ToList(),
+                @"Unable to convert ""{ ""key"": }"" from [L:1]:[C:0] to System.String.");
+        }
     }
 }
