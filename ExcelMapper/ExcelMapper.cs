@@ -510,7 +510,18 @@ namespace Ganss.Excel
                 {
                     foreach (var ci in columnInfos)
                     {
-                        var cellValue = GetCellValue(cell, ci);
+                        object cellValue;
+
+                        try
+                        {
+                            cellValue = GetCellValue(cell, ci);
+                        }
+                        catch (Exception e)
+                        {
+                            cellValue = GetCellValue(cell);
+                            throw new ExcelMapperConvertException(cellValue, ci.PropertyType, i, columnIndex, e);
+                        }
+
                         try
                         {
                             if (valueParser != null)
@@ -1471,6 +1482,22 @@ namespace Ganss.Excel
                         return JsonSerializer.Deserialize(cell.StringCellValue, targetColumn.PropertyType);
                     else
                         return cell.StringCellValue;
+            }
+        }
+
+        object GetCellValue(ICell cell)
+        {
+            switch (cell.CellType)
+            {
+                case CellType.Numeric: return cell.NumericCellValue;
+                case CellType.Formula: return cell.CellFormula;
+                case CellType.Boolean: return cell.BooleanCellValue;
+                case CellType.Error: return cell.ErrorCellValue;
+                case CellType.String: return cell.StringCellValue;
+                case CellType.Blank: return string.Empty;
+                case CellType.Unknown:
+                default:
+                    return "<unknown>";
             }
         }
 
