@@ -121,7 +121,7 @@ namespace Ganss.Excel
                         ix = ExcelMapper.LetterToIndex(name) - 1;
                     }
 
-                    var columnInfo = new DynamicColumnInfo(prop.Key, prop.Value.GetType());
+                    var columnInfo = new DynamicColumnInfo(prop.Key, prop.Value.GetType().ConvertToNullableType());
 
                     typeMapper.ColumnsByIndex.Add(ix, new List<ColumnInfo> { columnInfo });
 
