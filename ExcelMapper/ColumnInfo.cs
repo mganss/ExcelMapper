@@ -38,7 +38,8 @@ namespace Ganss.Excel
                 && PropertyType != typeof(decimal)
                 && PropertyType != typeof(string)
                 && PropertyType != typeof(DateTime)
-                && PropertyType != typeof(Guid);
+                && PropertyType != typeof(Guid)
+                && PropertyType != typeof(byte[]);
         }
 
         /// <summary>
@@ -272,6 +273,8 @@ namespace Ganss.Excel
                 v = Guid.Parse(g);
             else if (val is string es && PropertyType.IsEnum)
                 v = ParseEnum(PropertyType, es);
+            else if (val is string && PropertyType == typeof(byte[]))
+                v = System.Text.Encoding.UTF8.GetBytes(val as string);
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 
