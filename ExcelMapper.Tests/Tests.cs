@@ -1318,6 +1318,47 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
+        
+        [Test]
+        public void NullableDynamicTest()
+        {
+            var workbook = WorkbookFactory.Create(@"../../../xlsx/Products.xlsx");
+            var excel = new ExcelMapper(workbook){ SkipBlankRows = false};
+            var products = excel.Fetch().ToList();
+            var nudossi = products[0];
+            Assert.AreEqual("Nudossi", nudossi.Name);
+            Assert.AreEqual(60, nudossi.Number);
+            Assert.AreEqual(1.99m, nudossi.Price);
+            Assert.IsFalse(nudossi.Offer);
+            Assert.IsNotNull(nudossi.OfferEnd);
+            nudossi.OfferEnd = null; //set to null to test it
+
+            var halloren = products[1];
+            Assert.IsTrue(halloren.Offer);
+            Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
+            Assert.IsNotNull(halloren.Number);
+            halloren.Number = null; //set to null to test it
+            Assert.IsNotNull(halloren.Offer);
+            halloren.Offer = null; //set to null to test it
+
+            var file = "productsnullabledynamic.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file) { SkipBlankRows = false }.Fetch(0, (colnum, value) =>
+            {
+                //convert an empty string to null
+                if (value is string && value.ToString().Length == 0 && new string[]{ "OfferEnd", "Number", "Offer" }.Contains(colnum))
+                {
+                    return null;
+                }
+                return value;
+            }).ToList();
+
+            Assert.IsNull(productsFetched[0].OfferEnd);
+            Assert.IsNull(productsFetched[1].Number);
+            Assert.IsNull(productsFetched[1].Offer);
+        }
 
         private class DataFormatProduct
         {
@@ -2624,6 +2665,62 @@ namespace Ganss.Excel.Tests
             var productsFetched = new ExcelMapper(file).Fetch<EnumProduct>().ToList();
 
             CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        private record BytesData
+        {
+            public byte[] TextData{ get; set; }
+            public byte[] RowVerison { get; set; }
+        }
+        
+        [Test]
+        public void BytesTest()
+        {
+            var excel = new ExcelMapper();
+            var datas = new List<BytesData>
+            {
+                new BytesData(){TextData = new byte[]{65, 66, 67}, RowVerison = new byte[]{1, 0, 0, 0}},
+                new BytesData(){TextData = new byte[]{68, 69, 70}, RowVerison = new byte[]{2, 0, 0, 0}}
+            };
+
+            var file = "bytesdata.xlsx";
+
+            excel.Save(file, datas, "data", true, (colnum, value) =>
+            {
+                if (value != null)
+                {
+                    switch (colnum)
+                    {
+                        case "TextData":
+                            return System.Text.Encoding.UTF8.GetString(value as byte[]);
+                        case "RowVerison":
+                            return BitConverter.ToInt32(value as byte[]);
+
+                    }
+                }
+                return value;
+            });
+
+            var productsFetched = new ExcelMapper(file).Fetch<BytesData>(0, (colnum, value) =>
+            {
+                if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                {
+                    switch (colnum)
+                    {
+                        case "TextData":
+                            return System.Text.Encoding.UTF8.GetBytes(value.ToString());
+                        case "RowVerison":
+                            return BitConverter.GetBytes(Convert.ToInt32(value.ToString()));
+
+                    }
+                }
+                return value;
+            }).ToList();
+
+            Assert.AreEqual(datas[0].TextData, productsFetched[0].TextData);
+            Assert.AreEqual(datas[1].TextData, productsFetched[1].TextData);
+            Assert.AreEqual(datas[0].RowVerison, productsFetched[0].RowVerison);
+            Assert.AreEqual(datas[1].RowVerison, productsFetched[1].RowVerison);
         }
 
         private record MixedRecordProduct

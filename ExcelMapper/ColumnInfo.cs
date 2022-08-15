@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using Ganss.Excel.Exceptions;
 
 namespace Ganss.Excel
 {
@@ -246,7 +247,15 @@ namespace Ganss.Excel
         public void SetCellStyle(ICell c)
         {
             if (BuiltinFormat != 0 || CustomFormat != null)
+            {
                 c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
+                //When it is a dynamic type, after initialization, if the first row is null and the dataformat is not set, the dataformat needs to be repaired again
+                if (c.CellStyle.DataFormat == 0)
+                {
+                    SetColumnStyle(c.Sheet, c.ColumnIndex);
+                    c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
+                }
+            }
         }
 
         private object ParseEnum(Type t, string s)
@@ -428,6 +437,12 @@ namespace Ganss.Excel
         internal void ChangeSetterType(Type newType)
         {
             SetPropertyType(newType);
+            if (PropertyType == typeof(DateTime))
+                BuiltinFormat = 0x16; // "m/d/yy h:mm"
+            else
+            {
+                BuiltinFormat = 0;
+            }
             SetCell = GenerateCellSetter();
         }
     }

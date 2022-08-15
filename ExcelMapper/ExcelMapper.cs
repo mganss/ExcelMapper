@@ -1109,12 +1109,13 @@ namespace Ganss.Excel
             if (valueConverter != null)
             {
                 val = valueConverter(ci.Name, val);
-                var newType = val?.GetType() ?? ci.PropertyType;
-                if (newType != ci.PropertyType)
-                {
-                    oldType = ci.PropertyType;
-                    ci.ChangeSetterType(newType);
-                }
+            }
+            //When the value is a dynamic type or has a specified value conversion function, the type may be inconsistent, and the type needs to be changed
+            var newType = val?.GetType() ?? ci.PropertyType;
+            if (newType != ci.PropertyType)
+            {
+                oldType = ci.PropertyType;
+                ci.ChangeSetterType(newType);
             }
             ci.SetCellStyle(cell);
             ci.SetCell(cell, val);
