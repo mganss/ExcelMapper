@@ -261,7 +261,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public async Task FetchSaveValueConverterOverloadsTest()
         {
-            var file = @"../../../Products.xlsx";
+            var file = @"../../../xlsx/Products.xlsx";
             var excel = new ExcelMapper();
 
             object valueParser(string colname, object val)
@@ -340,7 +340,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void BeforeAfterMappingTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx")
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx")
                 // preparation before the mapping start
                 .AddBeforeMapping<BeforeAfterMapping>((obj, idx) =>
                     obj.Id = idx + 1000
@@ -370,7 +370,7 @@ namespace Ganss.Excel.Tests
         public void MultiDirectionalTest()
         {
             /// Reading using <see cref="MappingDirections.ExcelToObject"/> direction mapping
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<ProductMultiColums>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductMultiColums>().ToList();
 
             var file = "productssave_multicolums.xlsx";
 
@@ -391,7 +391,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchDynamicTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch().ToList();
 
             var result = new List<ProductDynamic>();
             foreach (var p in products)
@@ -426,7 +426,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchDynamicIndexTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx") { HeaderRow = false, MinRowNumber = 1 }.Fetch().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx") { HeaderRow = false, MinRowNumber = 1 }.Fetch().ToList();
 
             var result = new List<ProductDynamic>();
             foreach (var p in products)
@@ -454,7 +454,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchDynamicSaveTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var dynProducts = excel.Fetch().ToList();
             var products = dynProducts.Select(p => new ProductDynamic()
             {
@@ -493,7 +493,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchDynamicIndexSaveTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx") { HeaderRow = false, MinRowNumber = 1 };
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx") { HeaderRow = false, MinRowNumber = 1 };
             var dynProducts = excel.Fetch().ToList();
             var products = dynProducts.Select(p => new ProductDynamic()
             {
@@ -536,7 +536,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchDynamicSaveObjectsTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var dynProducts = excel.Fetch().ToList();
             var products = dynProducts.Select(p => new ProductDynamic()
             {
@@ -575,7 +575,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchDynamicOverloadsTest()
         {
-            var file = @"../../../Products.xlsx";
+            var file = @"../../../xlsx/Products.xlsx";
             var excel = new ExcelMapper();
 
             var products = excel.Fetch(file, "Tabelle1");
@@ -606,7 +606,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchAsyncDynamicOverloadsTest()
         {
-            var file = @"../../../Products.xlsx";
+            var file = @"../../../xlsx/Products.xlsx";
             var excel = new ExcelMapper();
 
             var products = excel.FetchAsync(file, "Tabelle1").Result;
@@ -649,7 +649,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FromExcelOnlyTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<ProductDirection>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductDirection>().ToList();
             CollectionAssert.AreEqual(new List<ProductDirection>
             {
                 new ProductDirection{ Name = "Nudossi", NumberInStock = 60, Price = 0, Value = null },
@@ -730,7 +730,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<Product>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<Product>().ToList();
             CollectionAssert.AreEqual(new List<Product>
             {
                 new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
@@ -742,7 +742,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch(typeof(Product));
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch(typeof(Product));
             CollectionAssert.AreEqual(new List<Product>
             {
                 new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
@@ -754,7 +754,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithStreamAndIndexTest()
         {
-            var stream = new FileStream(@"../../../Products.xlsx", FileMode.Open, FileAccess.Read);
+            var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch<Product>(stream, 0);
 
             CollectionAssert.AreEqual(new List<Product>
@@ -769,7 +769,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeUsingStreamAndIndexTest()
         {
-            var stream = new FileStream(@"../../../Products.xlsx", FileMode.Open, FileAccess.Read);
+            var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch(stream, typeof(Product), 0);
 
             CollectionAssert.AreEqual(new List<Product>
@@ -784,7 +784,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithStreamAndSheetNameTest()
         {
-            var stream = new FileStream(@"../../../Products.xlsx", FileMode.Open, FileAccess.Read);
+            var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch<Product>(stream, "Tabelle1");
 
             CollectionAssert.AreEqual(new List<Product>
@@ -799,7 +799,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeUsingStreamAndSheetNameTest()
         {
-            var stream = new FileStream(@"../../../Products.xlsx", FileMode.Open, FileAccess.Read);
+            var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch(stream, typeof(Product), "Tabelle1");
 
             CollectionAssert.AreEqual(new List<Product>
@@ -815,7 +815,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithFileAndSheetNameTest()
         {
-            var products = new ExcelMapper().Fetch<Product>(@"../../../Products.xlsx", "Tabelle1");
+            var products = new ExcelMapper().Fetch<Product>(@"../../../xlsx/Products.xlsx", "Tabelle1");
 
             CollectionAssert.AreEqual(new List<Product>
             {
@@ -828,7 +828,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithFileAndIndexTest()
         {
-            var products = new ExcelMapper().Fetch<Product>(@"../../../Products.xlsx", 0);
+            var products = new ExcelMapper().Fetch<Product>(@"../../../xlsx/Products.xlsx", 0);
 
             CollectionAssert.AreEqual(new List<Product>
             {
@@ -841,7 +841,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeThrowsExceptionWithPrimitivesTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             Assert.Throws<ArgumentException>(() => excel.Fetch(typeof(string)));
             Assert.Throws<ArgumentException>(() => excel.Fetch(typeof(object)));
             Assert.Throws<ArgumentException>(() => excel.Fetch(typeof(int)));
@@ -851,14 +851,14 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchValueTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<ProductValue>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductValue>().ToList();
             CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
         }
 
         [Test]
         public void FetchValueWithTypeTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch(typeof(ProductValue))
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch(typeof(ProductValue))
                                                                      .OfType<ProductValue>()
                                                                      .ToList();
             CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
@@ -872,7 +872,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchEmptyTest()
         {
-            var products = new ExcelMapper(@"../../../ProductsExceptionEmpty.xlsx").Fetch<ProductException>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx").Fetch<ProductException>().ToList();
             CollectionAssert.AreEqual(new List<ProductException>
             {
                 new ProductException { Name = "Nudossi", NumberInStock = 60, Price = 0m },
@@ -882,7 +882,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchExceptionWhenEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch<ProductException>().ToList());
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch<ProductException>().ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
             Assert.That(ex.Message.Contains("[L:1]:[C:2]"));
         }
@@ -890,7 +890,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeExceptionWhenEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch(typeof(ProductException))
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch(typeof(ProductException))
                                                                                                                               .OfType<ProductException>()
                                                                                                                               .ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
@@ -900,7 +900,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchExceptionWhenFieldTooBigTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../ProductsExceptionTooBig.xlsx").Fetch<ProductException>().ToList());
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionTooBig.xlsx").Fetch<ProductException>().ToList());
             //2147483649 is Int.MaxValue + 1
             Assert.That(ex.Message.Contains("2147483649"));
             Assert.That(ex.Message.Contains("[L:1]:[C:1]"));
@@ -909,7 +909,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchExceptionWhenFieldInvalidTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../ProductsExceptionInvalid.xlsx").Fetch<ProductException>().ToList());
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionInvalid.xlsx").Fetch<ProductException>().ToList());
             Assert.That(ex.Message.Contains("FALSEd"));
             Assert.That(ex.Message.Contains("[L:1]:[C:3]"));
         }
@@ -917,14 +917,14 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchExceptionWhenSheetDoesNotExists()
         {
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"../../../ProductsExceptionInvalid.xlsx").Fetch<ProductException>("this sheet does not exist").ToList());
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionInvalid.xlsx").Fetch<ProductException>("this sheet does not exist").ToList());
             Assert.That(ex.Message.Contains("Sheet not found"));
         }
 
         [Test]
         public void FetchWithTypeThrowsExceptionWhenSheetDoesNotExists()
         {
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"../../../ProductsExceptionInvalid.xlsx").Fetch(typeof(ProductException), "This is not a exist")
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionInvalid.xlsx").Fetch(typeof(ProductException), "This is not a exist")
                                                                                                                                 .OfType<ProductException>()
                                                                                                                                 .ToList());
             Assert.That(ex.Message.Contains("Sheet not found"));
@@ -933,7 +933,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchSheetNamesTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var sheetNames = excel.FetchSheetNames().ToList();
 
             CollectionAssert.AreEqual(new List<string>
@@ -975,7 +975,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchNoHeaderTest()
         {
-            var products = new ExcelMapper(@"../../../ProductsNoHeader.xlsx") { HeaderRow = false }.Fetch<ProductNoHeader>("Products").ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsNoHeader.xlsx") { HeaderRow = false }.Fetch<ProductNoHeader>("Products").ToList();
             CollectionAssert.AreEqual(new List<ProductNoHeader>
             {
                 new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
@@ -987,7 +987,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeNoHeaderTest()
         {
-            var products = new ExcelMapper(@"../../../ProductsNoHeader.xlsx") { HeaderRow = false }.Fetch(typeof(ProductNoHeader), "Products")
+            var products = new ExcelMapper(@"../../../xlsx/ProductsNoHeader.xlsx") { HeaderRow = false }.Fetch(typeof(ProductNoHeader), "Products")
                                                                                                    .OfType<ProductNoHeader>()
                                                                                                    .ToList();
             CollectionAssert.AreEqual(new List<ProductNoHeader>
@@ -1019,7 +1019,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchNoHeaderManualTest()
         {
-            var excel = new ExcelMapper(@"../../../ProductsNoHeader.xlsx") { HeaderRow = false };
+            var excel = new ExcelMapper(@"../../../xlsx/ProductsNoHeader.xlsx") { HeaderRow = false };
 
             excel.AddMapping<ProductNoHeaderManual>(1, p => p.NameX);
             excel.AddMapping<ProductNoHeaderManual>(ExcelMapper.LetterToIndex("C"), p => p.NumberInStockX);
@@ -1085,7 +1085,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void SaveFetchedTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var products = excel.Fetch<Product>().ToList();
 
             products[2].Price += 1.0m;
@@ -1120,7 +1120,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void SaveTrackedObjectsTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx") { TrackObjects = true };
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx") { TrackObjects = true };
 
             excel.AddMapping(typeof(ProductMapped), "Name", "NameX");
             excel.AddMapping<ProductMapped>("Number", p => p.NumberX);
@@ -1162,7 +1162,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void GetterSetterTest()
         {
-            var excel = new ExcelMapper(@"../../../ProductsConvert.xlsx") { TrackObjects = true };
+            var excel = new ExcelMapper(@"../../../xlsx/ProductsConvert.xlsx") { TrackObjects = true };
 
             excel.AddMapping<GetterSetterProduct>("Name", p => p.Name);
             excel.AddMapping<GetterSetterProduct>("Name", p => p.RedName)
@@ -1244,7 +1244,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void IgnoreTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             excel.Ignore<IgnoreProduct>(p => p.Price);
             excel.Ignore(typeof(IgnoreProduct), "Value");
             var products = excel.Fetch<IgnoreProduct>().ToList();
@@ -1293,7 +1293,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NullableTest()
         {
-            var workbook = WorkbookFactory.Create(@"../../../Products.xlsx");
+            var workbook = WorkbookFactory.Create(@"../../../xlsx/Products.xlsx");
             var excel = new ExcelMapper(workbook);
             var products = excel.Fetch<NullableProduct>().ToList();
 
@@ -1374,7 +1374,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void ColumnTest()
         {
-            var excel = new ExcelMapper(@"../../../DataItems.xlsx") { HeaderRow = false };
+            var excel = new ExcelMapper(@"../../../xlsx/DataItems.xlsx") { HeaderRow = false };
             var items = excel.Fetch<DataItem>().ToList();
 
             var trackedFile = "dataitemstracked.xlsx";
@@ -1391,7 +1391,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void ColumnTestUsingFetchWithType()
         {
-            var excel = new ExcelMapper(@"../../../DataItems.xlsx") { HeaderRow = false };
+            var excel = new ExcelMapper(@"../../../xlsx/DataItems.xlsx") { HeaderRow = false };
             var items = excel.Fetch(typeof(DataItem)).OfType<DataItem>().ToList();
 
             var trackedFile = "dataitemstracked1.xlsx";
@@ -1408,7 +1408,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchMinMaxTest()
         {
-            var products = new ExcelMapper(@"../../../ProductsMinMaxRow.xlsx")
+            var products = new ExcelMapper(@"../../../xlsx/ProductsMinMaxRow.xlsx")
             {
                 HeaderRowNumber = 2,
                 MinRowNumber = 6,
@@ -1452,7 +1452,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FormulaResultAttributeTest()
         {
-            var products = new ExcelMapper(@"../../../ProductsAsString.xlsx").Fetch<ProductValueString>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsAsString.xlsx").Fetch<ProductValueString>().ToList();
             CollectionAssert.AreEqual(new List<string> { "119.4", "98.67", "99" }, products.Select(p => p.ValueAsString).ToList());
         }
 
@@ -1477,7 +1477,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FormulaResultMappedTest()
         {
-            var excel = new ExcelMapper(@"../../../ProductsAsString.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/ProductsAsString.xlsx");
 
             excel.AddMapping<ProductFormulaMapped>("Value", p => p.Result);
             excel.AddMapping<ProductFormulaMapped>("ValueDefaultAsFormula", p => p.Formula);
@@ -1550,7 +1550,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchIndexTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<ProductIndex>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductIndex>().ToList();
             CollectionAssert.AreEqual(new List<ProductIndex>
             {
                 new ProductIndex { Price = "Nudossi", Name = "60", Number = "1.99" },
@@ -1585,7 +1585,7 @@ namespace Ganss.Excel.Tests
         public void FetchDoubleMap()
         {
             // https://github.com/mganss/ExcelMapper/issues/50
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<ProductDoubleMap>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductDoubleMap>().ToList();
             CollectionAssert.AreEqual(new List<ProductDoubleMap>
             {
                 new ProductDoubleMap { Price = "Nudossi", OtherNumber = "60" },
@@ -1607,7 +1607,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public async Task FetchAsyncTest()
         {
-            var path = @"../../../Products.xlsx";
+            var path = @"../../../xlsx/Products.xlsx";
 
             var products = (await new ExcelMapper().FetchAsync<Product>(path)).ToList();
             AssertProducts(products);
@@ -1666,7 +1666,7 @@ namespace Ganss.Excel.Tests
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
             CollectionAssert.AreEqual(products, productsFetched);
 
-            var path = @"../../../Products.xlsx";
+            var path = @"../../../xlsx/Products.xlsx";
 
             var mapper = new ExcelMapper() { TrackObjects = true };
             var tracked = (await mapper.FetchAsync<Product>(path)).ToList();
@@ -1720,7 +1720,7 @@ namespace Ganss.Excel.Tests
         public void DateTest()
         {
             // see https://github.com/mganss/ExcelMapper/issues/51
-            var mapper = new ExcelMapper(@"../../../DateTest.xlsx") { HeaderRow = true };
+            var mapper = new ExcelMapper(@"../../../xlsx/DateTest.xlsx") { HeaderRow = true };
 
             var courses = mapper.Fetch<Course>().ToList();
 
@@ -1741,7 +1741,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void JsonTest()
         {
-            var products = new ExcelMapper(@"../../../ProductsJson.xlsx").Fetch<ProductJson>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsJson.xlsx").Fetch<ProductJson>().ToList();
 
             CollectionAssert.AreEqual(new List<Product>
             {
@@ -1762,7 +1762,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void JsonMappedTest()
         {
-            var excel = new ExcelMapper(@"../../../ProductsJson.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/ProductsJson.xlsx");
 
             excel.AddMapping<ProductJsonMapped>("Product", p => p.Product).AsJson();
 
@@ -1785,7 +1785,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void JsonListTest()
         {
-            var products = new ExcelMapper(@"../../../ProductsJsonList.xlsx").Fetch<ProductJsonList>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsJsonList.xlsx").Fetch<ProductJsonList>().ToList();
 
             CollectionAssert.AreEqual(new List<Product>
             {
@@ -1825,7 +1825,7 @@ namespace Ganss.Excel.Tests
 
             for (var i = 0; i < N; i++)
             {
-                using var f2 = File.OpenRead(@"../../../SampleExcel.xlsx");
+                using var f2 = File.OpenRead(@"../../../xlsx/SampleExcel.xlsx");
                 var s2 = FetchWaterCaptationComplementsAsync(f2).Result;
             }
         }
@@ -1840,7 +1840,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NormalizeTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
 
             excel.NormalizeUsing(n => n + "X");
 
@@ -1857,7 +1857,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NormalizeTypeTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
 
             excel.AddMapping<ProductMapped>("NameY", p => p.NameX);
             excel.AddMapping<ProductMapped>("NumberY", p => p.NumberX);
@@ -1878,7 +1878,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NormalizeType2Test()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
 
             excel.AddMapping<ProductMapped>("NameY", p => p.NameX);
             excel.AddMapping<ProductMapped>("NumberY", p => p.NumberX);
@@ -1915,7 +1915,7 @@ namespace Ganss.Excel.Tests
         public void ColumnSkipTest()
         {
             // see https://github.com/mganss/ExcelMapper/issues/90
-            var products = new ExcelMapper(@"../../../ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch().ToList();
             Assert.AreEqual(1, products.Count);
             var p = products[0];
             Assert.IsEmpty(p.Price);
@@ -1933,7 +1933,7 @@ namespace Ganss.Excel.Tests
         public void NullTest()
         {
             // see https://github.com/mganss/ExcelMapper/issues/96
-            var products = new ExcelMapper(@"../../../null_test.xlsx").Fetch<NullProduct>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/null_test.xlsx").Fetch<NullProduct>().ToList();
             Assert.AreEqual(20, products.Count);
         }
 
@@ -1951,7 +1951,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void RecordFetchTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<ProductRecord>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductRecord>().ToList();
             CollectionAssert.AreEqual(new List<ProductRecord>
             {
                 new ProductRecord("Nudossi", 60, 1.99m, "C2*D2"),
@@ -1963,7 +1963,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void SaveFetchedRecordTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var products = excel.Fetch<ProductRecord>().ToList();
 
             var file = @"productssavefetchedrecord.xlsx";
@@ -1991,7 +1991,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchRecordNoHeaderManualTest()
         {
-            var excel = new ExcelMapper(@"../../../ProductsNoHeader.xlsx") { HeaderRow = false };
+            var excel = new ExcelMapper(@"../../../xlsx/ProductsNoHeader.xlsx") { HeaderRow = false };
 
             excel.AddMapping<ProductRecordNoHeaderManual>(1, p => p.NameX);
             excel.AddMapping<ProductRecordNoHeaderManual>(ExcelMapper.LetterToIndex("C"), p => p.NumberInStockX);
@@ -2012,7 +2012,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void PosRecordFetchTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<ProductPosRecord>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductPosRecord>().ToList();
             CollectionAssert.AreEqual(new List<ProductPosRecord>
             {
                 new ProductPosRecord(60, "Nudossi", 1.99m, "C2*D2"),
@@ -2041,7 +2041,7 @@ namespace Ganss.Excel.Tests
                 new CustomProduct { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
             };
 
-            var excelMapper = new ExcelMapper(@"../../../ProductsMissingHeaders.xlsx")
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsMissingHeaders.xlsx")
             {
                 HeaderRowNumber = 2,
                 MinRowNumber = 3,
@@ -2065,7 +2065,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void LongRowsTest()
         {
-            var rows = new ExcelMapper(@"../../../JaggedRows.xlsx") { HeaderRow = false, SkipBlankRows = false }.Fetch().ToList();
+            var rows = new ExcelMapper(@"../../../xlsx/JaggedRows.xlsx") { HeaderRow = false, SkipBlankRows = false }.Fetch().ToList();
 
             Assert.AreEqual(2, rows.Count);
             Assert.AreEqual(13, ((IDictionary<string, object>)rows[0]).Count);
@@ -2131,7 +2131,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NestedTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var products = excel.Fetch<NestedProduct>().ToList();
 
             Assert.AreEqual(3, products.Count);
@@ -2144,7 +2144,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void IgnoreNestedTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx") { IgnoreNestedTypes = true };
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx") { IgnoreNestedTypes = true };
             var products = excel.Fetch<NestedProduct>().ToList();
 
             Assert.AreEqual(3, products.Count);
@@ -2217,7 +2217,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NestedRecordTest()
         {
-            var products = new ExcelMapper(@"../../../Products.xlsx").Fetch<NestedRecord>().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<NestedRecord>().ToList();
 
             CollectionAssert.AreEqual(new List<NestedRecord>
             {
@@ -2257,7 +2257,7 @@ namespace Ganss.Excel.Tests
                 new NestedRecord("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
             };
 
-            var excelMapper = new ExcelMapper(@"../../../ProductsMissingHeaders.xlsx")
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsMissingHeaders.xlsx")
             {
                 CreateMissingHeaders = true,
                 HeaderRowNumber = 2,
@@ -2317,7 +2317,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NestedProductMappedTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx");
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
 
             excel.AddMapping<NestedProductMapped>("Name", p => p.N);
             excel.AddMapping<NestedProductMapped>("Number", p => p.Num);
@@ -2340,7 +2340,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NestedProductIndexMappedTest()
         {
-            var excel = new ExcelMapper(@"../../../Products.xlsx")
+            var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx")
             {
                 HeaderRow = false,
                 MinRowNumber = 1
@@ -2388,7 +2388,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void StringArrayTest()
         {
-            var excel = new ExcelMapper("../../../ProductsJson.xlsx");
+            var excel = new ExcelMapper("../../../xlsx/ProductsJson.xlsx");
             excel.AddMapping<ProductStringArray>("Product", p => p.Products)
                 .SetCellUsing((c, o) =>
                 {
@@ -2412,7 +2412,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void GuidTest()
         {
-            var excel = new ExcelMapper("../../../ProductsGuid.xlsx");
+            var excel = new ExcelMapper("../../../xlsx/ProductsGuid.xlsx");
 
             var productsFetched = excel.Fetch<GuidProduct>().ToList();
 
@@ -2491,7 +2491,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void InterfaceTest()
         {
-            var excel = new ExcelMapper("../../../Products.xlsx");
+            var excel = new ExcelMapper("../../../xlsx/Products.xlsx");
 
             var productsFetched = excel.Fetch<InterfaceProduct>().ToList();
 
@@ -2514,7 +2514,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void InterfaceFactoryTest()
         {
-            var excel = new ExcelMapper("../../../Products.xlsx");
+            var excel = new ExcelMapper("../../../xlsx/Products.xlsx");
 
             excel.CreateInstance<INumberInterface>(() => new NumberClass());
 
@@ -2541,7 +2541,7 @@ namespace Ganss.Excel.Tests
         {
             var mapper = new ExcelMapper();
 
-            mapper.Attach(@"../../../Products.xlsx");
+            mapper.Attach(@"../../../xlsx/Products.xlsx");
 
             var products = mapper.Fetch<Product>();
 
@@ -2556,7 +2556,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void AttachWithStreamUsingFetchTest()
         {
-            var stream = new FileStream(@"../../../Products.xlsx", FileMode.Open, FileAccess.Read);
+            var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var mapper = new ExcelMapper();
 
             mapper.Attach(stream);
@@ -2575,7 +2575,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void AttachWithWorkbookUsingFetchTest()
         {
-            var workbook = WorkbookFactory.Create(@"../../../Products.xlsx");
+            var workbook = WorkbookFactory.Create(@"../../../xlsx/Products.xlsx");
             var mapper = new ExcelMapper();
 
             mapper.Attach(workbook);
@@ -2607,7 +2607,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void EnumTest()
         {
-            var excel = new ExcelMapper("../../../Products.xlsx");
+            var excel = new ExcelMapper("../../../xlsx/Products.xlsx");
             var products = excel.Fetch<EnumProduct>().ToList();
 
             CollectionAssert.AreEqual(new List<EnumProduct>
@@ -2638,7 +2638,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void MixedRecordTest()
         {
-            var excel = new ExcelMapper("../../../Products.xlsx");
+            var excel = new ExcelMapper("../../../xlsx/Products.xlsx");
             var products = excel.Fetch<MixedRecordProduct>().ToList();
 
             CollectionAssert.AreEqual(new List<MixedRecordProduct>
@@ -2709,7 +2709,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void NumericColumnTest()
         {
-            var excel = new ExcelMapper("../../../numeric-header.xlsx");
+            var excel = new ExcelMapper("../../../xlsx/numeric-header.xlsx");
             var rows = excel.Fetch<ExcelRow>().ToList();
 
             CollectionAssert.AreEqual(new List<ExcelRow>
@@ -2736,7 +2736,7 @@ namespace Ganss.Excel.Tests
         {
             var tf = new TypeMapperFactory();
             var tm = tf.Create(typeof(ChildClass));
-            var ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<ChildClass>().ToList();
+            var ccs = new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<ChildClass>().ToList();
 
             Assert.AreEqual(1, ccs.Count);
             Assert.AreEqual("new", ccs[0].Text);
@@ -2764,7 +2764,7 @@ namespace Ganss.Excel.Tests
             Assert.AreEqual("test", ccs[0].TextBase);
             Assert.AreEqual("test", ccs[0].TextNew);
 
-            ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
+            ccs = new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
 
             Assert.AreEqual(1, ccs.Count);
             Assert.AreEqual("base", ccs[0].TextBase);
@@ -2788,7 +2788,7 @@ namespace Ganss.Excel.Tests
         {
             var tf = new TypeMapperFactory();
             var tm = tf.Create(typeof(NoInheritChild));
-            var ccs = new ExcelMapper("../../../virtual.xlsx").Fetch<NoInheritChild>().ToList();
+            var ccs = new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<NoInheritChild>().ToList();
 
             Assert.AreEqual(1, ccs.Count);
             Assert.AreEqual("new", ccs[0].Text);
@@ -2824,7 +2824,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void IgnoreInnerTest()
         {
-            var mapper = new ExcelMapper(@"../../../IgnoreInner.xlsx");
+            var mapper = new ExcelMapper(@"../../../xlsx/IgnoreInner.xlsx");
             mapper.Ignore<RowDef>(i => i.CustomOutput);
             var rows = mapper.Fetch<RowDef>().ToList();
 
@@ -2841,7 +2841,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void InvalidDateTest()
         {
-            var mapper = new ExcelMapper(@"../../../InvalidDate.xlsx");
+            var mapper = new ExcelMapper(@"../../../xlsx/InvalidDate.xlsx");
             Assert.Throws<ExcelMapperConvertException>(() => mapper.Fetch<InvalidDate>().ToList(),
                 "Unable to convert \"55555555\" from [L:1]:[C:0] to System.DateTime.");
         }
@@ -2855,7 +2855,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void InvalidJsonTest()
         {
-            var mapper = new ExcelMapper(@"../../../InvalidJson.xlsx");
+            var mapper = new ExcelMapper(@"../../../xlsx/InvalidJson.xlsx");
             Assert.Throws<ExcelMapperConvertException>(() => mapper.Fetch<InvalidJson>().ToList(),
                 @"Unable to convert ""{ ""key"": }"" from [L:1]:[C:0] to System.String.");
         }
