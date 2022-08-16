@@ -11,6 +11,7 @@ using NPOI.XSSF.UserModel;
 using NPOI.OpenXmlFormats.Spreadsheet;
 using System.Data.Common;
 using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Text.RegularExpressions;
 using NPOI.SS.Formula.Functions;
 
@@ -1318,12 +1319,12 @@ namespace Ganss.Excel.Tests
 
             CollectionAssert.AreEqual(products, productsFetched);
         }
-        
+
         [Test]
         public void NullableDynamicTest()
         {
             var workbook = WorkbookFactory.Create(@"../../../xlsx/Products.xlsx");
-            var excel = new ExcelMapper(workbook){ SkipBlankCells = false};
+            var excel = new ExcelMapper(workbook) { SkipBlankCells = false };
             var products = excel.Fetch().ToList();
             var nudossi = products[0];
             Assert.AreEqual("Nudossi", nudossi.Name);
@@ -1348,7 +1349,7 @@ namespace Ganss.Excel.Tests
             var productsFetched = new ExcelMapper(file) { SkipBlankCells = false }.Fetch(0, (colnum, value) =>
             {
                 //convert an empty string to null
-                if (value is string && value.ToString().Length == 0 && new string[]{ "OfferEnd", "Number", "Offer" }.Contains(colnum))
+                if (value is string && value.ToString().Length == 0 && new string[] { "OfferEnd", "Number", "Offer" }.Contains(colnum))
                 {
                     return null;
                 }
@@ -2669,20 +2670,21 @@ namespace Ganss.Excel.Tests
 
         private record BytesData
         {
-            public byte[] TextData{ get; set; }
+            public byte[] TextData1 { get; set; }
+            public byte[] TextData2 { get; set; }
             public byte[] RowVerison { get; set; }
         }
-        
+
         [Test]
         public void BytesTest()
         {
             var excel = new ExcelMapper();
             var datas = new List<BytesData>
             {
-                new BytesData(){TextData = new byte[]{65, 66, 67}, RowVerison = new byte[]{1, 0, 0, 0}},
-                new BytesData(){TextData = new byte[]{68, 69, 70}, RowVerison = new byte[]{2, 0, 0, 0}},
-                new BytesData(){TextData =                   null, RowVerison = new byte[]{1, 0, 0, 0}},
-                new BytesData(){TextData = new byte[]{68, 69, 70}, RowVerison = null}
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("ABC"), TextData2 = Encoding.UTF8.GetBytes("DEF"), RowVerison = new byte[]{1, 0, 0, 0}},
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("GHI"), TextData2 =                          null, RowVerison = new byte[]{2, 0, 0, 0}},
+                new BytesData(){TextData1 =                          null, TextData2 = Encoding.UTF8.GetBytes("JKL"), RowVerison = new byte[]{3, 0, 0, 0}},
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("MNO"), TextData2 = Encoding.UTF8.GetBytes("PQR"), RowVerison = null}
             };
 
             var file = "bytesdata.xlsx";
@@ -2693,8 +2695,8 @@ namespace Ganss.Excel.Tests
                 {
                     switch (colnum)
                     {
-                        case "TextData":
-                            return System.Text.Encoding.UTF8.GetString(value as byte[]);
+                        case "TextData1":
+                            return Encoding.UTF8.GetString(value as byte[]);
                         case "RowVerison":
                             return BitConverter.ToInt32(value as byte[]);
 
@@ -2709,8 +2711,8 @@ namespace Ganss.Excel.Tests
                 {
                     switch (colnum)
                     {
-                        case "TextData":
-                            return System.Text.Encoding.UTF8.GetBytes(value.ToString());
+                        case "TextData1":
+                            return Encoding.UTF8.GetBytes(value.ToString());
                         case "RowVerison":
                             return BitConverter.GetBytes(Convert.ToInt32(value.ToString()));
 
@@ -2719,10 +2721,12 @@ namespace Ganss.Excel.Tests
                 return value;
             }).ToList();
 
-            Assert.AreEqual(datas[0].TextData, productsFetched[0].TextData);
-            Assert.AreEqual(datas[1].TextData, productsFetched[1].TextData);
-            Assert.AreEqual(datas[0].RowVerison, productsFetched[0].RowVerison);
-            Assert.AreEqual(datas[1].RowVerison, productsFetched[1].RowVerison);
+            for (var index = 0; index < datas.Count; index++)
+            {
+                Assert.AreEqual(datas[index].TextData1, productsFetched[index].TextData1);
+                Assert.AreEqual(datas[index].TextData2, productsFetched[index].TextData2);
+                Assert.AreEqual(datas[index].RowVerison, productsFetched[index].RowVerison);
+            }
         }
 
         private record MixedRecordProduct
