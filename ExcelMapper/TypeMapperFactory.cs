@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 
@@ -9,7 +10,7 @@ namespace Ganss.Excel
     /// </summary>
     public class TypeMapperFactory : ITypeMapperFactory
     {
-        Dictionary<Type, TypeMapper> TypeMappers { get; set; } = new Dictionary<Type, TypeMapper>();
+        ConcurrentDictionary<Type, TypeMapper> TypeMappers { get; set; } = new ConcurrentDictionary<Type, TypeMapper>();
 
         /// <summary>
         /// Creates a <see cref="TypeMapper"/> for the specified type.
@@ -18,9 +19,7 @@ namespace Ganss.Excel
         /// <returns>A <see cref="TypeMapper"/> for the specified type.</returns>
         public TypeMapper Create(Type type)
         {
-            if (!TypeMappers.TryGetValue(type, out TypeMapper typeMapper))
-                typeMapper = TypeMappers[type] = TypeMapper.Create(type);
-
+            var typeMapper = TypeMappers.GetOrAdd(type, t => TypeMapper.Create(t));
             return typeMapper;
         }
 
