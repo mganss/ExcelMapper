@@ -882,7 +882,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchExceptionWhenEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch<ProductException>().ToList());
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankCells = false }.Fetch<ProductException>().ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
             Assert.That(ex.Message.Contains("[L:1]:[C:2]"));
         }
@@ -890,7 +890,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeExceptionWhenEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch(typeof(ProductException))
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankCells = false }.Fetch(typeof(ProductException))
                                                                                                                               .OfType<ProductException>()
                                                                                                                               .ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
@@ -1323,7 +1323,7 @@ namespace Ganss.Excel.Tests
         public void NullableDynamicTest()
         {
             var workbook = WorkbookFactory.Create(@"../../../xlsx/Products.xlsx");
-            var excel = new ExcelMapper(workbook){ SkipBlankRows = false};
+            var excel = new ExcelMapper(workbook){ SkipBlankCells = false};
             var products = excel.Fetch().ToList();
             var nudossi = products[0];
             Assert.AreEqual("Nudossi", nudossi.Name);
@@ -1345,7 +1345,7 @@ namespace Ganss.Excel.Tests
 
             new ExcelMapper().Save(file, products, "Products");
 
-            var productsFetched = new ExcelMapper(file) { SkipBlankRows = false }.Fetch(0, (colnum, value) =>
+            var productsFetched = new ExcelMapper(file) { SkipBlankCells = false }.Fetch(0, (colnum, value) =>
             {
                 //convert an empty string to null
                 if (value is string && value.ToString().Length == 0 && new string[]{ "OfferEnd", "Number", "Offer" }.Contains(colnum))
@@ -1956,7 +1956,7 @@ namespace Ganss.Excel.Tests
         public void ColumnSkipTest()
         {
             // see https://github.com/mganss/ExcelMapper/issues/90
-            var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankCells = false }.Fetch().ToList();
             Assert.AreEqual(1, products.Count);
             var p = products[0];
             Assert.IsEmpty(p.Price);
@@ -2106,7 +2106,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void LongRowsTest()
         {
-            var rows = new ExcelMapper(@"../../../xlsx/JaggedRows.xlsx") { HeaderRow = false, SkipBlankRows = false }.Fetch().ToList();
+            var rows = new ExcelMapper(@"../../../xlsx/JaggedRows.xlsx") { HeaderRow = false, SkipBlankCells = false }.Fetch().ToList();
 
             Assert.AreEqual(2, rows.Count);
             Assert.AreEqual(13, ((IDictionary<string, object>)rows[0]).Count);
@@ -2680,7 +2680,9 @@ namespace Ganss.Excel.Tests
             var datas = new List<BytesData>
             {
                 new BytesData(){TextData = new byte[]{65, 66, 67}, RowVerison = new byte[]{1, 0, 0, 0}},
-                new BytesData(){TextData = new byte[]{68, 69, 70}, RowVerison = new byte[]{2, 0, 0, 0}}
+                new BytesData(){TextData = new byte[]{68, 69, 70}, RowVerison = new byte[]{2, 0, 0, 0}},
+                new BytesData(){TextData =                   null, RowVerison = new byte[]{1, 0, 0, 0}},
+                new BytesData(){TextData = new byte[]{68, 69, 70}, RowVerison = null}
             };
 
             var file = "bytesdata.xlsx";

@@ -121,6 +121,6 @@ namespace Ganss.Excel.Exceptions
         }
 
         private static string FormatMessage(object cellValue, Type targetType, int line, int column)
-            => $"Unable to convert \"{(string.IsNullOrWhiteSpace(cellValue.ToString()) ? "<EMPTY>" : cellValue)}\" from [L:{line}]:[C:{column}] to {targetType}.";
+            => $"Unable to convert \"{(cellValue == null || string.IsNullOrWhiteSpace(cellValue.ToString()) ? "<EMPTY>" : cellValue)}\" from [L:{line}]:[C:{column}] to {targetType}.";
     }
 }

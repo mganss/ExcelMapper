@@ -85,6 +85,14 @@ namespace Ganss.Excel
         public bool SkipBlankRows { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to skip blank cells when reading from Excel files. Default is true.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if blank lines are skipped; otherwise, <c>false</c>.
+        /// </value>
+        public bool SkipBlankCells { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether to create columns in existing Excel files for properties where
         /// the corresponding header does not yet exist. If this is false and properties are mapped by name,
         /// their corresponding headers must already be present in existing files.
@@ -506,7 +514,7 @@ namespace Ganss.Excel
             {
                 var cell = row.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
-                if (cell != null && (!SkipBlankRows || !IsCellBlank(cell)))
+                if (cell != null && (!SkipBlankCells || !IsCellBlank(cell)))
                 {
                     foreach (var ci in columnInfos)
                     {
@@ -1052,7 +1060,7 @@ namespace Ganss.Excel
                 i++;
             }
 
-            if (SkipBlankRows)
+            if (SkipBlankCells)
             {
                 while (i <= sheet.LastRowNum && i <= MaxRowNumber)
                 {

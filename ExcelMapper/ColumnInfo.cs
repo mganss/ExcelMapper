@@ -29,9 +29,17 @@ namespace Ganss.Excel
         /// <param name="propertyType">The property type.</param>
         internal void SetPropertyType(Type propertyType)
         {
-            var underlyingType = Nullable.GetUnderlyingType(propertyType);
-            IsNullable = underlyingType != null;
-            PropertyType = underlyingType ?? propertyType;
+            if (propertyType.IsValueType)
+            {
+                var underlyingType = Nullable.GetUnderlyingType(propertyType);
+                IsNullable = underlyingType != null;
+                PropertyType = underlyingType ?? propertyType;
+            }
+            else
+            {
+                IsNullable = true;
+                PropertyType = propertyType;
+            }
 
             isSubType = PropertyType != null
                 && !PropertyType.IsPrimitive
@@ -208,6 +216,19 @@ namespace Ganss.Excel
                     };
                 else
                     return (c, o) => c.SetCellValue(Convert.ToDouble(o));
+            }
+            else if (PropertyType == typeof(byte[]))
+            {
+                if (IsNullable)
+                    return (c, o) =>
+                    {
+                        if (o == null)
+                            c.SetCellValue((string)null);
+                        else
+                            c.SetCellValue(System.Text.Encoding.UTF8.GetString((byte[])o));
+                    };
+                else
+                    return (c, o) => c.SetCellValue(System.Text.Encoding.UTF8.GetString((byte[])o));
             }
             else
             {
