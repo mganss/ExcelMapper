@@ -22,7 +22,8 @@ namespace Ganss.Excel
 
         private PropertyInfo property;
         private bool isSubType;
-        private Action<ICell, object> _setCell;
+        protected Action<ICell, object> defaultCellSetter;
+        protected Action<ICell, object> customCellSetter;
 
         /// <summary>
         /// Sets the property type.
@@ -116,21 +117,7 @@ namespace Ganss.Excel
         /// <value>
         /// The cell setter.
         /// </value>
-        public Action<ICell, object> SetCell
-        {
-            get
-            {
-                if (_setCell != null)
-                {
-                    return _setCell;
-                }
-                else
-                {
-                    return GenerateCellSetter();
-                }
-            }
-            set => _setCell = value;
-        }
+        public Action<ICell, object> SetCell => customCellSetter ?? defaultCellSetter;
 
         /// <summary>
         /// Gets or sets the property setter.
@@ -350,7 +337,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing(Action<ICell, object> setCell)
         {
-            _setCell = setCell;
+            customCellSetter = setCell;
             return this;
         }
 
@@ -359,7 +346,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing<T>(Action<ICell, T> setCell)
         {
-            _setCell = (c, o) => setCell(c, (T)o);
+            customCellSetter = (c, o) => setCell(c, (T)o);
             return this;
         }
 
@@ -441,6 +428,7 @@ namespace Ganss.Excel
         {
             Property = propertyInfo;
             Directions = direction;
+            defaultCellSetter = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
@@ -469,6 +457,7 @@ namespace Ganss.Excel
         internal void ChangeSetterType(Type newType)
         {
             SetPropertyType(newType);
+            defaultCellSetter = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
             else
@@ -509,6 +498,7 @@ namespace Ganss.Excel
         {
             Name = name;
             SetPropertyType(t);
+            defaultCellSetter = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }

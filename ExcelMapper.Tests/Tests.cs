@@ -2673,7 +2673,7 @@ namespace Ganss.Excel.Tests
         {
             public byte[] TextData1 { get; set; }
             public byte[] TextData2 { get; set; }
-            public byte[] RowVerison { get; set; }
+            public byte[] RowVersion { get; set; }
         }
 
         [Test]
@@ -2682,10 +2682,10 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper();
             var datas = new List<BytesData>
             {
-                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("ABC"), TextData2 = Encoding.UTF8.GetBytes("DEF"), RowVerison = new byte[]{1, 0, 0, 0}},
-                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("GHI"), TextData2 =                          null, RowVerison = new byte[]{2, 0, 0, 0}},
-                new BytesData(){TextData1 =                          null, TextData2 = Encoding.UTF8.GetBytes("JKL"), RowVerison = new byte[]{3, 0, 0, 0}},
-                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("MNO"), TextData2 = Encoding.UTF8.GetBytes("PQR"), RowVerison = null}
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("ABC"), TextData2 = Encoding.UTF8.GetBytes("DEF"), RowVersion = new byte[]{1, 0, 0, 0}},
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("GHI"), TextData2 =                          null, RowVersion = new byte[]{2, 0, 0, 0}},
+                new BytesData(){TextData1 =                          null, TextData2 = Encoding.UTF8.GetBytes("JKL"), RowVersion = new byte[]{3, 0, 0, 0}},
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("MNO"), TextData2 = Encoding.UTF8.GetBytes("PQR"), RowVersion = null}
             };
 
             var file = "bytesdata.xlsx";
@@ -2698,7 +2698,7 @@ namespace Ganss.Excel.Tests
                     {
                         case "TextData1":
                             return Encoding.UTF8.GetString(value as byte[]);
-                        case "RowVerison":
+                        case "RowVersion":
                             return BitConverter.ToInt32(value as byte[]);
 
                     }
@@ -2714,7 +2714,7 @@ namespace Ganss.Excel.Tests
                     {
                         case "TextData1":
                             return Encoding.UTF8.GetBytes(value.ToString());
-                        case "RowVerison":
+                        case "RowVersion":
                             return BitConverter.GetBytes(Convert.ToInt32(value.ToString()));
 
                     }
@@ -2726,7 +2726,7 @@ namespace Ganss.Excel.Tests
             {
                 Assert.AreEqual(datas[index].TextData1, productsFetched[index].TextData1);
                 Assert.AreEqual(datas[index].TextData2, productsFetched[index].TextData2);
-                Assert.AreEqual(datas[index].RowVerison, productsFetched[index].RowVerison);
+                Assert.AreEqual(datas[index].RowVersion, productsFetched[index].RowVersion);
             }
         }
 
