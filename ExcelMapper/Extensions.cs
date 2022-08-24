@@ -22,5 +22,19 @@ namespace Ganss.Excel
             if (memberInfo == null || other == null) return false;
             return memberInfo.Equals(other) || memberInfo.MetadataToken == other.MetadataToken;
         }
+
+        /// <summary>
+        /// convert to Nullable type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal static Type ConvertToNullableType(this Type type)
+        {
+            if (type.IsPrimitive || type.IsValueType)
+            {
+                return typeof(Nullable<>).MakeGenericType(type);
+            }
+            return type;
+        }
     }
 }

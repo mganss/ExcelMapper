@@ -11,6 +11,7 @@ using NPOI.XSSF.UserModel;
 using NPOI.OpenXmlFormats.Spreadsheet;
 using System.Data.Common;
 using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Text.RegularExpressions;
 using NPOI.SS.Formula.Functions;
 using System.Threading;
@@ -883,7 +884,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchExceptionWhenEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch<ProductException>().ToList());
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankCells = false }.Fetch<ProductException>().ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
             Assert.That(ex.Message.Contains("[L:1]:[C:2]"));
         }
@@ -891,7 +892,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void FetchWithTypeExceptionWhenEmptyTest()
         {
-            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch(typeof(ProductException))
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankCells = false }.Fetch(typeof(ProductException))
                                                                                                                               .OfType<ProductException>()
                                                                                                                               .ToList());
             Assert.That(ex.Message.Contains("<EMPTY>"));
@@ -1318,6 +1319,47 @@ namespace Ganss.Excel.Tests
             var productsFetched = new ExcelMapper(file).Fetch<NullableProduct>().ToList();
 
             CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        [Test]
+        public void NullableDynamicTest()
+        {
+            var workbook = WorkbookFactory.Create(@"../../../xlsx/Products.xlsx");
+            var excel = new ExcelMapper(workbook) { SkipBlankCells = false };
+            var products = excel.Fetch().ToList();
+            var nudossi = products[0];
+            Assert.AreEqual("Nudossi", nudossi.Name);
+            Assert.AreEqual(60, nudossi.Number);
+            Assert.AreEqual(1.99m, nudossi.Price);
+            Assert.IsFalse(nudossi.Offer);
+            Assert.IsNotNull(nudossi.OfferEnd);
+            nudossi.OfferEnd = null; //set to null to test it
+
+            var halloren = products[1];
+            Assert.IsTrue(halloren.Offer);
+            Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
+            Assert.IsNotNull(halloren.Number);
+            halloren.Number = null; //set to null to test it
+            Assert.IsNotNull(halloren.Offer);
+            halloren.Offer = null; //set to null to test it
+
+            var file = "productsnullabledynamic.xlsx";
+
+            new ExcelMapper().Save(file, products, "Products");
+
+            var productsFetched = new ExcelMapper(file) { SkipBlankCells = false }.Fetch(0, (colnum, value) =>
+            {
+                //convert an empty string to null
+                if (value is string && value.ToString().Length == 0 && new string[] { "OfferEnd", "Number", "Offer" }.Contains(colnum))
+                {
+                    return null;
+                }
+                return value;
+            }).ToList();
+
+            Assert.IsNull(productsFetched[0].OfferEnd);
+            Assert.IsNull(productsFetched[1].Number);
+            Assert.IsNull(productsFetched[1].Offer);
         }
 
         private class DataFormatProduct
@@ -1916,7 +1958,7 @@ namespace Ganss.Excel.Tests
         public void ColumnSkipTest()
         {
             // see https://github.com/mganss/ExcelMapper/issues/90
-            var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankRows = false }.Fetch().ToList();
+            var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankCells = false }.Fetch().ToList();
             Assert.AreEqual(1, products.Count);
             var p = products[0];
             Assert.IsEmpty(p.Price);
@@ -2066,7 +2108,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void LongRowsTest()
         {
-            var rows = new ExcelMapper(@"../../../xlsx/JaggedRows.xlsx") { HeaderRow = false, SkipBlankRows = false }.Fetch().ToList();
+            var rows = new ExcelMapper(@"../../../xlsx/JaggedRows.xlsx") { HeaderRow = false, SkipBlankCells = false }.Fetch().ToList();
 
             Assert.AreEqual(2, rows.Count);
             Assert.AreEqual(13, ((IDictionary<string, object>)rows[0]).Count);
@@ -2625,6 +2667,67 @@ namespace Ganss.Excel.Tests
             var productsFetched = new ExcelMapper(file).Fetch<EnumProduct>().ToList();
 
             CollectionAssert.AreEqual(products, productsFetched);
+        }
+
+        private record BytesData
+        {
+            public byte[] TextData1 { get; set; }
+            public byte[] TextData2 { get; set; }
+            public byte[] RowVersion { get; set; }
+        }
+
+        [Test]
+        public void BytesTest()
+        {
+            var excel = new ExcelMapper();
+            var datas = new List<BytesData>
+            {
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("ABC"), TextData2 = Encoding.UTF8.GetBytes("DEF"), RowVersion = new byte[]{1, 0, 0, 0}},
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("GHI"), TextData2 =                          null, RowVersion = new byte[]{2, 0, 0, 0}},
+                new BytesData(){TextData1 =                          null, TextData2 = Encoding.UTF8.GetBytes("JKL"), RowVersion = new byte[]{3, 0, 0, 0}},
+                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("MNO"), TextData2 = Encoding.UTF8.GetBytes("PQR"), RowVersion = null}
+            };
+
+            var file = "bytesdata.xlsx";
+
+            excel.Save(file, datas, "data", true, (colnum, value) =>
+            {
+                if (value != null)
+                {
+                    switch (colnum)
+                    {
+                        case "TextData1":
+                            return Encoding.UTF8.GetString(value as byte[]);
+                        case "RowVersion":
+                            return BitConverter.ToInt32(value as byte[]);
+
+                    }
+                }
+                return value;
+            });
+
+            var productsFetched = new ExcelMapper(file).Fetch<BytesData>(0, (colnum, value) =>
+            {
+                if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                {
+                    switch (colnum)
+                    {
+                        case "TextData1":
+                            return Encoding.UTF8.GetBytes(value.ToString());
+                        case "RowVersion":
+                            return BitConverter.GetBytes(Convert.ToInt32(value.ToString()));
+
+                    }
+                }
+                return value;
+            }).ToList();
+
+            for (var index = 0; index < datas.Count; index++)
+            {
+                Assert.AreEqual(datas[index].TextData1, productsFetched[index].TextData1);
+                Assert.AreEqual(datas[index].TextData2, productsFetched[index].TextData2);
+                Assert.AreEqual(datas[index].RowVersion, productsFetched[index].RowVersion);
+            }
         }
 
         private record MixedRecordProduct

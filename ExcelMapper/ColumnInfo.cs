@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using Ganss.Excel.Exceptions;
 
 namespace Ganss.Excel
 {
@@ -21,6 +22,8 @@ namespace Ganss.Excel
 
         private PropertyInfo property;
         private bool isSubType;
+        protected Action<ICell, object> defaultCellSetter;
+        protected Action<ICell, object> customCellSetter;
 
         /// <summary>
         /// Sets the property type.
@@ -28,9 +31,17 @@ namespace Ganss.Excel
         /// <param name="propertyType">The property type.</param>
         internal void SetPropertyType(Type propertyType)
         {
-            var underlyingType = Nullable.GetUnderlyingType(propertyType);
-            IsNullable = underlyingType != null;
-            PropertyType = underlyingType ?? propertyType;
+            if (propertyType.IsValueType)
+            {
+                var underlyingType = Nullable.GetUnderlyingType(propertyType);
+                IsNullable = underlyingType != null;
+                PropertyType = underlyingType ?? propertyType;
+            }
+            else
+            {
+                IsNullable = true;
+                PropertyType = propertyType;
+            }
 
             isSubType = PropertyType != null
                 && !PropertyType.IsPrimitive
@@ -38,7 +49,8 @@ namespace Ganss.Excel
                 && PropertyType != typeof(decimal)
                 && PropertyType != typeof(string)
                 && PropertyType != typeof(DateTime)
-                && PropertyType != typeof(Guid);
+                && PropertyType != typeof(Guid)
+                && PropertyType != typeof(byte[]);
         }
 
         /// <summary>
@@ -105,7 +117,7 @@ namespace Ganss.Excel
         /// <value>
         /// The cell setter.
         /// </value>
-        public Action<ICell, object> SetCell { get; set; }
+        public Action<ICell, object> SetCell => customCellSetter ?? defaultCellSetter;
 
         /// <summary>
         /// Gets or sets the property setter.
@@ -207,6 +219,16 @@ namespace Ganss.Excel
                 else
                     return (c, o) => c.SetCellValue(Convert.ToDouble(o));
             }
+            else if (PropertyType == typeof(byte[]))
+            {
+                return (c, o) =>
+                {
+                    if (o == null)
+                        c.SetCellValue((string)null);
+                    else
+                        c.SetCellValue(System.Text.Encoding.UTF8.GetString((byte[])o));
+                };
+            }
             else
             {
                 return (c, o) =>
@@ -245,7 +267,15 @@ namespace Ganss.Excel
         public void SetCellStyle(ICell c)
         {
             if (BuiltinFormat != 0 || CustomFormat != null)
+            {
                 c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
+                //When it is a dynamic type, after initialization, if the first row is null and the dataformat is not set, the dataformat needs to be repaired again
+                if (c.CellStyle.DataFormat == 0)
+                {
+                    SetColumnStyle(c.Sheet, c.ColumnIndex);
+                    c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
+                }
+            }
         }
 
         private object ParseEnum(Type t, string s)
@@ -272,6 +302,8 @@ namespace Ganss.Excel
                 v = Guid.Parse(g);
             else if (val is string es && PropertyType.IsEnum)
                 v = ParseEnum(PropertyType, es);
+            else if (val is string && PropertyType == typeof(byte[]))
+                v = System.Text.Encoding.UTF8.GetBytes(val as string);
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 
@@ -305,7 +337,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing(Action<ICell, object> setCell)
         {
-            SetCell = setCell;
+            customCellSetter = setCell;
             return this;
         }
 
@@ -314,7 +346,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing<T>(Action<ICell, T> setCell)
         {
-            SetCell = (c, o) => setCell(c, (T)o);
+            customCellSetter = (c, o) => setCell(c, (T)o);
             return this;
         }
 
@@ -396,7 +428,7 @@ namespace Ganss.Excel
         {
             Property = propertyInfo;
             Directions = direction;
-            SetCell = GenerateCellSetter();
+            defaultCellSetter = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
@@ -425,7 +457,13 @@ namespace Ganss.Excel
         internal void ChangeSetterType(Type newType)
         {
             SetPropertyType(newType);
-            SetCell = GenerateCellSetter();
+            defaultCellSetter = GenerateCellSetter();
+            if (PropertyType == typeof(DateTime))
+                BuiltinFormat = 0x16; // "m/d/yy h:mm"
+            else
+            {
+                BuiltinFormat = 0;
+            }
         }
     }
 
@@ -460,7 +498,7 @@ namespace Ganss.Excel
         {
             Name = name;
             SetPropertyType(t);
-            SetCell = GenerateCellSetter();
+            defaultCellSetter = GenerateCellSetter();
             if (PropertyType == typeof(DateTime))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
