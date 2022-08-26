@@ -1145,9 +1145,12 @@ namespace Ganss.Excel.Tests
         {
             public string Name { get; set; }
             public string RedName { get; set; }
+            public int Number { get; set; }
+            public double Price { get; set; }
             public DateTime? OfferEnd { get; set; }
             public string OfferEndToString { get; set; }
             public long OfferEndToLong { get; set; }
+            public double Value { get; set; }
 
             public override bool Equals(object obj)
             {
@@ -1166,7 +1169,11 @@ namespace Ganss.Excel.Tests
         {
             var excel = new ExcelMapper(@"../../../xlsx/ProductsConvert.xlsx") { TrackObjects = true };
 
-            excel.AddMapping<GetterSetterProduct>("Name", p => p.Name);
+            excel.AddMapping<GetterSetterProduct>("Name", p => p.Name)
+                .SetPropertyUsing<GetterSetterProduct>((entity, value, cell) =>
+                {
+                    return value;
+                });
             excel.AddMapping<GetterSetterProduct>("Name", p => p.RedName)
                 .FromExcelOnly()
                 .SetPropertyUsing((v, c) =>
@@ -1205,6 +1212,41 @@ namespace Ganss.Excel.Tests
                     if ((v as string) == "NULL") return 0L;
                     var dt = (DateTime)Convert.ChangeType(v, typeof(DateTime), CultureInfo.InvariantCulture);
                     return dt.ToBinary();
+                });
+
+            excel.AddMapping<GetterSetterProduct>("Number", p => p.Number)
+                .SetCellUsing<GetterSetterProduct, int>((args) =>
+                {
+                    args.Cell.SetCellValue(args.Value);
+                })
+                .SetPropertyUsing<GetterSetterProduct>((args) =>
+                {
+                    return Convert.ToInt32(args.Value);
+                });
+
+            excel.AddMapping<GetterSetterProduct>("Price", p => p.Price)
+                .SetCellUsing<double>((cell, value) =>
+                {
+                    cell.SetCellValue(value);
+                })
+                .SetPropertyUsing<GetterSetterProduct>((entity, value) =>
+                {
+                    return Convert.ToDouble(value);
+                });
+
+            excel.AddMapping<GetterSetterProduct>("Value", p => p.Value)
+                .SetCellUsing<GetterSetterProduct>((args) =>
+                {
+                    args.Cell.SetCellValue(args.Data.Number * args.Data.Price);
+                })
+                .SetPropertyUsing<GetterSetterProduct>((args) =>
+                {
+                    var value = 0.0;
+                    if(args.Cell.CellType == CellType.Formula)
+                    {
+                        value =  args.Data.Number * args.Data.Price;
+                    }
+                    return value;
                 });
 
             var products = excel.Fetch<GetterSetterProduct>().ToList();
