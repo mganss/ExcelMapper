@@ -23,7 +23,7 @@ namespace Ganss.Excel
         private PropertyInfo property;
         private bool isSubType;
         protected Action<ICell, object> defaultCellSetter;
-        protected Action<ICell, object> customCellSetter;
+        protected Action<object, ICell, object> customCellSetter;
 
         /// <summary>
         /// Sets the property type.
@@ -117,7 +117,7 @@ namespace Ganss.Excel
         /// <value>
         /// The cell setter.
         /// </value>
-        public Action<ICell, object> SetCell => customCellSetter ?? defaultCellSetter;
+        public Action<object, ICell, object> SetCell => customCellSetter != null ? customCellSetter : (entity, cell, value) => defaultCellSetter(cell, value);
 
         /// <summary>
         /// Gets or sets the property setter.
@@ -335,9 +335,18 @@ namespace Ganss.Excel
         /// <summary>Specifies a method to use when setting the cell value from an object.</summary>
         /// <param name="setCell">The method to use when setting the cell value from an object.</param>
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetCellUsing<TEntity>(Action<SetCellArgs<TEntity>> setCell) where TEntity : class
+        {
+            customCellSetter = (entity, cell, value) => setCell(new SetCellArgs<TEntity>(cell, (TEntity)entity, value));
+            return this;
+        }
+
+        /// <summary>Specifies a method to use when setting the cell value from an object.</summary>
+        /// <param name="setCell">The method to use when setting the cell value from an object.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing(Action<ICell, object> setCell)
         {
-            customCellSetter = setCell;
+            customCellSetter = (entity, cell, value) => setCell(cell, value);
             return this;
         }
 
@@ -346,7 +355,16 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetCellUsing<T>(Action<ICell, T> setCell)
         {
-            customCellSetter = (c, o) => setCell(c, (T)o);
+            customCellSetter = (entity, cell, value) => setCell(cell, (T)value);
+            return this;
+        }
+
+        /// <summary>Specifies a method to use when setting the property value from the cell value.</summary>
+        /// <param name="setProp">The method to use when setting the property value from the cell value.</param>
+        /// <returns>The <see cref="ColumnInfo"/> object.</returns>
+        public ColumnInfo SetPropertyUsing<TEntity>(Func<SetPropertyArgs<TEntity>, object> setProp) where TEntity : class
+        {
+            SetProp = (entity, value, cell) => setProp(new SetPropertyArgs<TEntity>(cell, (TEntity)entity, value));
             return this;
         }
 
@@ -355,7 +373,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing(Func<object, object> setProp)
         {
-            SetProp = (o, v, c) => setProp(v);
+            SetProp = (entity, value, cell) => setProp(value);
             return this;
         }
 
@@ -364,7 +382,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing(Func<object, ICell, object> setProp)
         {
-            SetProp = (o, v, c) => setProp(v, c);
+            SetProp = (entity, value, cell) => setProp(value, cell);
             return this;
         }
 
@@ -382,7 +400,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing<T>(Func<T, object, object> setProp)
         {
-            SetProp = (o, v, c) => setProp((T)o, v);
+            SetProp = (entity, value, cell) => setProp((T)entity, value);
             return this;
         }
 
@@ -391,7 +409,7 @@ namespace Ganss.Excel
         /// <returns>The <see cref="ColumnInfo"/> object.</returns>
         public ColumnInfo SetPropertyUsing<T>(Func<T, object, ICell, object> setProp)
         {
-            SetProp = (o, v, c) => setProp((T)o, v, c);
+            SetProp = (entity, value, cell) => setProp((T)entity, value, cell);
             return this;
         }
 
