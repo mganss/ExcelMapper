@@ -22,6 +22,10 @@ namespace Ganss.Excel
 
         private PropertyInfo property;
         private bool isSubType;
+
+        /// <summary>
+        /// Gets or sets the default cell setter.
+        /// </summary>
         protected Action<ICell, object> defaultCellSetter;
         protected Action<object, ICell, object> customCellSetter;
 
