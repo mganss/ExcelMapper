@@ -920,9 +920,11 @@ namespace Ganss.Excel.Tests
         public void FetchEventExceptionWhenFieldInvalidTest()
         {
             int numberOfErrors = 0;
-            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsEventsExceptionInvalid.xlsx") { ReportParsingErrorThrougEvent = true };
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsEventsExceptionInvalid.xlsx") { ReportParsingErrorThroughEvent = true };
             excelMapper.ErrorParsingCell += (sender, e) =>
             {
+                Assert.IsInstanceOf<ParsingErrorEventArgs>(e);
+                Assert.IsInstanceOf<ExcelMapperConvertException>(e.Error);
                 Assert.IsNotNull(e.Error);
                 Assert.That(e.Error.Message.Contains("FALSEd"));
                 numberOfErrors++;
@@ -932,6 +934,22 @@ namespace Ganss.Excel.Tests
             Assert.DoesNotThrow(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
             Assert.That(numberOfErrors == 5);
             Assert.That(listOfProducts.Count == 6);
+        }
+
+        [Test]
+        public void FetchEventExceptionDisabledWhenFieldInvalidTest()
+        {
+            int numberOfErrors = 0;
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsEventsExceptionInvalid.xlsx") { ReportParsingErrorThroughEvent = false };
+            excelMapper.ErrorParsingCell += (sender, e) =>
+            {
+                numberOfErrors++;
+            };
+
+            List<ProductException> listOfProducts = null;
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
+            Assert.That(numberOfErrors == 0);
+            Assert.IsNull(listOfProducts);
         }
 
         [Test]

@@ -119,7 +119,7 @@ namespace Ganss.Excel
         /// <value>
         ///   <c>true</c> if conversion exception should be reported through event when parsing; otherwise, <c>false</c>.
         /// </value>
-        public bool ReportParsingErrorThrougEvent { get; set; } = false;
+        public bool ReportParsingErrorThroughEvent { get; set; } = false;
 
         /// <summary>
         /// Gets or sets the <see cref="DataFormatter"/> object to use when formatting cell values.
@@ -670,7 +670,7 @@ namespace Ganss.Excel
 
         private void TriggerOrThrowParsingError(ExcelMapperConvertException excelMapperConvertException)
         {
-            if (!ReportParsingErrorThrougEvent)
+            if (!ReportParsingErrorThroughEvent)
                 throw excelMapperConvertException;
 
             ErrorParsingCell?.Invoke(this, new ParsingErrorEventArgs(excelMapperConvertException));
