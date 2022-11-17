@@ -20,12 +20,13 @@ test_script:
           dotnet build
       }
   - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="..\coverage.xml" ExcelMapper.Tests\ExcelMapper.Tests.csproj /p:Include="[ExcelMapper]*"
+  - ps: cp */coverage.* ./coverage.json
   - ps: |
       if (-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
           dotnet sonarscanner end /d:sonar.login="$env:sonar_token"
       }
   - pip install codecov
-  - codecov -f "coverage.net5.0.xml"
+  - codecov -f "coverage.json"
 artifacts:
   - path: 'ExcelMapper\**\*.*nupkg'
 deploy:
