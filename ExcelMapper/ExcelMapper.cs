@@ -918,10 +918,9 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            if (Workbook == null)
-                Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheet(sheetName);
-            if (sheet == null) sheet = Workbook.CreateSheet(sheetName);
+            sheet ??= Workbook.CreateSheet(sheetName);
             Save(stream, sheet, objects, valueConverter);
         }
 
@@ -936,8 +935,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            if (Workbook == null)
-                Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             ISheet sheet;
             if (Workbook.NumberOfSheets > sheetIndex)
                 sheet = Workbook.GetSheetAt(sheetIndex);
@@ -981,10 +979,9 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            if (Workbook == null)
-                Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheet(sheetName);
-            if (sheet == null) sheet = Workbook.CreateSheet(sheetName);
+            sheet ??= Workbook.CreateSheet(sheetName);
             Save(stream, sheet, valueConverter);
         }
 
@@ -997,10 +994,9 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            if (Workbook == null)
-                Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
             var sheet = Workbook.GetSheetAt(sheetIndex);
-            if (sheet == null) sheet = Workbook.CreateSheet();
+            sheet ??= Workbook.CreateSheet();
             Save(stream, sheet, valueConverter);
         }
 
@@ -1021,14 +1017,14 @@ namespace Ganss.Excel
             {
                 var i = o.Key;
                 var row = sheet.GetRow(i);
-                if (row == null) row = sheet.CreateRow(i);
+                row ??= sheet.CreateRow(i);
 
                 SetCells(typeMapper, columnsByIndex, o.Value, row, valueConverter);
             }
 
             Saving?.Invoke(this, new SavingEventArgs(sheet));
 
-            Workbook.Write(stream);
+            Workbook.Write(stream, leaveOpen: true);
         }
 
         void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects, Func<string, object, object> valueConverter = null)
@@ -1053,7 +1049,7 @@ namespace Ganss.Excel
                     i++;
 
                 var row = sheet.GetRow(i);
-                if (row == null) row = sheet.CreateRow(i);
+                row ??= sheet.CreateRow(i);
 
                 SetCells(typeMapper, columnsByIndex, o, row, valueConverter);
 
@@ -1073,7 +1069,7 @@ namespace Ganss.Excel
 
             Saving?.Invoke(this, new SavingEventArgs(sheet));
 
-            Workbook.Write(stream);
+            Workbook.Write(stream, leaveOpen: true);
         }
 
         private void SetCells(TypeMapper typeMapper,
@@ -1496,18 +1492,16 @@ namespace Ganss.Excel
 
         object GetCellValue(ICell cell)
         {
-            switch (cell.CellType)
+            return cell.CellType switch
             {
-                case CellType.Numeric: return cell.NumericCellValue;
-                case CellType.Formula: return cell.CellFormula;
-                case CellType.Boolean: return cell.BooleanCellValue;
-                case CellType.Error: return cell.ErrorCellValue;
-                case CellType.String: return cell.StringCellValue;
-                case CellType.Blank: return string.Empty;
-                case CellType.Unknown:
-                default:
-                    return "<unknown>";
-            }
+                CellType.Numeric => cell.NumericCellValue,
+                CellType.Formula => cell.CellFormula,
+                CellType.Boolean => cell.BooleanCellValue,
+                CellType.Error => cell.ErrorCellValue,
+                CellType.String => cell.StringCellValue,
+                CellType.Blank => string.Empty,
+                _ => "<unknown>",
+            };
         }
 
         static PropertyInfo GetPropertyInfo<T>(Expression<Func<T, object>> propertyExpression)

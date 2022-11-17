@@ -8,7 +8,7 @@
     <FileVersion>$(AppVeyor_Build_Version).0</FileVersion>
     <PackageVersion>$(AppVeyor_Build_Version)</PackageVersion>
     <Authors>Michael Ganss</Authors>
-    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
     <AssemblyName>ExcelMapper</AssemblyName>
     <PackageId>ExcelMapper</PackageId>
     <PackageTags>npoi mapper excel xls xlsx map mapping poco orm linq</PackageTags>
@@ -29,7 +29,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="NPOI" Version="2.5.6" />
+    <PackageReference Include="NPOI" Version="2.6.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="System.Text.Json" Version="7.0.0" />
   </ItemGroup>
