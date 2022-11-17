@@ -125,6 +125,12 @@ namespace Ganss.Excel
         /// </summary>
         public event EventHandler<SavingEventArgs> Saving;
 
+        /// <summary>
+        /// Occurs while parsing when value is not convertible.
+        /// Set Cancel to <c>true</c> to Cancel Exception, also, see <see cref="ParsingErrorEventArgs"/>
+        /// </summary>
+        public event EventHandler<ParsingErrorEventArgs> ErrorParsingCell;
+
         private Func<string, string> NormalizeName { get; set; }
 
         readonly Dictionary<Type, Func<object>> ObjectFactories = new();
@@ -527,7 +533,7 @@ namespace Ganss.Excel
                         catch (Exception e)
                         {
                             cellValue = GetCellValue(cell);
-                            throw new ExcelMapperConvertException(cellValue, ci.PropertyType, i, columnIndex, e);
+                            TriggerOrThrowParsingError(new ExcelMapperConvertException(cellValue, ci.PropertyType, i, columnIndex, e));
                         }
 
                         try
@@ -539,7 +545,7 @@ namespace Ganss.Excel
                         }
                         catch (Exception e)
                         {
-                            throw new ExcelMapperConvertException(cellValue, ci.PropertyType, i, columnIndex, e);
+                            TriggerOrThrowParsingError(new ExcelMapperConvertException(cellValue, ci.PropertyType, i, columnIndex, e));
                         }
                     }
                 }
@@ -590,7 +596,7 @@ namespace Ganss.Excel
                             }
                             catch (Exception ex)
                             {
-                                throw new ExcelMapperConvertException(initVal.CellValue, initVal.Col.PropertyType, i, initVal.ColumnIndex, ex);
+                                TriggerOrThrowParsingError(new ExcelMapperConvertException(initVal.CellValue, initVal.Col.PropertyType, i, initVal.ColumnIndex, ex));
                             }
                         }
                     }
@@ -642,17 +648,24 @@ namespace Ganss.Excel
                     }
                     catch (Exception ex)
                     {
-                        throw new ExcelMapperConvertException(val.CellValue, val.Col.PropertyType, i, val.ColumnIndex, ex);
+                        TriggerOrThrowParsingError(new ExcelMapperConvertException(val.CellValue, val.Col.PropertyType, i, val.ColumnIndex, ex));
                     }
                 }
             }
-
             if (TrackObjects) Objects[sheet.SheetName][i] = o;
 
             typeMapper?.AfterMappingActionInvoker?.Invoke(o, objInstanceIdx);
 
             objInstanceIdx++;
             return o;
+        }
+
+        private void TriggerOrThrowParsingError(ExcelMapperConvertException excelMapperConvertException)
+        {
+            var parsingError = new ParsingErrorEventArgs(excelMapperConvertException);
+            ErrorParsingCell?.Invoke(this, parsingError);
+            if (!parsingError.Cancel)
+                throw excelMapperConvertException;
         }
 
         static object GetDefault(Type t) => t.GetTypeInfo().IsValueType ? Activator.CreateInstance(t) : null;

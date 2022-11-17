@@ -917,6 +917,42 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void FetchEventErrorWhenFieldInvalidTest()
+        {
+            int numberOfErrors = 0;
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsEventsExceptionInvalid.xlsx");
+            excelMapper.ErrorParsingCell += (sender, e) =>
+            {
+                Assert.IsInstanceOf<ParsingErrorEventArgs>(e);
+                Assert.IsInstanceOf<ExcelMapperConvertException>(e.Error);
+                Assert.IsNotNull(e.Error);
+                Assert.That(e.Error.Message.Contains("FALSEd"));
+                numberOfErrors++;
+
+                e.Cancel = true;
+            };
+
+            List<ProductException> listOfProducts = null;
+            Assert.DoesNotThrow(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
+            Assert.That(numberOfErrors == 5);
+            Assert.That(listOfProducts.Count == 6);
+        }
+
+        [Test]
+        public void FetchEventExceptionExplicitlyDisabledWhenFieldInvalidTest()
+        {
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsEventsExceptionInvalid.xlsx");
+            excelMapper.ErrorParsingCell += (sender, e) =>
+            {
+                e.Cancel = false;
+            };
+
+            List<ProductException> listOfProducts = null;
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
+            Assert.IsNull(listOfProducts);
+        }
+
+        [Test]
         public void FetchExceptionWhenSheetDoesNotExists()
         {
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionInvalid.xlsx").Fetch<ProductException>("this sheet does not exist").ToList());
