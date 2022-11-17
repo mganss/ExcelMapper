@@ -113,15 +113,6 @@ namespace Ganss.Excel
         public bool IgnoreNestedTypes { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether a conversion error should terminate the parsing or the error should be reported as an event when parsing the Excel file. 
-        /// Default is <c>false</c>.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if conversion exception should be reported through event when parsing; otherwise, <c>false</c>.
-        /// </value>
-        public bool ReportParsingErrorThroughEvent { get; set; } = false;
-
-        /// <summary>
         /// Gets or sets the <see cref="DataFormatter"/> object to use when formatting cell values.
         /// </summary>
         /// <value>
@@ -136,6 +127,7 @@ namespace Ganss.Excel
 
         /// <summary>
         /// Occurs while parsing when value is not convertible.
+        /// Set Cancel to <c>true</c> to Cancel Exception, also, see <see cref="ParsingErrorEventArgs"/>
         /// </summary>
         public event EventHandler<ParsingErrorEventArgs> ErrorParsingCell;
 
@@ -670,10 +662,10 @@ namespace Ganss.Excel
 
         private void TriggerOrThrowParsingError(ExcelMapperConvertException excelMapperConvertException)
         {
-            if (!ReportParsingErrorThroughEvent)
+            var parsingError = new ParsingErrorEventArgs(excelMapperConvertException);
+            ErrorParsingCell?.Invoke(this, parsingError);
+            if (!parsingError.Cancel)
                 throw excelMapperConvertException;
-
-            ErrorParsingCell?.Invoke(this, new ParsingErrorEventArgs(excelMapperConvertException));
         }
 
         static object GetDefault(Type t) => t.GetTypeInfo().IsValueType ? Activator.CreateInstance(t) : null;
