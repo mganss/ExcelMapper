@@ -3,6 +3,8 @@
     <TargetFrameworks>net6.0</TargetFrameworks>
     <SonarQubeExclude>true</SonarQubeExclude>
     <LangVersion>latest</LangVersion>
+	<CoverletOutputFormat>opencover</CoverletOutputFormat>
+	<CoverletOutput>../coverage.xml</CoverletOutput>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.msbuild" Version="3.2.0">

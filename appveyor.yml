@@ -16,17 +16,17 @@ test_script:
   - ps: |
       if (-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
           dotnet tool install --global dotnet-sonarscanner
-          dotnet sonarscanner begin /k:"mganss_ExcelMapper" /v:$env:APPVEYOR_BUILD_VERSION /o:"mganss-github" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:sonar_token" /d:sonar.cs.opencover.reportsPaths="$($env:APPVEYOR_BUILD_FOLDER)\coverage.json" /d:sonar.coverage.exclusions="**/Program.cs"
+          dotnet sonarscanner begin /k:"mganss_ExcelMapper" /v:$env:APPVEYOR_BUILD_VERSION /o:"mganss-github" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:sonar_token" /d:sonar.cs.opencover.reportsPaths="$($env:APPVEYOR_BUILD_FOLDER)\coverage.xml" /d:sonar.coverage.exclusions="**/Program.cs"
           dotnet build
       }
-  - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="..\coverage.xml" ExcelMapper.Tests\ExcelMapper.Tests.csproj /p:Include="[ExcelMapper]*"
-  - ps: cp */coverage.* ./coverage.json
+  - dotnet test /p:CollectCoverage=true ExcelMapper.Tests\ExcelMapper.Tests.csproj /p:Include="[ExcelMapper]*"
+  - ps: cp coverage.*.xml ./coverage.xml
   - ps: |
       if (-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
           dotnet sonarscanner end /d:sonar.login="$env:sonar_token"
       }
   - pip install codecov
-  - codecov -f "coverage.json"
+  - codecov -f "coverage.xml"
 artifacts:
   - path: 'ExcelMapper\**\*.*nupkg'
 deploy:
