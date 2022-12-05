@@ -1480,7 +1480,7 @@ namespace Ganss.Excel
                     {
                         return DataFormatter.FormatCellValue(cell);
                     }
-                    else if (cell.NumericCellValue < maxDate && DateUtil.IsCellDateFormatted(cell))
+                    else if (cell.NumericCellValue <= maxDate && DateUtil.IsCellDateFormatted(cell))
                     {
                         return cell.DateCellValue;
                     }
