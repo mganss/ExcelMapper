@@ -304,8 +304,10 @@ namespace Ganss.Excel
             object v;
             if (SetProp != null)
                 v = SetProp(o, val, cell);
-            else if (IsNullable && (val == null || (val is string s && s.Length == 0)))
+            else if (IsNullable && val == null)
                 v = null;
+            else if (val is string s && s.Length == 0)
+                v = string.Empty;
             else if (val is string g && PropertyType == typeof(Guid))
                 v = Guid.Parse(g);
             else if (val is string es && PropertyType.IsEnum)
