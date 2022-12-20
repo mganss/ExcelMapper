@@ -16,7 +16,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/mganss/ExcelMapper</RepositoryUrl>
-	  <RootNamespace>Ganss.Excel</RootNamespace>
+	<RootNamespace>Ganss.Excel</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\ExcelMapper.xml</DocumentationFile>
     <SignAssembly>true</SignAssembly>
