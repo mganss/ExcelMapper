@@ -1979,7 +1979,9 @@ namespace Ganss.Excel.Tests
         public void LetterConversionTest()
         {
             Assert.AreEqual(1, ExcelMapper.LetterToIndex("A"));
+            Assert.AreEqual(1, ExcelMapper.LetterToIndex("$A"));
             Assert.AreEqual(649, ExcelMapper.LetterToIndex("XY"));
+            Assert.AreEqual(649, ExcelMapper.LetterToIndex("$XY"));
             Assert.AreEqual(649, ExcelMapper.LetterToIndex("xy"));
             Assert.AreEqual("AB", ExcelMapper.IndexToLetter(28));
             Assert.AreEqual("A", ExcelMapper.IndexToLetter(1));
@@ -1987,6 +1989,7 @@ namespace Ganss.Excel.Tests
 
             Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex(null));
             Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex("???"));
+            Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex("A$"));
             Assert.Throws<ArgumentException>(() => ExcelMapper.IndexToLetter(-1));
         }
 
