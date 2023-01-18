@@ -3039,5 +3039,33 @@ namespace Ganss.Excel.Tests
                 Assert.AreEqual(0, failures);
             }
         }
+
+        record DateTimeOffsetProduct(DateTimeOffset OfferEnd);
+
+        [Test]
+        public void DateTimeOffsetTest()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<DateTimeOffsetProduct>().ToList();
+
+            void AssertProducts(IEnumerable<DateTimeOffsetProduct> products)
+            {
+                CollectionAssert.AreEqual(new List<DateTimeOffsetProduct>
+                {
+                    new DateTimeOffsetProduct(new DateTime(1970, 01, 01)),
+                    new DateTimeOffsetProduct(new DateTime(2015, 12, 31)),
+                    new DateTimeOffsetProduct(new DateTime(1970, 01, 01)),
+                }, products);
+            }
+
+            AssertProducts(products);
+
+            var file = "DateTimeOffsetProducts.xlsx";
+
+            new ExcelMapper().Save(file, products);
+
+            var savedProducts = new ExcelMapper(file).Fetch<DateTimeOffsetProduct>().ToList();
+
+            AssertProducts(savedProducts);
+        }
     }
 }

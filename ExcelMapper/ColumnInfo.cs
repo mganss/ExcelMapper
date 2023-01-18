@@ -56,7 +56,7 @@ namespace Ganss.Excel
                 && !PropertyType.IsEnum
                 && PropertyType != typeof(decimal)
                 && PropertyType != typeof(string)
-                && PropertyType != typeof(DateTime)
+                && !DateTypes.Contains(PropertyType)
                 && PropertyType != typeof(Guid)
                 && PropertyType != typeof(byte[]);
         }
@@ -175,7 +175,10 @@ namespace Ganss.Excel
         /// </value>
         public bool Json { get; set; }
 
-        static readonly HashSet<Type> NumericTypes = new()
+        /// <summary>
+        /// Types that map a numeric column.
+        /// </summary>
+        protected static readonly HashSet<Type> NumericTypes = new()
         {
             typeof(decimal),
             typeof(byte), typeof(sbyte),
@@ -186,17 +189,28 @@ namespace Ganss.Excel
         };
 
         /// <summary>
+        /// Types that map to a DateTime column.
+        /// </summary>
+        protected static readonly HashSet<Type> DateTypes = new()
+        {
+            typeof(DateTime),
+            typeof(DateTimeOffset),
+        };
+
+        /// <summary>
         /// Generates the cell setter.
         /// </summary>
         /// <returns>The cell setter.</returns>
         protected Action<ICell, object> GenerateCellSetter()
         {
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType))
             {
                 return (c, o) =>
                 {
                     if (o == null)
                         c.SetCellValue((string)null);
+                    else if (o is DateTimeOffset dt)
+                        c.SetCellValue(dt.DateTime);
                     else
                         c.SetCellValue((DateTime)o);
                 };
@@ -314,6 +328,8 @@ namespace Ganss.Excel
                 v = ParseEnum(PropertyType, es);
             else if (val is string && PropertyType == typeof(byte[]))
                 v = System.Text.Encoding.UTF8.GetBytes(val as string);
+            else if (val is DateTime d && PropertyType == typeof(DateTimeOffset))
+                v = new DateTimeOffset(d);
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 
@@ -439,7 +455,7 @@ namespace Ganss.Excel
             Property = propertyInfo;
             Directions = direction;
             defaultCellSetter = GenerateCellSetter();
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
 
@@ -468,7 +484,7 @@ namespace Ganss.Excel
         {
             SetPropertyType(newType);
             defaultCellSetter = GenerateCellSetter();
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
             else
             {
@@ -509,7 +525,7 @@ namespace Ganss.Excel
             Name = name;
             SetPropertyType(t);
             defaultCellSetter = GenerateCellSetter();
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
 
