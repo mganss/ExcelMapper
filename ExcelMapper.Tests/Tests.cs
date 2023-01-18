@@ -983,6 +983,19 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void FetchSheetNamesHiddenTest()
+        {
+            var excel = new ExcelMapper(@"../../../xlsx/ProductsHidden.xlsx");
+            var sheetNames = excel.FetchSheetNames(ignoreHidden: true).ToList();
+
+            CollectionAssert.AreEqual(new List<string>
+            {
+                "Tabelle2",
+                "Tabelle3",
+            }, sheetNames);
+        }
+
+        [Test]
         public void FetchSheetNamesEmptyTest()
         {
             var excel = new ExcelMapper();

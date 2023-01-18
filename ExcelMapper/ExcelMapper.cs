@@ -837,7 +837,15 @@ namespace Ganss.Excel
         /// Fetches the names of all sheets.
         /// </summary>
         /// <returns>The sheet names.</returns>
-        public IEnumerable<string> FetchSheetNames() => Workbook == null ? Array.Empty<string>() : Enumerable.Range(0, Workbook.NumberOfSheets).Select(i => Workbook.GetSheetName(i));
+        public IEnumerable<string> FetchSheetNames() => FetchSheetNames(ignoreHidden: false);
+
+        /// <summary>
+        /// Fetches the names of all sheets.
+        /// </summary>
+        /// <param name="ignoreHidden">Indicates if hidden sheets should be ignored.</param>
+        /// <returns>The sheet names.</returns>
+        public IEnumerable<string> FetchSheetNames(bool ignoreHidden) => Workbook == null ? Array.Empty<string>()
+            : Enumerable.Range(0, Workbook.NumberOfSheets).Where(i => !ignoreHidden || !Workbook.IsSheetHidden(i)).Select(i => Workbook.GetSheetName(i));
 
         static async Task<Stream> ReadAsync(string file)
         {
