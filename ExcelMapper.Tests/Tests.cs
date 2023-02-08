@@ -3083,5 +3083,20 @@ namespace Ganss.Excel.Tests
 
             AssertProducts(savedProducts);
         }
+
+        record Customer(int Id, string Phone);
+
+        [Test]
+        public void ErrorTest()
+        {
+            var customers = new ExcelMapper(@"../../../xlsx/Error.xlsx").Fetch<Customer>().ToList();
+
+            CollectionAssert.AreEqual(new List<Customer>
+            {
+                new Customer(1, "3001333"),
+                new Customer(2, null),
+                new Customer(3, "10031"),
+            }, customers);
+        }
     }
 }

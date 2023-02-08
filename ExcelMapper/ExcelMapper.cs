@@ -1499,7 +1499,8 @@ namespace Ganss.Excel
                 case CellType.Boolean:
                     return cell.BooleanCellValue;
                 case CellType.Error:
-                    return cell.ErrorCellValue;
+                    var targetType = targetColumn.PropertyType;
+                    return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
                 case CellType.Unknown:
                 case CellType.Blank:
                 case CellType.String:
