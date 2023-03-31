@@ -303,7 +303,9 @@ namespace Ganss.Excel
         private object ParseEnum(Type t, string s)
         {
             var name = Enum.GetNames(t).FirstOrDefault(n => n.Equals(s, StringComparison.OrdinalIgnoreCase));
-            return name == null ? Activator.CreateInstance(t) : Enum.Parse(t, name);
+            return name == null 
+                ? throw new Exception("Did not find a matching enum name.") 
+                : Enum.Parse(t, name);
         }
 
         /// <summary>

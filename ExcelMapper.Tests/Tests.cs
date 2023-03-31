@@ -2721,6 +2721,16 @@ namespace Ganss.Excel.Tests
             CollectionAssert.AreEqual(products, productsFetched);
         }
 
+        [Test]
+        public void EnumTestException()
+        {
+            var excel = new ExcelMapper("../../../xlsx/ProductsExceptionEnum.xlsx");
+            var exception = Assert.Throws<ExcelMapperConvertException > (() => excel.Fetch<EnumProduct>().ToList());
+
+            Assert.AreEqual(@"Unable to convert ""FilinchenError"" from [L:1]:[C:0] to Ganss.Excel.Tests.Tests+NameEnum.", exception.Message);
+            Assert.AreEqual("Did not find a matching enum name.", exception.InnerException.Message);
+        }
+
         private record BytesData
         {
             public byte[] TextData1 { get; set; }
