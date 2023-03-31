@@ -304,7 +304,7 @@ namespace Ganss.Excel
         {
             var name = Enum.GetNames(t).FirstOrDefault(n => n.Equals(s, StringComparison.OrdinalIgnoreCase));
             return name == null 
-                ? throw new ExcelMapperConvertException($"The cell value {s} could not be converted to {t.Name}") 
+                ? throw new Exception("Did not find a matching enum name.") 
                 : Enum.Parse(t, name);
         }
 
