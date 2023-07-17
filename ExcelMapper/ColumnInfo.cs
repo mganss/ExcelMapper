@@ -157,7 +157,7 @@ namespace Ganss.Excel
         /// <value>
         /// <c>true</c> if the formula result will be mapped; otherwise, <c>false</c>.
         /// </value>
-        public bool FormulaResult { get; set; }
+        public bool FormulaResult { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether to save the property as a formula cell. Only needed when saving.
