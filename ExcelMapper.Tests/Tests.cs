@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using NPOI.SS.Formula.Functions;
 using System.Threading;
+using NUnit.Framework.Internal;
 
 namespace Ganss.Excel.Tests
 {
@@ -3073,7 +3074,7 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<DateTimeOffsetProduct>().ToList();
 
-            void AssertProducts(IEnumerable<DateTimeOffsetProduct> products)
+            static void AssertProducts(IEnumerable<DateTimeOffsetProduct> products)
             {
                 CollectionAssert.AreEqual(new List<DateTimeOffsetProduct>
                 {

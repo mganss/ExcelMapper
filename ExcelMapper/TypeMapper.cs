@@ -145,7 +145,7 @@ namespace Ganss.Excel
         {
             var eo = new ExpandoObject();
             var expando = (IDictionary<string, object>)eo;
-            var map = ColumnsByName.ToDictionary(c => c.Key, c => ColumnsByIndex.First(ci => ci.Value.First() == c.Value.First()).Key);
+            var map = ColumnsByName.ToDictionary(c => c.Key, c => ColumnsByIndex.First(ci => ci.Value[0] == c.Value[0]).Key);
 
             expando[IndexMapPropertyName] = map;
 
@@ -168,7 +168,7 @@ namespace Ganss.Excel
 
             foreach (var prop in props)
             {
-                if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute))
+                if (Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is not IgnoreAttribute)
                 {
                     var ci = new ColumnInfo(prop);
 
@@ -239,7 +239,7 @@ namespace Ganss.Excel
                 if (Constructor != null)
                 {
                     ConstructorParams = Constructor.GetParameters()
-                        .Select((p, i) => (Param: p, Index: i, HasProp: props.Any(r => string.Equals(r.Name, p.Name, StringComparison.OrdinalIgnoreCase))))
+                        .Select((p, i) => (Param: p, Index: i, HasProp: Array.Exists(props, r => string.Equals(r.Name, p.Name, StringComparison.OrdinalIgnoreCase))))
                         .Where(p => p.HasProp)
                         .ToDictionary(p => p.Param.Name, p => p.Param, StringComparer.OrdinalIgnoreCase);
                 }

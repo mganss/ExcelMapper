@@ -393,11 +393,7 @@ namespace Ganss.Excel
         {
             PrimitiveCheck(type);
 
-            var sheet = Workbook.GetSheet(sheetName);
-            if (sheet == null)
-            {
-                throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
-            }
+            var sheet = Workbook.GetSheet(sheetName) ?? throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
             return Fetch(sheet, type, valueParser);
         }
 
@@ -410,11 +406,7 @@ namespace Ganss.Excel
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
         public IEnumerable<dynamic> Fetch(string sheetName, Func<string, object, object> valueParser = null)
         {
-            var sheet = Workbook.GetSheet(sheetName);
-            if (sheet == null)
-            {
-                throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
-            }
+            var sheet = Workbook.GetSheet(sheetName) ?? throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
             return Fetch(sheet, valueParser);
         }
 
@@ -493,7 +485,7 @@ namespace Ganss.Excel
                 if (i > MaxRowNumber) break;
 
                 // optionally skip header row and blank rows
-                if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Any(c => !IsCellBlank(c))))
+                if ((!HeaderRow || i != HeaderRowNumber) && (!SkipBlankRows || row.Cells.Exists(c => !IsCellBlank(c))))
                 {
                     object o = MapCells(type, valueParser, typeMapper, firstRowCells, ref objInstanceIdx, row, new HashSet<Type> { type });
                     yield return o;
@@ -556,7 +548,7 @@ namespace Ganss.Excel
                 foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value).Where(c => c.IsSubType))
                 {
                     if (!callChain.Contains(ci.PropertyType) // check for cycle in type hierarchy
-                        && !initValues.Any(v => v.Col.Property.IsIdenticalTo(ci.Property))) // map subtypes only if not already mapped
+                        && !initValues.Exists(v => v.Col.Property.IsIdenticalTo(ci.Property))) // map subtypes only if not already mapped
                     {
                         callChain.Add(ci.PropertyType);
                         var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
@@ -1027,7 +1019,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(objects.First().Value);
             var columnsByIndex = typeMapper.ColumnsByIndex;
 
-            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.TrueForAll(ci => ci.Directions == MappingDirections.ExcelToObject))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             GetColumns(sheet, typeMapper, columnsByIndex);
@@ -1055,7 +1047,7 @@ namespace Ganss.Excel
             var columnsByIndex = typeMapper.ColumnsByIndex;
             var i = MinRowNumber;
 
-            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.All(ci => ci.Directions == MappingDirections.ExcelToObject))
+            columnsByIndex = columnsByIndex.Where(kvp => !kvp.Value.TrueForAll(ci => ci.Directions == MappingDirections.ExcelToObject))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             GetColumns(sheet, typeMapper, columnsByIndex);
@@ -1357,7 +1349,7 @@ namespace Ganss.Excel
                 {
                     if (!columnInfo.IsSubType)
                     {
-                        var columnInfoByIndex = columnsByIndex.FirstOrDefault(c => c.Value.Any(v =>
+                        var columnInfoByIndex = columnsByIndex.FirstOrDefault(c => c.Value.Exists(v =>
                             v.Directions != MappingDirections.ObjectToExcel && v.Property.IsIdenticalTo(columnInfo.Property)));
                         var columnIndex = 0;
 
@@ -1440,7 +1432,7 @@ namespace Ganss.Excel
                 if (noSubTypeColumns.Any())
                 {
                     var columnIndexes = typeColumnsByIndex.Where(c =>
-                        c.Value.Any(v => v.Directions != MappingDirections.ExcelToObject && noSubTypeColumns.Any(n => n.Name == v.Name)))
+                        c.Value.Exists(v => v.Directions != MappingDirections.ExcelToObject && noSubTypeColumns.Exists(n => n.Name == v.Name)))
                         .Select(c => c.Key);
 
                     if (columnIndexes.Any())
@@ -1583,7 +1575,7 @@ namespace Ganss.Excel
             if (!typeMapper.ColumnsByName.ContainsKey(columnName))
                 typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);
+            var columnInfo = typeMapper.ColumnsByName[columnName].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
@@ -1608,7 +1600,7 @@ namespace Ganss.Excel
             if (!typeMapper.ColumnsByIndex.ContainsKey(idx))
                 typeMapper.ColumnsByIndex.Add(idx, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByIndex[idx].FirstOrDefault(ci => ci.Property.Name == prop.Name);
+            var columnInfo = typeMapper.ColumnsByIndex[idx].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
@@ -1632,7 +1624,7 @@ namespace Ganss.Excel
             if (!typeMapper.ColumnsByName.ContainsKey(columnName))
                 typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByName[columnName].FirstOrDefault(ci => ci.Property.Name == prop.Name);
+            var columnInfo = typeMapper.ColumnsByName[columnName].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
@@ -1657,7 +1649,7 @@ namespace Ganss.Excel
             if (!typeMapper.ColumnsByIndex.ContainsKey(idx))
                 typeMapper.ColumnsByIndex.Add(idx, new List<ColumnInfo>());
 
-            var columnInfo = typeMapper.ColumnsByIndex[idx].FirstOrDefault(ci => ci.Property.Name == prop.Name);
+            var columnInfo = typeMapper.ColumnsByIndex[idx].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
             {
                 columnInfo = new ColumnInfo(prop);
@@ -1677,7 +1669,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
 
-            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property.IsIdenticalTo(prop)))
+            typeMapper.ColumnsByName.Where(c => c.Value.Exists(cc => cc.Property.IsIdenticalTo(prop)))
                 .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
 
@@ -1691,7 +1683,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 
-            typeMapper.ColumnsByName.Where(c => c.Value.Any(cc => cc.Property.IsIdenticalTo(prop)))
+            typeMapper.ColumnsByName.Where(c => c.Value.Exists(cc => cc.Property.IsIdenticalTo(prop)))
                 .ToList().ForEach(kvp => typeMapper.ColumnsByName.Remove(kvp.Key));
         }
 
