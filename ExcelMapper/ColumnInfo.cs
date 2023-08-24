@@ -205,7 +205,7 @@ namespace Ganss.Excel
             var month = (int)dateOnly.GetProperty("Month").GetValue(date);
             var year = (int)dateOnly.GetProperty("Year").GetValue(date);
 
-            return new DateTime(year, month, day);
+            return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Unspecified);
         }
 
         /// <summary>
