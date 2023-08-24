@@ -3109,5 +3109,33 @@ namespace Ganss.Excel.Tests
                 new Customer(3, "10031"),
             }, customers);
         }
+
+        record DateOnlyProduct(DateOnly OfferEnd);
+
+        [Test]
+        public void DateOnlyTest()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<DateOnlyProduct>().ToList();
+
+            static void AssertProducts(IEnumerable<DateOnlyProduct> products)
+            {
+                CollectionAssert.AreEqual(new List<DateOnlyProduct>
+                {
+                    new DateOnlyProduct(new DateOnly(1970, 01, 01)),
+                    new DateOnlyProduct(new DateOnly(2015, 12, 31)),
+                    new DateOnlyProduct(new DateOnly(1970, 01, 01)),
+                }, products);
+            }
+
+            AssertProducts(products);
+
+            var file = "DateOnlyProducts.xlsx";
+
+            new ExcelMapper().Save(file, products);
+
+            var savedProducts = new ExcelMapper(file).Fetch<DateOnlyProduct>().ToList();
+
+            AssertProducts(savedProducts);
+        }
     }
 }
