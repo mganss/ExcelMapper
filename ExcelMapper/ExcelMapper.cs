@@ -1098,7 +1098,7 @@ namespace Ganss.Excel
 
                 foreach (var ci in col.Value.Where(c => (c is DynamicColumnInfo)
                     || (c.Directions.HasFlag(MappingDirections.ObjectToExcel)
-                        && (c?.Property?.DeclaringType.IsAssignableFrom(typeMapper.Type) == true))))
+                        && (c.Property?.DeclaringType.IsAssignableFrom(typeMapper.Type) == true))))
                 {
                     SetCell(valueConverter, o, cell, ci);
                 }

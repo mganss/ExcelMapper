@@ -317,7 +317,7 @@ namespace Ganss.Excel
         {
             var name = Array.Find(Enum.GetNames(t), n => n.Equals(s, StringComparison.OrdinalIgnoreCase));
             return name == null
-                ? throw new Exception("Did not find a matching enum name.")
+                ? throw new ArgumentException($"Did not find a matching enum name for {s} in enum type {t.Name}.", nameof(s))
                 : Enum.Parse(t, name);
         }
 
