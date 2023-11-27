@@ -10,7 +10,7 @@ namespace ExcelMapper.Tests.ExceptionsTests
         public void EmptyConstructorTest()
         {
             var ex = new ExcelMapperConvertException();
-            Assert.NotNull(ex);
+            Assert.That(ex, Is.Not.Null);
         }
 
         [Test]
@@ -20,7 +20,7 @@ namespace ExcelMapper.Tests.ExceptionsTests
 
             var ex = new ExcelMapperConvertException(message);
 
-            Assert.AreEqual(message, ex.Message);
+            Assert.That(ex.Message, Is.EqualTo(message));
         }
 
         [Test]
@@ -31,8 +31,8 @@ namespace ExcelMapper.Tests.ExceptionsTests
 
             var ex = new ExcelMapperConvertException(message, baseEx);
 
-            Assert.AreEqual(message, ex.Message);
-            Assert.AreEqual(baseEx.GetType(), ex.InnerException?.GetType());
+            Assert.That(ex.Message, Is.EqualTo(message));
+            Assert.That(ex.InnerException?.GetType(), Is.EqualTo(baseEx.GetType()));
         }
 
         [Test]
@@ -45,10 +45,10 @@ namespace ExcelMapper.Tests.ExceptionsTests
 
             var ex = new ExcelMapperConvertException(value, targetType, line, column);
 
-            Assert.AreEqual(value, ex.CellValue);
-            Assert.AreEqual(targetType, ex.TargetType);
-            Assert.AreEqual(line, ex.Line);
-            Assert.AreEqual(column, ex.Column);
+            Assert.That(ex.CellValue, Is.EqualTo(value));
+            Assert.That(ex.TargetType, Is.EqualTo(targetType));
+            Assert.That(ex.Line, Is.EqualTo(line));
+            Assert.That(ex.Column, Is.EqualTo(column));
             Assert.That(ex.Message.Contains($"\"{value}\""));
             Assert.That(ex.Message.Contains(targetType.ToString()));
             Assert.That(ex.Message.Contains($"[L:{line}]"));
