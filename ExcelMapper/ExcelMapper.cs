@@ -133,8 +133,8 @@ namespace Ganss.Excel
 
         private Func<string, string> NormalizeName { get; set; }
 
-        readonly Dictionary<Type, Func<object>> ObjectFactories = new();
-        Dictionary<string, Dictionary<int, object>> Objects { get; set; } = new();
+        readonly Dictionary<Type, Func<object>> ObjectFactories = [];
+        Dictionary<string, Dictionary<int, object>> Objects { get; set; } = [];
         IWorkbook Workbook { get; set; }
 
         static readonly TypeMapperFactory DefaultTypeMapperFactory = new();
@@ -473,7 +473,7 @@ namespace Ganss.Excel
                 .Where(c => !HeaderRow || !string.IsNullOrWhiteSpace(c.ToString()));
             var typeMapper = type != null ? TypeMapperFactory.Create(type) : TypeMapper.Create(firstRowCells, HeaderRow);
 
-            if (TrackObjects) Objects[sheet.SheetName] = new Dictionary<int, object>();
+            if (TrackObjects) Objects[sheet.SheetName] = [];
 
             var objInstanceIdx = 0;
 
@@ -501,7 +501,7 @@ namespace Ganss.Excel
         {
             var sheet = row.Sheet;
             var i = row.RowNum;
-            List<(ColumnInfo Col, object CellValue, ICell Cell, int ColumnIndex)> initValues = new();
+            List<(ColumnInfo Col, object CellValue, ICell Cell, int ColumnIndex)> initValues = [];
             var columns = cells
                 .Select(c => (Index: c.ColumnIndex,
                     Columns: GetColumnInfo(typeMapper, c).Where(c => c.Directions.HasFlag(MappingDirections.ExcelToObject) && !c.IsSubType).ToList()))
@@ -869,7 +869,7 @@ namespace Ganss.Excel
             var colByIndex = typeMapper.GetColumnByIndex(cell.ColumnIndex);
 
             if (!HeaderRow || colByIndex != null)
-                return colByIndex ?? new();
+                return colByIndex ?? [];
 
             var name = cell.ToString();
             var normalizedName = NormalizeCellName(typeMapper, name);
@@ -880,7 +880,7 @@ namespace Ganss.Excel
                 && !typeMapper.ColumnsByIndex.SelectMany(ci => ci.Value).Any(c => c.Property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 return colByName;
 
-            return new();
+            return [];
         }
 
         private string NormalizeCellName(TypeMapper typeMapper, string name)
@@ -1320,7 +1320,7 @@ namespace Ganss.Excel
                 Columns: p.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && !c.IsSubType))))
             {
                 if (!columnsByIndex.TryGetValue(index, out var columnInfos))
-                    columnsByIndex[index] = columnInfos = new();
+                    columnsByIndex[index] = columnInfos = [];
                 columnInfos.AddRange(columns);
             }
 
@@ -1396,7 +1396,7 @@ namespace Ganss.Excel
             {
                 var columnIndex = cols.ColumnIndex;
                 if (!columnsByIndex.TryGetValue(columnIndex, out var columnInfos))
-                    columnsByIndex[columnIndex] = columnInfos = new();
+                    columnsByIndex[columnIndex] = columnInfos = [];
 
                 foreach (var col in cols.ColumnInfo.Where(c => c.Directions != MappingDirections.ExcelToObject && !c.IsSubType))
                 {
@@ -1573,7 +1573,7 @@ namespace Ganss.Excel
             var prop = GetPropertyInfo(propertyExpression);
 
             if (!typeMapper.ColumnsByName.ContainsKey(columnName))
-                typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
+                typeMapper.ColumnsByName.Add(columnName, []);
 
             var columnInfo = typeMapper.ColumnsByName[columnName].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
@@ -1598,7 +1598,7 @@ namespace Ganss.Excel
             var idx = columnIndex - 1;
 
             if (!typeMapper.ColumnsByIndex.ContainsKey(idx))
-                typeMapper.ColumnsByIndex.Add(idx, new List<ColumnInfo>());
+                typeMapper.ColumnsByIndex.Add(idx, []);
 
             var columnInfo = typeMapper.ColumnsByIndex[idx].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
@@ -1622,7 +1622,7 @@ namespace Ganss.Excel
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 
             if (!typeMapper.ColumnsByName.ContainsKey(columnName))
-                typeMapper.ColumnsByName.Add(columnName, new List<ColumnInfo>());
+                typeMapper.ColumnsByName.Add(columnName, []);
 
             var columnInfo = typeMapper.ColumnsByName[columnName].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)
@@ -1647,7 +1647,7 @@ namespace Ganss.Excel
             var idx = columnIndex - 1;
 
             if (!typeMapper.ColumnsByIndex.ContainsKey(idx))
-                typeMapper.ColumnsByIndex.Add(idx, new List<ColumnInfo>());
+                typeMapper.ColumnsByIndex.Add(idx, []);
 
             var columnInfo = typeMapper.ColumnsByIndex[idx].Find(ci => ci.Property.Name == prop.Name);
             if (columnInfo is null)

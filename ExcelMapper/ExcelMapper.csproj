@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Map POCOs to Excel files</Description>
+    <Description>An Excel to object mapper. Maps POCOs to and from Excel. Configuration via convention, attributes, or fluent methods.</Description>
     <Copyright>Copyright 2015-$([System.DateTime]::Now.Year) Michael Ganss</Copyright>
     <AssemblyTitle>ExcelMapper</AssemblyTitle>
     <AppVeyor_Build_Version Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0</AppVeyor_Build_Version>
@@ -25,7 +25,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
