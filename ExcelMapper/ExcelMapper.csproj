@@ -14,6 +14,7 @@
     <PackageTags>npoi mapper excel xls xlsx map mapping poco orm linq</PackageTags>
     <PackageProjectUrl>https://github.com/mganss/ExcelMapper</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/mganss/ExcelMapper</RepositoryUrl>
 	<RootNamespace>Ganss.Excel</RootNamespace>
@@ -32,5 +33,8 @@
     <PackageReference Include="NPOI" Version="2.6.2" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <PackageReference Include="System.Text.Json" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>
