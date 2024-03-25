@@ -30,7 +30,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="NPOI" Version="2.6.2" />
+    <PackageReference Include="NPOI" Version="2.7.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <PackageReference Include="System.Text.Json" Version="8.0.0" />
   </ItemGroup>
