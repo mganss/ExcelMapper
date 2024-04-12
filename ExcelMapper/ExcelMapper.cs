@@ -1,5 +1,6 @@
 using Ganss.Excel.Exceptions;
 using NPOI.HSSF.UserModel;
+using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.Util;
@@ -1635,7 +1636,7 @@ namespace Ganss.Excel
         }
 
         /// <summary>
-        /// Adds a mapping from a column name to a property.
+        /// Adds a mapping from a column index to a property.
         /// </summary>
         /// <param name="t">The type that contains the property to map to.</param>
         /// <param name="columnIndex">Index of the column.</param>
@@ -1655,6 +1656,44 @@ namespace Ganss.Excel
                 columnInfo = new ColumnInfo(prop);
                 typeMapper.ColumnsByIndex[idx].Add(columnInfo);
             }
+
+            return columnInfo;
+        }
+
+        /// <summary>
+        /// Removes all existing mappings for a property and adds a new one.
+        /// </summary>
+        /// <param name="t">The type that contains the property to map to.</param>
+        /// <param name="columnName">Name of the column.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        public ColumnInfo SetMapping(Type t, string columnName, string propertyName)
+        {
+            var typeMapper = TypeMapperFactory.Create(t);
+            var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+
+            foreach (var ci in typeMapper.ColumnsByName.Values.Where(c => c.Any(i => i.Property == prop)))
+                ci.RemoveAll(i => i.Property == prop);
+
+            var columnInfo = AddMapping(t, columnName, propertyName);
+
+            return columnInfo;
+        }
+
+        /// <summary>
+        /// Removes all existing mappings for a property and adds a new one.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="columnName">Name of the column.</param>
+        /// <param name="propertyExpression">The property expression.</param>
+        public ColumnInfo SetMapping<T>(string columnName, Expression<Func<T, object>> propertyExpression)
+        {
+            var typeMapper = TypeMapperFactory.Create(typeof(T));
+            var prop = GetPropertyInfo(propertyExpression);
+
+            foreach (var ci in typeMapper.ColumnsByName.Values.Where(c => c.Any(i => i.Property == prop)))
+                ci.RemoveAll(i => i.Property == prop);
+
+            var columnInfo = AddMapping(columnName, propertyExpression);
 
             return columnInfo;
         }

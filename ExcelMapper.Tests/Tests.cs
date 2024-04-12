@@ -3141,5 +3141,46 @@ namespace Ganss.Excel.Tests
 
             AssertProducts(savedProducts);
         }
+
+        private class ProductSet
+        {
+            public string Name { get; set; }
+
+            public override bool Equals(object obj) =>
+                obj is ProductSet o
+                && o.Name == Name;
+
+            public override int GetHashCode() => HashCode.Combine(Name);
+        }
+
+        [Test]
+        public void SetMappingTest()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductSet>().ToList();
+            var excel = new ExcelMapper { TypeMapperFactory = new TypeMapperFactory() };
+
+            excel.SetMapping<ProductSet>("Name2", p => p.Name);
+            excel.Save("Name2.xlsx", products);
+
+            var products2 = new ExcelMapper("Name2.xlsx").Fetch();
+            var p0 = products2.First() as IDictionary<string, object>;
+
+            Assert.That(p0.ContainsKey("Name"), Is.False);
+        }
+
+        [Test]
+        public void SetMapping2Test()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductSet>().ToList();
+            var excel = new ExcelMapper { TypeMapperFactory = new TypeMapperFactory() };
+
+            excel.SetMapping(typeof(ProductSet), "Name2", "Name");
+            excel.Save("Name2b.xlsx", products);
+
+            var products2 = new ExcelMapper("Name2b.xlsx").Fetch();
+            var p0 = products2.First() as IDictionary<string, object>;
+
+            Assert.That(p0.ContainsKey("Name"), Is.False);
+        }
     }
 }

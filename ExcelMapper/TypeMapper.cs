@@ -34,7 +34,7 @@ namespace Ganss.Excel
         /// <value>
         /// The dictionary of columns by index.
         /// </value>
-        public Dictionary<int, List<ColumnInfo>> ColumnsByIndex { get; set; } = new Dictionary<int, List<ColumnInfo>>();
+        public Dictionary<int, List<ColumnInfo>> ColumnsByIndex { get; set; } = [];
 
         internal Func<string, string> NormalizeName { get; set; }
 
@@ -78,10 +78,10 @@ namespace Ganss.Excel
                 var name = useContentAsName ? col.ToString() : ExcelMapper.IndexToLetter(index + 1);
                 var columnInfo = new DynamicColumnInfo(index, name);
 
-                typeMapper.ColumnsByIndex.Add(index, new List<ColumnInfo> { columnInfo });
+                typeMapper.ColumnsByIndex.Add(index, [columnInfo]);
 
                 if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
-                    typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
+                    typeMapper.ColumnsByName.Add(name, [columnInfo]);
                 else
                     columnInfos.Add(columnInfo);
             }
@@ -123,10 +123,10 @@ namespace Ganss.Excel
 
                     var columnInfo = new DynamicColumnInfo(prop.Key, prop.Value != null ? prop.Value.GetType().ConvertToNullableType() : typeof(string));
 
-                    typeMapper.ColumnsByIndex.Add(ix, new List<ColumnInfo> { columnInfo });
+                    typeMapper.ColumnsByIndex.Add(ix, [columnInfo]);
 
                     if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
-                        typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
+                        typeMapper.ColumnsByName.Add(name, [columnInfo]);
                     else
                         columnInfos.Add(columnInfo);
                 }
@@ -188,18 +188,18 @@ namespace Ganss.Excel
                         if (!string.IsNullOrEmpty(columnAttribute.Name))
                         {
                             if (!ColumnsByName.ContainsKey(columnAttribute.Name))
-                                ColumnsByName.Add(columnAttribute.Name, new List<ColumnInfo>());
+                                ColumnsByName.Add(columnAttribute.Name, []);
 
                             ColumnsByName[columnAttribute.Name].Add(ci);
                         }
                         else if (!ColumnsByName.ContainsKey(prop.Name))
-                            ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
+                            ColumnsByName.Add(prop.Name, [ci]);
 
                         if (columnAttribute.Index > 0)
                         {
                             var idx = columnAttribute.Index - 1;
                             if (!ColumnsByIndex.ContainsKey(idx))
-                                ColumnsByIndex.Add(idx, new List<ColumnInfo>());
+                                ColumnsByIndex.Add(idx, []);
 
                             ColumnsByIndex[idx].Add(ci);
                         }
@@ -208,7 +208,7 @@ namespace Ganss.Excel
                     }
                 }
                 else if (!ColumnsByName.ContainsKey(prop.Name))
-                    ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
+                    ColumnsByName.Add(prop.Name, [ci]);
 
                 if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
                 {
