@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using NPOI.SS.Formula.Functions;
 using System.Threading;
+using NUnit.Framework.Internal;
 
 namespace Ganss.Excel.Tests
 {
@@ -252,11 +253,11 @@ namespace Ganss.Excel.Tests
                 OfferEnd = p.OfferEnd,
             }).ToList();
 
-            CollectionAssert.AreEqual(new List<ProductDynamicValueConvert>
+            AssertEquivalent(new List<ProductDynamicValueConvert>
             {
-                new ProductDynamicValueConvert { Name = "-Nudossi-", Number = "3C", Price = "/1.99/", Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamicValueConvert { Name = "-Halloren-", Number = "21", Price = "/2.99/", Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamicValueConvert { Name = "-Filinchen-", Number = "64", Price = "/0.99/", Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "-Nudossi-", Number = "3C", Price = "/1.99/", Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "-Halloren-", Number = "21", Price = "/2.99/", Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "-Filinchen-", Number = "64", Price = "/0.99/", Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, products);
         }
 
@@ -309,34 +310,39 @@ namespace Ganss.Excel.Tests
             // Save
             var expectedResult = new List<ProductDynamicValueConvertSave>
             {
-                new ProductDynamicValueConvertSave { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamicValueConvertSave { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamicValueConvertSave { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             };
 
             var filesave = "productssave_valueconverter.xlsx";
 
             await new ExcelMapper().SaveAsync(filesave, products, "Products", valueConverter: valueConverter);
             var productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(expectedResult, productsFetched);
+            AssertEquivalent(expectedResult, productsFetched);
 
             await new ExcelMapper().SaveAsync(filesave, products, valueConverter: valueConverter);
             productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(expectedResult, productsFetched);
+            AssertEquivalent(expectedResult, productsFetched);
 
             using (var fs = File.OpenWrite(filesave))
             {
                 await new ExcelMapper().SaveAsync(fs, products, "Products", valueConverter: valueConverter);
             }
             productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(expectedResult, productsFetched);
+            AssertEquivalent(expectedResult, productsFetched);
 
             using (var fs = File.OpenWrite(filesave))
             {
                 await new ExcelMapper().SaveAsync(fs, products, valueConverter: valueConverter);
             }
             productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
-            CollectionAssert.AreEqual(expectedResult, productsFetched);
+            AssertEquivalent(expectedResult, productsFetched);
+        }
+
+        static void AssertEquivalent<T>(IEnumerable<T> expected, IEnumerable<T> actual)
+        {
+            Assert.That(actual, Is.EquivalentTo(expected));
         }
 
         [Test]
@@ -354,15 +360,15 @@ namespace Ganss.Excel.Tests
                 })
                 .Fetch<BeforeAfterMapping>().ToList();
 
-            CollectionAssert.AreEqual(new List<BeforeAfterMapping>
+            AssertEquivalent(new List<BeforeAfterMapping>
             {
-                new BeforeAfterMapping { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2"
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2"
                     , Id = 1000, Hash = $"Nudossi:60:1000"
                 },
-                new BeforeAfterMapping { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3"
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3"
                     , Id = 1001, Hash = $"Halloren:33:1001"
                 },
-                new BeforeAfterMapping { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5"
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5"
                     , Id = 1002, Hash = $"Filinchen:100:1002"
                 },
             }, products);
@@ -382,11 +388,11 @@ namespace Ganss.Excel.Tests
             /// reload excel with <see cref="ProductMultiColumsReload"/> mapping instead of <see cref="ProductMultiColums"/>
             var reloaded = new ExcelMapper(file).Fetch<ProductMultiColumsReload>().ToList();
 
-            CollectionAssert.AreEqual(new List<ProductMultiColumsReload>
+            AssertEquivalent(new List<ProductMultiColumsReload>
             {
-                new ProductMultiColumsReload { Name = "Nudossi", NewNumber = 60, NewPrice = 1.99m, NewValue = "C2*D2" },
-                new ProductMultiColumsReload { Name = "Halloren", NewNumber = 33, NewPrice = 2.99m, NewValue = "C3*D3" },
-                new ProductMultiColumsReload { Name = "Filinchen", NewNumber = 100, NewPrice = 0.99m, NewValue = "C5*D5" },
+                new() { Name = "Nudossi", NewNumber = 60, NewPrice = 1.99m, NewValue = "C2*D2" },
+                new() { Name = "Halloren", NewNumber = 33, NewPrice = 2.99m, NewValue = "C3*D3" },
+                new() { Name = "Filinchen", NewNumber = 100, NewPrice = 0.99m, NewValue = "C5*D5" },
             }, reloaded);
         }
 
@@ -417,11 +423,11 @@ namespace Ganss.Excel.Tests
                 result.Add(r);
             }
 
-            CollectionAssert.AreEqual(new List<ProductDynamic>
+            AssertEquivalent(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, result);
         }
 
@@ -445,11 +451,11 @@ namespace Ganss.Excel.Tests
                 result.Add(r);
             }
 
-            CollectionAssert.AreEqual(new List<ProductDynamic>
+            AssertEquivalent(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, result);
         }
 
@@ -468,11 +474,11 @@ namespace Ganss.Excel.Tests
                 OfferEnd = p.OfferEnd,
             }).ToList();
 
-            CollectionAssert.AreEqual(new List<ProductDynamic>
+            AssertEquivalent(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, products);
 
             dynProducts[0].Name += "Test";
@@ -489,7 +495,7 @@ namespace Ganss.Excel.Tests
             products[1].Price += 1.0m;
             products[2].OfferEnd = new DateTime(2000, 1, 2);
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -507,11 +513,11 @@ namespace Ganss.Excel.Tests
                 Value = p.G,
             }).ToList();
 
-            CollectionAssert.AreEqual(new List<ProductDynamic>
+            AssertEquivalent(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, products);
 
             dynProducts[0].A += "Test";
@@ -532,7 +538,7 @@ namespace Ganss.Excel.Tests
             products[1].Price += 1.0m;
             products[2].OfferEnd = new DateTime(2000, 1, 2);
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -550,11 +556,11 @@ namespace Ganss.Excel.Tests
                 OfferEnd = p.OfferEnd,
             }).ToList();
 
-            CollectionAssert.AreEqual(new List<ProductDynamic>
+            AssertEquivalent(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, products);
 
             dynProducts[0].Name += "Test";
@@ -571,7 +577,7 @@ namespace Ganss.Excel.Tests
             products[1].Price += 1.0m;
             products[2].OfferEnd = new DateTime(2000, 1, 2);
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -640,11 +646,11 @@ namespace Ganss.Excel.Tests
                 OfferEnd = p.OfferEnd,
             }).ToList();
 
-            CollectionAssert.AreEqual(new List<ProductDynamic>
+            AssertEquivalent(new List<ProductDynamic>
             {
-                new ProductDynamic { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
-                new ProductDynamic { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
-                new ProductDynamic { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = 119.40, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = 98.67, Offer = true, OfferEnd = new DateTime(2015, 12, 31) },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = 99.00, Offer = false, OfferEnd = new DateTime(1970, 01, 01) },
             }, products);
         }
 
@@ -652,11 +658,11 @@ namespace Ganss.Excel.Tests
         public void FromExcelOnlyTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductDirection>().ToList();
-            CollectionAssert.AreEqual(new List<ProductDirection>
+            AssertEquivalent(new List<ProductDirection>
             {
-                new ProductDirection{ Name = "Nudossi", NumberInStock = 60, Price = 0, Value = null },
-                new ProductDirection{ Name = "Halloren", NumberInStock = 33, Price = 0, Value = null },
-                new ProductDirection{ Name = "Filinchen", NumberInStock = 100, Price = 0, Value = null },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 0, Value = null },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 0, Value = null },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0, Value = null },
             }, products);
         }
 
@@ -665,14 +671,14 @@ namespace Ganss.Excel.Tests
         {
             var src = new List<ProductDirection>
             {
-                new ProductDirection {
+                new() {
                     // FromExcelOnly
                     Name = "Nudossi", NumberInStock = 60
                     // ToExcelOnly
                     , Price = 1.99m, Value = "C2*D2"
                 },
-                new ProductDirection { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new ProductDirection { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             };
 
             var file = "productssavetoexcelonly.xlsx";
@@ -682,16 +688,16 @@ namespace Ganss.Excel.Tests
             /// Read result with <see cref="Product"/> mapping instead of <see cref="ProductDirection"/>
             var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product {
+                new() {
                     // FromExcelOnly prevent excel saving
                     Name = null, NumberInStock = 0
                     // ToExcelOnly allow saving but prevent reading
                     , Price = 1.99m, Value = "C2*D2"
                 },
-                new Product { Name = null, NumberInStock = 0, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = null, NumberInStock = 0, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = null, NumberInStock = 0, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = null, NumberInStock = 0, Price = 0.99m, Value = "C5*D5" },
             }, productsFetched);
         }
 
@@ -700,9 +706,9 @@ namespace Ganss.Excel.Tests
         {
             var src = new List<ProductFluent>
             {
-                new ProductFluent { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2" },
-                new ProductFluent { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3" },
-                new ProductFluent { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", Number = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", Number = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", Number = 100, Price = 0.99m, Value = "C5*D5" },
             };
 
             var file = "productssavetoexcelonly_fluent.xlsx";
@@ -721,11 +727,11 @@ namespace Ganss.Excel.Tests
             // Reload rows
             var productsFetched = new ExcelMapper(file).Fetch<ProductFluentResult>().ToList();
 
-            CollectionAssert.AreEqual(new List<ProductFluentResult>
+            AssertEquivalent(new List<ProductFluentResult>
             {
-                new ProductFluentResult { Name = "Nudossi", Number = 0, Price = 0, Value = "C2*D2" },
-                new ProductFluentResult { Name = "Halloren", Number = 0, Price = 0, Value = "C3*D3" },
-                new ProductFluentResult { Name = "Filinchen", Number = 0, Price = 0, Value = "C5*D5" },
+                new() { Name = "Nudossi", Number = 0, Price = 0, Value = "C2*D2" },
+                new() { Name = "Halloren", Number = 0, Price = 0, Value = "C3*D3" },
+                new() { Name = "Filinchen", Number = 0, Price = 0, Value = "C5*D5" },
             }, productsFetched);
         }
 
@@ -733,11 +739,11 @@ namespace Ganss.Excel.Tests
         public void FetchTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
 
@@ -745,12 +751,12 @@ namespace Ganss.Excel.Tests
         public void FetchWithTypeTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch(typeof(Product));
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
-            }, products);
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products.Cast<Product>());
         }
 
         [Test]
@@ -759,11 +765,11 @@ namespace Ganss.Excel.Tests
             var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch<Product>(stream, 0);
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
             stream.Close();
         }
@@ -774,12 +780,12 @@ namespace Ganss.Excel.Tests
             var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch(stream, typeof(Product), 0);
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
-            }, products);
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products.Cast<Product>());
             stream.Close();
         }
 
@@ -789,11 +795,11 @@ namespace Ganss.Excel.Tests
             var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch<Product>(stream, "Tabelle1");
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
             stream.Close();
         }
@@ -804,14 +810,13 @@ namespace Ganss.Excel.Tests
             var stream = new FileStream(@"../../../xlsx/Products.xlsx", FileMode.Open, FileAccess.Read);
             var products = new ExcelMapper().Fetch(stream, typeof(Product), "Tabelle1");
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
-            }, products);
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+            }, products.Cast<Product>());
             stream.Close();
-
         }
 
         [Test]
@@ -819,11 +824,11 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper().Fetch<Product>(@"../../../xlsx/Products.xlsx", "Tabelle1");
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
 
@@ -832,11 +837,11 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper().Fetch<Product>(@"../../../xlsx/Products.xlsx", 0);
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
 
@@ -854,7 +859,7 @@ namespace Ganss.Excel.Tests
         public void FetchValueTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductValue>().ToList();
-            CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
+            AssertEquivalent(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
         }
 
         [Test]
@@ -863,7 +868,7 @@ namespace Ganss.Excel.Tests
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch(typeof(ProductValue))
                                                                      .OfType<ProductValue>()
                                                                      .ToList();
-            CollectionAssert.AreEqual(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
+            AssertEquivalent(new List<decimal> { 119.4m, 98.67m, 99m }, products.Select(p => p.Value).ToList());
         }
 
         private class ProductException : Product
@@ -875,9 +880,9 @@ namespace Ganss.Excel.Tests
         public void FetchEmptyTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx").Fetch<ProductException>().ToList();
-            CollectionAssert.AreEqual(new List<ProductException>
+            AssertEquivalent(new List<ProductException>
             {
-                new ProductException { Name = "Nudossi", NumberInStock = 60, Price = 0m },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 0m },
             }, products);
         }
 
@@ -917,6 +922,42 @@ namespace Ganss.Excel.Tests
         }
 
         [Test]
+        public void FetchEventErrorWhenFieldInvalidTest()
+        {
+            int numberOfErrors = 0;
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsEventsExceptionInvalid.xlsx");
+            excelMapper.ErrorParsingCell += (sender, e) =>
+            {
+                Assert.That(e, Is.InstanceOf<ParsingErrorEventArgs>());
+                Assert.That(e.Error, Is.InstanceOf<ExcelMapperConvertException>());
+                Assert.That(e.Error, Is.Not.Null);
+                Assert.That(e.Error.Message.Contains("FALSEd"));
+                numberOfErrors++;
+
+                e.Cancel = true;
+            };
+
+            List<ProductException> listOfProducts = null;
+            Assert.DoesNotThrow(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
+            Assert.That(numberOfErrors == 5);
+            Assert.That(listOfProducts.Count == 6);
+        }
+
+        [Test]
+        public void FetchEventExceptionExplicitlyDisabledWhenFieldInvalidTest()
+        {
+            var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsEventsExceptionInvalid.xlsx");
+            excelMapper.ErrorParsingCell += (sender, e) =>
+            {
+                e.Cancel = false;
+            };
+
+            List<ProductException> listOfProducts = null;
+            var ex = Assert.Throws<ExcelMapperConvertException>(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
+            Assert.That(listOfProducts, Is.Null);
+        }
+
+        [Test]
         public void FetchExceptionWhenSheetDoesNotExists()
         {
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new ExcelMapper(@"../../../xlsx/ProductsExceptionInvalid.xlsx").Fetch<ProductException>("this sheet does not exist").ToList());
@@ -938,9 +979,22 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var sheetNames = excel.FetchSheetNames().ToList();
 
-            CollectionAssert.AreEqual(new List<string>
+            AssertEquivalent(new List<string>
             {
                 "Tabelle1",
+                "Tabelle2",
+                "Tabelle3",
+            }, sheetNames);
+        }
+
+        [Test]
+        public void FetchSheetNamesHiddenTest()
+        {
+            var excel = new ExcelMapper(@"../../../xlsx/ProductsHidden.xlsx");
+            var sheetNames = excel.FetchSheetNames(ignoreHidden: true).ToList();
+
+            AssertEquivalent(new List<string>
+            {
                 "Tabelle2",
                 "Tabelle3",
             }, sheetNames);
@@ -950,7 +1004,7 @@ namespace Ganss.Excel.Tests
         public void FetchSheetNamesEmptyTest()
         {
             var excel = new ExcelMapper();
-            CollectionAssert.IsEmpty(excel.FetchSheetNames());
+            Assert.That(excel.FetchSheetNames(), Is.Empty);
         }
 
         private class ProductNoHeader
@@ -978,11 +1032,11 @@ namespace Ganss.Excel.Tests
         public void FetchNoHeaderTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/ProductsNoHeader.xlsx") { HeaderRow = false }.Fetch<ProductNoHeader>("Products").ToList();
-            CollectionAssert.AreEqual(new List<ProductNoHeader>
+            AssertEquivalent(new List<ProductNoHeader>
             {
-                new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
-                new ProductNoHeader { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
-                new ProductNoHeader { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
             }, products);
         }
 
@@ -992,11 +1046,11 @@ namespace Ganss.Excel.Tests
             var products = new ExcelMapper(@"../../../xlsx/ProductsNoHeader.xlsx") { HeaderRow = false }.Fetch(typeof(ProductNoHeader), "Products")
                                                                                                    .OfType<ProductNoHeader>()
                                                                                                    .ToList();
-            CollectionAssert.AreEqual(new List<ProductNoHeader>
+            AssertEquivalent(new List<ProductNoHeader>
             {
-                new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
-                new ProductNoHeader { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
-                new ProductNoHeader { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
             }, products);
         }
 
@@ -1029,11 +1083,11 @@ namespace Ganss.Excel.Tests
 
             var products = excel.Fetch<ProductNoHeaderManual>("Products").ToList();
 
-            CollectionAssert.AreEqual(new List<ProductNoHeaderManual>
+            AssertEquivalent(new List<ProductNoHeaderManual>
             {
-                new ProductNoHeaderManual { NameX = "Nudossi", NumberInStockX = 60, PriceX = 1.99m },
-                new ProductNoHeaderManual { NameX = "Halloren", NumberInStockX = 33, PriceX = 2.99m },
-                new ProductNoHeaderManual { NameX = "Filinchen", NumberInStockX = 100, PriceX = 0.99m },
+                new() { NameX = "Nudossi", NumberInStockX = 60, PriceX = 1.99m },
+                new() { NameX = "Halloren", NumberInStockX = 33, PriceX = 2.99m },
+                new() { NameX = "Filinchen", NumberInStockX = 100, PriceX = 0.99m },
             }, products);
         }
 
@@ -1042,9 +1096,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
             };
 
             var file = "productssave.xlsx";
@@ -1062,7 +1116,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -1070,9 +1124,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<ProductNoHeader>
             {
-                new ProductNoHeader { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
-                new ProductNoHeader { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
-                new ProductNoHeader { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
             };
 
             var file = "productsnoheadersave.xlsx";
@@ -1081,7 +1135,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file) { HeaderRow = false }.Fetch<ProductNoHeader>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -1098,7 +1152,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         private class ProductMapped
@@ -1138,7 +1192,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<ProductMapped>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         private class GetterSetterProduct
@@ -1251,8 +1305,8 @@ namespace Ganss.Excel.Tests
 
             var products = excel.Fetch<GetterSetterProduct>().ToList();
 
-            Assert.Null(products[0].RedName);
-            Assert.AreEqual("Halloren", products[1].RedName);
+            Assert.That(products[0].RedName, Is.Null);
+            Assert.That(products[1].RedName, Is.EqualTo("Halloren"));
 
             var file = @"productsconverttracked.xlsx";
 
@@ -1260,7 +1314,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<GetterSetterProduct>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         private class IgnoreProduct
@@ -1294,16 +1348,16 @@ namespace Ganss.Excel.Tests
             var products = excel.Fetch<IgnoreProduct>().ToList();
 
             var nudossi = products[0];
-            Assert.AreEqual("Nudossi", nudossi.Name);
-            Assert.AreEqual(0, nudossi.Number);
-            Assert.AreEqual(0m, nudossi.Price);
-            Assert.IsFalse(nudossi.Offer);
-            Assert.IsNull(nudossi.Value);
+            Assert.That(nudossi.Name, Is.EqualTo("Nudossi"));
+            Assert.That(nudossi.Number, Is.EqualTo(0));
+            Assert.That(nudossi.Price, Is.EqualTo(0m));
+            Assert.That(nudossi.Offer, Is.False);
+            Assert.That(nudossi.Value, Is.Null);
 
             var halloren = products[1];
-            Assert.IsTrue(halloren.Offer);
-            Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
-            Assert.IsNull(halloren.Value);
+            Assert.That(halloren.Offer, Is.True);
+            Assert.That(halloren.OfferEnd, Is.EqualTo(new DateTime(2015, 12, 31)));
+            Assert.That(halloren.Value, Is.Null);
 
             var file = "productsignored.xlsx";
 
@@ -1311,7 +1365,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<IgnoreProduct>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         private class NullableProduct
@@ -1342,15 +1396,15 @@ namespace Ganss.Excel.Tests
             var products = excel.Fetch<NullableProduct>().ToList();
 
             var nudossi = products[0];
-            Assert.AreEqual("Nudossi", nudossi.Name);
-            Assert.AreEqual(60, nudossi.Number);
-            Assert.AreEqual(1.99m, nudossi.Price);
-            Assert.IsFalse(nudossi.Offer.Value);
+            Assert.That(nudossi.Name, Is.EqualTo("Nudossi"));
+            Assert.That(nudossi.Number, Is.EqualTo(60));
+            Assert.That(nudossi.Price, Is.EqualTo(1.99m));
+            Assert.That(nudossi.Offer.Value, Is.False);
             nudossi.OfferEnd = null;
 
             var halloren = products[1];
-            Assert.IsTrue(halloren.Offer.Value);
-            Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
+            Assert.That(halloren.Offer.Value, Is.True);
+            Assert.That(halloren.OfferEnd, Is.EqualTo(new DateTime(2015, 12, 31)));
             halloren.Number = null;
             halloren.Offer = null;
 
@@ -1360,7 +1414,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<NullableProduct>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -1370,19 +1424,19 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(workbook) { SkipBlankCells = false };
             var products = excel.Fetch().ToList();
             var nudossi = products[0];
-            Assert.AreEqual("Nudossi", nudossi.Name);
-            Assert.AreEqual(60, nudossi.Number);
-            Assert.AreEqual(1.99m, nudossi.Price);
-            Assert.IsFalse(nudossi.Offer);
-            Assert.IsNotNull(nudossi.OfferEnd);
+            Assert.That(nudossi.Name, Is.EqualTo("Nudossi"));
+            Assert.That(nudossi.Number, Is.EqualTo(60));
+            Assert.That(nudossi.Price, Is.EqualTo(1.99m));
+            Assert.That(nudossi.Offer, Is.False);
+            Assert.That(nudossi.OfferEnd, Is.Not.Null);
             nudossi.OfferEnd = null; //set to null to test it
 
             var halloren = products[1];
-            Assert.IsTrue(halloren.Offer);
-            Assert.AreEqual(new DateTime(2015, 12, 31), halloren.OfferEnd);
-            Assert.IsNotNull(halloren.Number);
+            Assert.That(halloren.Offer, Is.True);
+            Assert.That(halloren.OfferEnd, Is.EqualTo(new DateTime(2015, 12, 31)));
+            Assert.That(halloren.Number, Is.Not.Null);
             halloren.Number = null; //set to null to test it
-            Assert.IsNotNull(halloren.Offer);
+            Assert.That(halloren.Offer, Is.Not.Null);
             halloren.Offer = null; //set to null to test it
 
             var file = "productsnullabledynamic.xlsx";
@@ -1399,9 +1453,9 @@ namespace Ganss.Excel.Tests
                 return value;
             }).ToList();
 
-            Assert.IsNull(productsFetched[0].OfferEnd);
-            Assert.IsNull(productsFetched[1].Number);
-            Assert.IsNull(productsFetched[1].Offer);
+            Assert.That(productsFetched[0].OfferEnd, Is.Null);
+            Assert.That(productsFetched[1].Number, Is.Null);
+            Assert.That(productsFetched[1].Offer, Is.Null);
         }
 
         private class DataFormatProduct
@@ -1421,10 +1475,10 @@ namespace Ganss.Excel.Tests
             new ExcelMapper().Save(file, new[] { p });
             var pfs = new ExcelMapper(file).Fetch<DataFormatProduct>().ToList();
 
-            Assert.AreEqual(1, pfs.Count);
+            Assert.That(pfs.Count, Is.EqualTo(1));
             var pf = pfs[0];
-            Assert.AreEqual(p.Date, pf.Date);
-            Assert.AreEqual(p.Number, pf.Number);
+            Assert.That(pf.Date, Is.EqualTo(p.Date));
+            Assert.That(pf.Number, Is.EqualTo(p.Number));
         }
 
         private class DataItem
@@ -1465,12 +1519,12 @@ namespace Ganss.Excel.Tests
             var trackedFile = "dataitemstracked.xlsx";
             excel.Save(trackedFile, "DataItems");
             var itemsTracked = excel.Fetch<DataItem>(trackedFile, "DataItems").ToList();
-            CollectionAssert.AreEqual(items, itemsTracked);
+            AssertEquivalent(items, itemsTracked);
 
             var saveFile = "dataitemssave.xlsx";
             new ExcelMapper().Save(saveFile, items, "DataItems");
             var itemsSaved = new ExcelMapper().Fetch<DataItem>(saveFile, "DataItems").ToList();
-            CollectionAssert.AreEqual(items, itemsSaved);
+            AssertEquivalent(items, itemsSaved);
         }
 
         [Test]
@@ -1482,12 +1536,12 @@ namespace Ganss.Excel.Tests
             var trackedFile = "dataitemstracked1.xlsx";
             excel.Save(trackedFile, "DataItems");
             var itemsTracked = excel.Fetch(trackedFile, typeof(DataItem), "DataItems").OfType<DataItem>().ToList();
-            CollectionAssert.AreEqual(items, itemsTracked);
+            AssertEquivalent(items, itemsTracked);
 
             var saveFile = "dataitemssave1.xlsx";
             new ExcelMapper().Save(saveFile, items, "DataItems");
             var itemsSaved = new ExcelMapper().Fetch(saveFile, typeof(DataItem), "DataItems").OfType<DataItem>().ToList();
-            CollectionAssert.AreEqual(items, itemsSaved);
+            AssertEquivalent(items, itemsSaved);
         }
 
         [Test]
@@ -1499,11 +1553,11 @@ namespace Ganss.Excel.Tests
                 MinRowNumber = 6,
                 MaxRowNumber = 9,
             }.Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C7*D7" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C8*D8" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C10*D10" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C7*D7" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C8*D8" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C10*D10" },
             }, products);
         }
 
@@ -1512,9 +1566,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
             };
 
             var file = "productsminmaxsave.xlsx";
@@ -1531,14 +1585,14 @@ namespace Ganss.Excel.Tests
                 MinRowNumber = 3
             }.Fetch<Product>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
         public void FormulaResultAttributeTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/ProductsAsString.xlsx").Fetch<ProductValueString>().ToList();
-            CollectionAssert.AreEqual(new List<string> { "119.4", "98.67", "99" }, products.Select(p => p.ValueAsString).ToList());
+            AssertEquivalent(new List<string> { "119.4", "98.67", "99" }, products.Select(p => p.ValueAsString).ToList());
         }
 
         private class ProductFormulaMapped
@@ -1571,14 +1625,14 @@ namespace Ganss.Excel.Tests
             var products = excel.Fetch<ProductFormulaMapped>().ToList();
             var expectedProducts = new List<ProductFormulaMapped>
             {
-                new ProductFormulaMapped { Result = 119.4m, Formula = "C2*D2", ResultString = "119.4" },
-                new ProductFormulaMapped { Result = 98.67m, Formula = "C3*D3", ResultString = "98.67" },
-                new ProductFormulaMapped { Result = 99m, Formula = "C5*D5", ResultString = "99" },
+                new() { Result = 119.4m, Formula = "C2*D2", ResultString = "119.4" },
+                new() { Result = 98.67m, Formula = "C3*D3", ResultString = "98.67" },
+                new() { Result = 99m, Formula = "C5*D5", ResultString = "99" },
             };
 
-            Assert.AreEqual(expectedProducts[0], products[0]);
+            Assert.That(products[0], Is.EqualTo(expectedProducts[0]));
 
-            CollectionAssert.AreEqual(expectedProducts, products);
+            AssertEquivalent(expectedProducts, products);
         }
 
         [Test]
@@ -1587,8 +1641,8 @@ namespace Ganss.Excel.Tests
             ExcelMapperConvertException ex = new("cellvalue", typeof(string), 12, 34);
 
             // Sanity check: Make sure custom properties are set before serialization
-            Assert.AreEqual(12, ex.Line);
-            Assert.AreEqual(34, ex.Column);
+            Assert.That(ex.Line, Is.EqualTo(12));
+            Assert.That(ex.Column, Is.EqualTo(34));
 
             // Round-trip the exception: Serialize and de-serialize
             var serializer = new DataContractJsonSerializer(typeof(ExcelMapperConvertException));
@@ -1605,8 +1659,8 @@ namespace Ganss.Excel.Tests
             }
 
             // Make sure custom properties are preserved after serialization
-            Assert.AreEqual(12, ex.Line);
-            Assert.AreEqual(34, ex.Column);
+            Assert.That(ex.Line, Is.EqualTo(12));
+            Assert.That(ex.Column, Is.EqualTo(34));
 
             Assert.Throws<ArgumentNullException>(() => ex.GetObjectData(null, new System.Runtime.Serialization.StreamingContext()));
         }
@@ -1636,11 +1690,11 @@ namespace Ganss.Excel.Tests
         public void FetchIndexTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductIndex>().ToList();
-            CollectionAssert.AreEqual(new List<ProductIndex>
+            AssertEquivalent(new List<ProductIndex>
             {
-                new ProductIndex { Price = "Nudossi", Name = "60", Number = "1.99" },
-                new ProductIndex { Price = "Halloren", Name = "33", Number = "2.99" },
-                new ProductIndex { Price = "Filinchen", Name = "100", Number = "0.99" },
+                new() { Price = "Nudossi", Name = "60", Number = "1.99" },
+                new() { Price = "Halloren", Name = "33", Number = "2.99" },
+                new() { Price = "Filinchen", Name = "100", Number = "0.99" },
             }, products);
         }
 
@@ -1671,21 +1725,21 @@ namespace Ganss.Excel.Tests
         {
             // https://github.com/mganss/ExcelMapper/issues/50
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductDoubleMap>().ToList();
-            CollectionAssert.AreEqual(new List<ProductDoubleMap>
+            AssertEquivalent(new List<ProductDoubleMap>
             {
-                new ProductDoubleMap { Price = "Nudossi", OtherNumber = "60" },
-                new ProductDoubleMap { Price = "Halloren", OtherNumber = "33" },
-                new ProductDoubleMap { Price = "Filinchen", OtherNumber = "100" },
+                new() { Price = "Nudossi", OtherNumber = "60" },
+                new() { Price = "Halloren", OtherNumber = "33" },
+                new() { Price = "Filinchen", OtherNumber = "100" },
             }, products);
         }
 
         static void AssertProducts(List<Product> products)
         {
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
 
@@ -1724,32 +1778,32 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
             };
 
             var file = "productssave.xlsx";
 
             await new ExcelMapper().SaveAsync(file, products, "Products");
             var productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
 
             await new ExcelMapper().SaveAsync(file, products);
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
 
             var fs = File.OpenWrite(file);
             await new ExcelMapper().SaveAsync(fs, products, "Products");
             fs.Close();
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
 
             fs = File.OpenWrite(file);
             await new ExcelMapper().SaveAsync(fs, products);
             fs.Close();
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
 
             var path = @"../../../xlsx/Products.xlsx";
 
@@ -1757,13 +1811,13 @@ namespace Ganss.Excel.Tests
             var tracked = (await mapper.FetchAsync<Product>(path)).ToList();
             await mapper.SaveAsync(file, "Tabelle1");
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(tracked, productsFetched);
+            AssertEquivalent(tracked, productsFetched);
 
             mapper = new ExcelMapper() { TrackObjects = true };
             tracked = (await mapper.FetchAsync<Product>(path)).ToList();
             await mapper.SaveAsync(file);
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(tracked, productsFetched);
+            AssertEquivalent(tracked, productsFetched);
 
             mapper = new ExcelMapper() { TrackObjects = true };
             tracked = (await mapper.FetchAsync<Product>(path)).ToList();
@@ -1771,7 +1825,7 @@ namespace Ganss.Excel.Tests
             await mapper.SaveAsync(fs, "Tabelle1");
             fs.Close();
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(tracked, productsFetched);
+            AssertEquivalent(tracked, productsFetched);
 
             mapper = new ExcelMapper() { TrackObjects = true };
             tracked = (await mapper.FetchAsync<Product>(path)).ToList();
@@ -1779,7 +1833,7 @@ namespace Ganss.Excel.Tests
             await mapper.SaveAsync(fs);
             fs.Close();
             productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
-            CollectionAssert.AreEqual(tracked, productsFetched);
+            AssertEquivalent(tracked, productsFetched);
         }
 
         private class Course
@@ -1809,7 +1863,7 @@ namespace Ganss.Excel.Tests
 
             var courses = mapper.Fetch<Course>().ToList();
 
-            Assert.AreEqual("00:00.0", courses.First().CourseStartDate);
+            Assert.That(courses.First().CourseStartDate, Is.EqualTo("00:00.0"));
         }
         private class ProductJson
         {
@@ -1828,11 +1882,11 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper(@"../../../xlsx/ProductsJson.xlsx").Fetch<ProductJson>().ToList();
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
             }, products.Select(p => p.Product));
 
             var file = "productsjsonsave.xlsx";
@@ -1841,7 +1895,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<ProductJson>().ToList();
 
-            CollectionAssert.AreEqual(products.Select(p => p.Product), productsFetched.Select(p => p.Product));
+            AssertEquivalent(products.Select(p => p.Product), productsFetched.Select(p => p.Product));
         }
 
         [Test]
@@ -1853,11 +1907,11 @@ namespace Ganss.Excel.Tests
 
             var products = excel.Fetch<ProductJsonMapped>().ToList();
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
             }, products.Select(p => p.Product));
         }
 
@@ -1872,11 +1926,11 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper(@"../../../xlsx/ProductsJsonList.xlsx").Fetch<ProductJsonList>().ToList();
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C4*D4" },
             }, products.First().Products);
 
             var file = "productsjsonlistsave.xlsx";
@@ -1885,7 +1939,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<ProductJsonList>().ToList();
 
-            CollectionAssert.AreEqual(products.First().Products, productsFetched.First().Products);
+            AssertEquivalent(products.First().Products, productsFetched.First().Products);
         }
 
         private class Sample2
@@ -1931,11 +1985,11 @@ namespace Ganss.Excel.Tests
 
             var products = excel.Fetch<ProductMapped>().ToList();
 
-            CollectionAssert.AreEqual(new List<ProductMapped>
+            AssertEquivalent(new List<ProductMapped>
             {
-                new ProductMapped { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
-                new ProductMapped { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
-                new ProductMapped { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
+                new() { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
+                new() { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
+                new() { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
             }, products);
         }
 
@@ -1952,11 +2006,11 @@ namespace Ganss.Excel.Tests
 
             var products = excel.Fetch<ProductMapped>().ToList();
 
-            CollectionAssert.AreEqual(new List<ProductMapped>
+            AssertEquivalent(new List<ProductMapped>
             {
-                new ProductMapped { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
-                new ProductMapped { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
-                new ProductMapped { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
+                new() { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
+                new() { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
+                new() { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
             }, products);
         }
 
@@ -1973,26 +2027,29 @@ namespace Ganss.Excel.Tests
 
             var products = excel.Fetch<ProductMapped>().ToList();
 
-            CollectionAssert.AreEqual(new List<ProductMapped>
+            AssertEquivalent(new List<ProductMapped>
             {
-                new ProductMapped { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
-                new ProductMapped { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
-                new ProductMapped { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
+                new() { NameX = "Nudossi", NumberX = 60, PriceX = 1.99m },
+                new() { NameX = "Halloren", NumberX = 33, PriceX = 2.99m },
+                new() { NameX = "Filinchen", NumberX = 100, PriceX = 0.99m },
             }, products);
         }
 
         [Test]
         public void LetterConversionTest()
         {
-            Assert.AreEqual(1, ExcelMapper.LetterToIndex("A"));
-            Assert.AreEqual(649, ExcelMapper.LetterToIndex("XY"));
-            Assert.AreEqual(649, ExcelMapper.LetterToIndex("xy"));
-            Assert.AreEqual("AB", ExcelMapper.IndexToLetter(28));
-            Assert.AreEqual("A", ExcelMapper.IndexToLetter(1));
-            Assert.AreEqual("XY", ExcelMapper.IndexToLetter(649));
+            Assert.That(ExcelMapper.LetterToIndex("A"), Is.EqualTo(1));
+            Assert.That(ExcelMapper.LetterToIndex("$A"), Is.EqualTo(1));
+            Assert.That(ExcelMapper.LetterToIndex("XY"), Is.EqualTo(649));
+            Assert.That(ExcelMapper.LetterToIndex("$XY"), Is.EqualTo(649));
+            Assert.That(ExcelMapper.LetterToIndex("xy"), Is.EqualTo(649));
+            Assert.That(ExcelMapper.IndexToLetter(28), Is.EqualTo("AB"));
+            Assert.That(ExcelMapper.IndexToLetter(1), Is.EqualTo("A"));
+            Assert.That(ExcelMapper.IndexToLetter(649), Is.EqualTo("XY"));
 
             Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex(null));
             Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex("???"));
+            Assert.Throws<ArgumentException>(() => ExcelMapper.LetterToIndex("A$"));
             Assert.Throws<ArgumentException>(() => ExcelMapper.IndexToLetter(-1));
         }
 
@@ -2001,11 +2058,11 @@ namespace Ganss.Excel.Tests
         {
             // see https://github.com/mganss/ExcelMapper/issues/90
             var products = new ExcelMapper(@"../../../xlsx/ProductsExceptionEmpty.xlsx") { SkipBlankCells = false }.Fetch().ToList();
-            Assert.AreEqual(1, products.Count);
+            Assert.That(products.Count, Is.EqualTo(1));
             var p = products[0];
-            Assert.IsEmpty(p.Price);
-            Assert.AreEqual("Nudossi", p.Name);
-            Assert.AreEqual(60, p.Number);
+            Assert.That(p.Price, Is.Empty);
+            Assert.That(p.Name, Is.EqualTo("Nudossi"));
+            Assert.That(p.Number, Is.EqualTo(60));
         }
 
         class NullProduct
@@ -2019,7 +2076,7 @@ namespace Ganss.Excel.Tests
         {
             // see https://github.com/mganss/ExcelMapper/issues/96
             var products = new ExcelMapper(@"../../../xlsx/null_test.xlsx").Fetch<NullProduct>().ToList();
-            Assert.AreEqual(20, products.Count);
+            Assert.That(products.Count, Is.EqualTo(20));
         }
 
         private record ProductRecord
@@ -2037,11 +2094,11 @@ namespace Ganss.Excel.Tests
         public void RecordFetchTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductRecord>().ToList();
-            CollectionAssert.AreEqual(new List<ProductRecord>
+            AssertEquivalent(new List<ProductRecord>
             {
-                new ProductRecord("Nudossi", 60, 1.99m, "C2*D2"),
-                new ProductRecord("Halloren", 33, 2.99m, "C3*D3"),
-                new ProductRecord("Filinchen", 100, 0.99m, "C5*D5"),
+                new("Nudossi", 60, 1.99m, "C2*D2"),
+                new("Halloren", 33, 2.99m, "C3*D3"),
+                new("Filinchen", 100, 0.99m, "C5*D5"),
             }, products);
         }
 
@@ -2057,7 +2114,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<ProductRecord>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         private record ProductRecordNoHeaderManual
@@ -2084,11 +2141,11 @@ namespace Ganss.Excel.Tests
 
             var products = excel.Fetch<ProductRecordNoHeaderManual>("Products").ToList();
 
-            CollectionAssert.AreEqual(new List<ProductRecordNoHeaderManual>
+            AssertEquivalent(new List<ProductRecordNoHeaderManual>
             {
-                new ProductRecordNoHeaderManual(false, "Nudossi", 60, null, 1.99m),
-                new ProductRecordNoHeaderManual(false, "Halloren", 33, null, 2.99m),
-                new ProductRecordNoHeaderManual(false, "Filinchen", 100, null, 0.99m),
+                new(false, "Nudossi", 60, null, 1.99m),
+                new(false, "Halloren", 33, null, 2.99m),
+                new(false, "Filinchen", 100, null, 0.99m),
             }, products);
         }
 
@@ -2098,11 +2155,11 @@ namespace Ganss.Excel.Tests
         public void PosRecordFetchTest()
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductPosRecord>().ToList();
-            CollectionAssert.AreEqual(new List<ProductPosRecord>
+            AssertEquivalent(new List<ProductPosRecord>
             {
-                new ProductPosRecord(60, "Nudossi", 1.99m, "C2*D2"),
-                new ProductPosRecord(33, "Halloren", 2.99m, "C3*D3"),
-                new ProductPosRecord(100, "Filinchen", 0.99m, "C5*D5"),
+                new(60, "Nudossi", 1.99m, "C2*D2"),
+                new(33, "Halloren", 2.99m, "C3*D3"),
+                new(100, "Filinchen", 0.99m, "C5*D5"),
             }, products);
         }
 
@@ -2121,9 +2178,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<CustomProduct>
             {
-                new CustomProduct { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
-                new CustomProduct { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
-                new CustomProduct { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m },
             };
 
             var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsMissingHeaders.xlsx")
@@ -2144,7 +2201,7 @@ namespace Ganss.Excel.Tests
                 CreateMissingHeaders = true
             }.Fetch<CustomProduct>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -2152,9 +2209,9 @@ namespace Ganss.Excel.Tests
         {
             var rows = new ExcelMapper(@"../../../xlsx/JaggedRows.xlsx") { HeaderRow = false, SkipBlankCells = false }.Fetch().ToList();
 
-            Assert.AreEqual(2, rows.Count);
-            Assert.AreEqual(13, ((IDictionary<string, object>)rows[0]).Count);
-            Assert.AreEqual("TestL", rows[1].L);
+            Assert.That(rows.Count, Is.EqualTo(2));
+            Assert.That(((IDictionary<string, object>)rows[0]).Count, Is.EqualTo(13));
+            Assert.That(rows[1].L, Is.EqualTo("TestL"));
         }
 
         private class OfferDetails
@@ -2219,11 +2276,11 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx");
             var products = excel.Fetch<NestedProduct>().ToList();
 
-            Assert.AreEqual(3, products.Count);
-            Assert.AreEqual(false, products[0].Offer.IsOffer);
-            Assert.AreEqual(new DateTime(1970, 1, 1), products[0].Offer.End);
-            Assert.AreEqual(true, products[1].Offer.IsOffer);
-            Assert.AreEqual(new DateTime(2015, 12, 31), products[1].Offer.End);
+            Assert.That(products.Count, Is.EqualTo(3));
+            Assert.That(products[0].Offer.IsOffer, Is.EqualTo(false));
+            Assert.That(products[0].Offer.End, Is.EqualTo(new DateTime(1970, 1, 1)));
+            Assert.That(products[1].Offer.IsOffer, Is.EqualTo(true));
+            Assert.That(products[1].Offer.End, Is.EqualTo(new DateTime(2015, 12, 31)));
         }
 
         [Test]
@@ -2232,13 +2289,13 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(@"../../../xlsx/Products.xlsx") { IgnoreNestedTypes = true };
             var products = excel.Fetch<NestedProduct>().ToList();
 
-            Assert.AreEqual(3, products.Count);
+            Assert.That(products.Count, Is.EqualTo(3));
 
-            CollectionAssert.AreEqual(new List<NestedProduct>
+            AssertEquivalent(new List<NestedProduct>
             {
-                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails()),
-                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails()),
-                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails()),
+                new("Nudossi", 60, 1.99m, new OfferDetails()),
+                new("Halloren", 33, 2.99m, new OfferDetails()),
+                new("Filinchen", 100, 0.99m, new OfferDetails()),
             }, products);
         }
 
@@ -2247,9 +2304,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<NestedProduct>
             {
-                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
-                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails(true, new DateTime(2015, 12, 31))),
-                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+                new("Nudossi", 60, 1.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+                new("Halloren", 33, 2.99m, new OfferDetails(true, new DateTime(2015, 12, 31))),
+                new("Filinchen", 100, 0.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
             };
 
             var file = "nestedsave.xlsx";
@@ -2259,7 +2316,7 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(file);
             var productsFetched = excel.Fetch<NestedProduct>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
 
             productsFetched[0].Name = "Nudossi2";
             productsFetched[0].Offer.End = new DateTime(2021, 4, 21);
@@ -2268,7 +2325,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched2 = excel.Fetch<NestedProduct>().ToList();
 
-            CollectionAssert.AreEqual(productsFetched, productsFetched2);
+            AssertEquivalent(productsFetched, productsFetched2);
         }
 
         [Test]
@@ -2276,9 +2333,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<NestedProduct>
             {
-                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
-                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails(true, new DateTime(2015, 12, 31))),
-                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+                new("Nudossi", 60, 1.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
+                new("Halloren", 33, 2.99m, new OfferDetails(true, new DateTime(2015, 12, 31))),
+                new("Filinchen", 100, 0.99m, new OfferDetails(false, new DateTime(1970, 01, 01))),
             };
 
             var file = "ignorenestedsave.xlsx";
@@ -2288,11 +2345,11 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(file) { IgnoreNestedTypes = true };
             var productsFetched = excel.Fetch<NestedProduct>().ToList();
 
-            CollectionAssert.AreEqual(new List<NestedProduct>
+            AssertEquivalent(new List<NestedProduct>
             {
-                new NestedProduct("Nudossi", 60, 1.99m, new OfferDetails()),
-                new NestedProduct("Halloren", 33, 2.99m, new OfferDetails()),
-                new NestedProduct("Filinchen", 100, 0.99m, new OfferDetails()),
+                new("Nudossi", 60, 1.99m, new OfferDetails()),
+                new("Halloren", 33, 2.99m, new OfferDetails()),
+                new("Filinchen", 100, 0.99m, new OfferDetails()),
             }, productsFetched);
         }
 
@@ -2304,11 +2361,11 @@ namespace Ganss.Excel.Tests
         {
             var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<NestedRecord>().ToList();
 
-            CollectionAssert.AreEqual(new List<NestedRecord>
+            AssertEquivalent(new List<NestedRecord>
             {
-                new NestedRecord("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
-                new NestedRecord("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
-                new NestedRecord("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
+                new("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
             }, products);
         }
 
@@ -2317,9 +2374,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<NestedRecord>
             {
-                new NestedRecord("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
-                new NestedRecord("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
-                new NestedRecord("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
+                new("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
             };
 
             var file = "nestedrecordssave.xlsx";
@@ -2329,7 +2386,7 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(file);
             var productsFetched = excel.Fetch<NestedRecord>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         [Test]
@@ -2337,9 +2394,9 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<NestedRecord>
             {
-                new NestedRecord("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
-                new NestedRecord("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
-                new NestedRecord("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new("Nudossi", 60, 1.99m, 119.40m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
+                new("Halloren", 33, 2.99m, 98.67m, new OfferDetailsRecord(true, new DateTime(2015, 12, 31))),
+                new("Filinchen", 100, 0.99m, 99.00m, new OfferDetailsRecord(false, new DateTime(1970, 01, 01))),
             };
 
             var excelMapper = new ExcelMapper(@"../../../xlsx/ProductsMissingHeaders.xlsx")
@@ -2359,7 +2416,7 @@ namespace Ganss.Excel.Tests
                 MinRowNumber = 3
             }.Fetch<NestedRecord>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
         }
 
         private class NestedOfferMapped
@@ -2414,12 +2471,12 @@ namespace Ganss.Excel.Tests
 
             var expectedResult = new List<NestedProductMapped>
             {
-                new NestedProductMapped { N = "Nudossi", Num = 60, P = 1.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
-                new NestedProductMapped { N = "Halloren", Num = 33, P = 2.99m, O = new NestedOfferMapped { O = true, E = new DateTime(2015, 12, 31) } },
-                new NestedProductMapped { N = "Filinchen", Num = 100, P = 0.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
+                new() { N = "Nudossi", Num = 60, P = 1.99m, O = new() { O = false, E = new DateTime(1970, 01, 01) } },
+                new() { N = "Halloren", Num = 33, P = 2.99m, O = new() { O = true, E = new DateTime(2015, 12, 31) } },
+                new() { N = "Filinchen", Num = 100, P = 0.99m, O = new() { O = false, E = new DateTime(1970, 01, 01) } },
             };
 
-            CollectionAssert.AreEqual(expectedResult, products);
+            AssertEquivalent(expectedResult, products);
         }
 
         [Test]
@@ -2441,12 +2498,12 @@ namespace Ganss.Excel.Tests
 
             var expectedResult = new List<NestedProductMapped>
             {
-                new NestedProductMapped { N = "Nudossi", Num = 60, P = 1.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
-                new NestedProductMapped { N = "Halloren", Num = 33, P = 2.99m, O = new NestedOfferMapped { O = true, E = new DateTime(2015, 12, 31) } },
-                new NestedProductMapped { N = "Filinchen", Num = 100, P = 0.99m, O = new NestedOfferMapped { O = false, E = new DateTime(1970, 01, 01) } },
+                new() { N = "Nudossi", Num = 60, P = 1.99m, O = new() { O = false, E = new DateTime(1970, 01, 01) } },
+                new() { N = "Halloren", Num = 33, P = 2.99m, O = new() { O = true, E = new DateTime(2015, 12, 31) } },
+                new() { N = "Filinchen", Num = 100, P = 0.99m, O = new() { O = false, E = new DateTime(1970, 01, 01) } },
             };
 
-            CollectionAssert.AreEqual(expectedResult, products);
+            AssertEquivalent(expectedResult, products);
 
             var file = "nestedindexmapped.xlsx";
 
@@ -2462,7 +2519,7 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = excel.Fetch<NestedProductMapped>().ToList();
 
-            CollectionAssert.AreEqual(expectedResult, productsFetched);
+            AssertEquivalent(expectedResult, productsFetched);
         }
 
         class ProductStringArray
@@ -2488,8 +2545,8 @@ namespace Ganss.Excel.Tests
 
             var ps = excel.Fetch<ProductStringArray>().ToList();
 
-            Assert.AreEqual(3, ps.Count);
-            Assert.True(ps.All(p => p.Products.Length == 4));
+            Assert.That(ps.Count, Is.EqualTo(3));
+            Assert.That(ps.All(p => p.Products.Length == 4), Is.True);
         }
 
         public record GuidProduct(Guid? Id, string Name, int NumberInStock, decimal Price);
@@ -2503,12 +2560,12 @@ namespace Ganss.Excel.Tests
 
             var expectedProducts = new List<GuidProduct>
             {
-              new GuidProduct(new Guid("{6bba457c-00ee-4dc7-8002-967c760b428c}"), "Nudossi", 60, 1.99m),
-              new GuidProduct(new Guid("{f833727a-63dd-483f-8ec0-4a667e707ebb}"), "Halloren", 33, 2.99m),
-              new GuidProduct(new Guid("{eb966e28-b9b4-4dcc-b7b1-1521b53cb37f}"), "Filinchen", 100, 0.99m),
+              new(new Guid("{6bba457c-00ee-4dc7-8002-967c760b428c}"), "Nudossi", 60, 1.99m),
+              new(new Guid("{f833727a-63dd-483f-8ec0-4a667e707ebb}"), "Halloren", 33, 2.99m),
+              new(new Guid("{eb966e28-b9b4-4dcc-b7b1-1521b53cb37f}"), "Filinchen", 100, 0.99m),
             };
 
-            CollectionAssert.AreEqual(expectedProducts, productsFetched);
+            AssertEquivalent(expectedProducts, productsFetched);
 
             var file = "guid.xlsx";
 
@@ -2518,7 +2575,7 @@ namespace Ganss.Excel.Tests
 
             productsFetched = excel.Fetch<GuidProduct>().ToList();
 
-            CollectionAssert.AreEqual(expectedProducts, productsFetched);
+            AssertEquivalent(expectedProducts, productsFetched);
         }
 
         class ProductBase
@@ -2536,8 +2593,8 @@ namespace Ganss.Excel.Tests
         {
             var products = new List<ProductDerived>
             {
-                new ProductDerived { Name = "Name1", Number = 15 },
-                new ProductDerived { Name = "Name2", Number = 41 }
+                new() { Name = "Name1", Number = 15 },
+                new() { Name = "Name2", Number = 41 }
             };
 
             var file = "derived.xlsx";
@@ -2548,12 +2605,12 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = excel.Fetch<ProductDerived>().ToList();
 
-            Assert.AreEqual(products.Count, productsFetched.Count);
+            Assert.That(productsFetched.Count, Is.EqualTo(products.Count));
 
             for (int i = 0; i < products.Count; i++)
             {
-                Assert.AreEqual(products[i].Name, productsFetched[i].Name);
-                Assert.AreEqual(products[i].Number, productsFetched[i].Number);
+                Assert.That(productsFetched[i].Name, Is.EqualTo(products[i].Name));
+                Assert.That(productsFetched[i].Number, Is.EqualTo(products[i].Number));
             }
         }
 
@@ -2582,17 +2639,17 @@ namespace Ganss.Excel.Tests
 
             var products = new List<InterfaceProduct>
             {
-                new InterfaceProduct { Name = "Nudossi", Num = null },
-                new InterfaceProduct { Name = "Halloren", Num = null },
-                new InterfaceProduct { Name = "Filinchen", Num = null },
+                new() { Name = "Nudossi", Num = null },
+                new() { Name = "Halloren", Num = null },
+                new() { Name = "Filinchen", Num = null },
             };
 
-            Assert.AreEqual(products.Count, productsFetched.Count);
+            Assert.That(productsFetched.Count, Is.EqualTo(products.Count));
 
             for (int i = 0; i < products.Count; i++)
             {
-                Assert.AreEqual(products[i].Name, productsFetched[i].Name);
-                Assert.AreEqual(products[i].Num, productsFetched[i].Num);
+                Assert.That(productsFetched[i].Name, Is.EqualTo(products[i].Name));
+                Assert.That(productsFetched[i].Num, Is.EqualTo(products[i].Num));
             }
         }
 
@@ -2607,17 +2664,17 @@ namespace Ganss.Excel.Tests
 
             var products = new List<InterfaceProduct>
             {
-                new InterfaceProduct { Name = "Nudossi", Num = new NumberClass { Number = 60 } },
-                new InterfaceProduct { Name = "Halloren", Num = new NumberClass { Number = 33 } },
-                new InterfaceProduct { Name = "Filinchen", Num = new NumberClass { Number = 100 } },
+                new() { Name = "Nudossi", Num = new NumberClass { Number = 60 } },
+                new() { Name = "Halloren", Num = new NumberClass { Number = 33 } },
+                new() { Name = "Filinchen", Num = new NumberClass { Number = 100 } },
             };
 
-            Assert.AreEqual(products.Count, productsFetched.Count);
+            Assert.That(productsFetched.Count, Is.EqualTo(products.Count));
 
             for (int i = 0; i < products.Count; i++)
             {
-                Assert.AreEqual(products[i].Name, productsFetched[i].Name);
-                Assert.AreEqual(products[i].Num.Number, productsFetched[i].Num.Number);
+                Assert.That(productsFetched[i].Name, Is.EqualTo(products[i].Name));
+                Assert.That(productsFetched[i].Num.Number, Is.EqualTo(products[i].Num.Number));
             }
         }
 
@@ -2630,11 +2687,11 @@ namespace Ganss.Excel.Tests
 
             var products = mapper.Fetch<Product>();
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
 
@@ -2648,11 +2705,11 @@ namespace Ganss.Excel.Tests
 
             var products = mapper.Fetch<Product>();
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
             stream.Close();
         }
@@ -2667,11 +2724,11 @@ namespace Ganss.Excel.Tests
 
             var products = mapper.Fetch<Product>();
 
-            CollectionAssert.AreEqual(new List<Product>
+            AssertEquivalent(new List<Product>
             {
-                new Product { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
-                new Product { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
-                new Product { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
+                new() { Name = "Nudossi", NumberInStock = 60, Price = 1.99m, Value = "C2*D2" },
+                new() { Name = "Halloren", NumberInStock = 33, Price = 2.99m, Value = "C3*D3" },
+                new() { Name = "Filinchen", NumberInStock = 100, Price = 0.99m, Value = "C5*D5" },
             }, products);
         }
 
@@ -2695,11 +2752,11 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper("../../../xlsx/Products.xlsx");
             var products = excel.Fetch<EnumProduct>().ToList();
 
-            CollectionAssert.AreEqual(new List<EnumProduct>
+            AssertEquivalent(new List<EnumProduct>
             {
-                new EnumProduct(NameEnum.Nudossi),
-                new EnumProduct(NameEnum.Halloren),
-                new EnumProduct(NameEnum.Filinchen),
+                new(NameEnum.Nudossi),
+                new(NameEnum.Halloren),
+                new(NameEnum.Filinchen),
             }, products);
 
             var file = "enumsave.xlsx";
@@ -2708,7 +2765,17 @@ namespace Ganss.Excel.Tests
 
             var productsFetched = new ExcelMapper(file).Fetch<EnumProduct>().ToList();
 
-            CollectionAssert.AreEqual(products, productsFetched);
+            AssertEquivalent(products, productsFetched);
+        }
+
+        [Test]
+        public void EnumTestException()
+        {
+            var excel = new ExcelMapper("../../../xlsx/ProductsExceptionEnum.xlsx");
+            var exception = Assert.Throws<ExcelMapperConvertException > (() => excel.Fetch<EnumProduct>().ToList());
+
+            Assert.That(exception.Message, Is.EqualTo(@"Unable to convert ""FilinchenError"" from [L:1]:[C:0] to Ganss.Excel.Tests.Tests+NameEnum."));
+            Assert.That(exception.InnerException.Message, Is.EqualTo("Did not find a matching enum name for FilinchenError in enum type NameEnum. (Parameter 's')"));
         }
 
         private record BytesData
@@ -2724,10 +2791,10 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper();
             var datas = new List<BytesData>
             {
-                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("ABC"), TextData2 = Encoding.UTF8.GetBytes("DEF"), RowVersion = new byte[]{1, 0, 0, 0}},
-                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("GHI"), TextData2 =                          null, RowVersion = new byte[]{2, 0, 0, 0}},
-                new BytesData(){TextData1 =                          null, TextData2 = Encoding.UTF8.GetBytes("JKL"), RowVersion = new byte[]{3, 0, 0, 0}},
-                new BytesData(){TextData1 = Encoding.UTF8.GetBytes("MNO"), TextData2 = Encoding.UTF8.GetBytes("PQR"), RowVersion = null}
+                new() { TextData1 = Encoding.UTF8.GetBytes("ABC"), TextData2 = Encoding.UTF8.GetBytes("DEF"), RowVersion = [1, 0, 0, 0] },
+                new() { TextData1 = Encoding.UTF8.GetBytes("GHI"), TextData2 =                          null, RowVersion = [2, 0, 0, 0] },
+                new() { TextData1 =                          null, TextData2 = Encoding.UTF8.GetBytes("JKL"), RowVersion = [3, 0, 0, 0] },
+                new() { TextData1 = Encoding.UTF8.GetBytes("MNO"), TextData2 = Encoding.UTF8.GetBytes("PQR"), RowVersion = null }
             };
 
             var file = "bytesdata.xlsx";
@@ -2766,9 +2833,9 @@ namespace Ganss.Excel.Tests
 
             for (var index = 0; index < datas.Count; index++)
             {
-                Assert.AreEqual(datas[index].TextData1, productsFetched[index].TextData1);
-                Assert.AreEqual(datas[index].TextData2, productsFetched[index].TextData2);
-                Assert.AreEqual(datas[index].RowVersion, productsFetched[index].RowVersion);
+                Assert.That(productsFetched[index].TextData1, Is.EqualTo(datas[index].TextData1));
+                Assert.That(productsFetched[index].TextData2, Is.EqualTo(datas[index].TextData2));
+                Assert.That(productsFetched[index].RowVersion, Is.EqualTo(datas[index].RowVersion));
             }
         }
 
@@ -2787,11 +2854,11 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper("../../../xlsx/Products.xlsx");
             var products = excel.Fetch<MixedRecordProduct>().ToList();
 
-            CollectionAssert.AreEqual(new List<MixedRecordProduct>
+            AssertEquivalent(new List<MixedRecordProduct>
             {
-                new MixedRecordProduct("Nudossi") { Number = 60 },
-                new MixedRecordProduct("Halloren") { Number = 33 },
-                new MixedRecordProduct("Filinchen") { Number = 100 },
+                new("Nudossi") { Number = 60 },
+                new("Halloren") { Number = 33 },
+                new("Filinchen") { Number = 100 },
             }, products);
         }
 
@@ -2811,14 +2878,14 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper(workbook);
             var links = excel.Fetch<T>().ToList();
 
-            CollectionAssert.AreEqual(rows, links);
+            AssertEquivalent(rows, links);
 
             var sheet = workbook.GetSheetAt(0);
 
             foreach (var rownum in new[] { 1, 2 })
             {
                 var row = sheet.GetRow(rownum);
-                Assert.AreEqual(CellType.Formula, row.Cells.First().CellType);
+                Assert.That(row.Cells.First().CellType, Is.EqualTo(CellType.Formula));
             }
         }
 
@@ -2858,10 +2925,10 @@ namespace Ganss.Excel.Tests
             var excel = new ExcelMapper("../../../xlsx/numeric-header.xlsx");
             var rows = excel.Fetch<ExcelRow>().ToList();
 
-            CollectionAssert.AreEqual(new List<ExcelRow>
+            AssertEquivalent(new List<ExcelRow>
             {
-                new ExcelRow { Column1 = "value1", Column2 = "value2", Column3 = "value3" },
-                new ExcelRow { Column1 = "value4", Column2 = "value5", Column3 = "value6" },
+                new() { Column1 = "value1", Column2 = "value2", Column3 = "value3" },
+                new() { Column1 = "value4", Column2 = "value5", Column3 = "value6" },
             }, rows);
         }
 
@@ -2884,8 +2951,8 @@ namespace Ganss.Excel.Tests
             var tm = tf.Create(typeof(ChildClass));
             var ccs = new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<ChildClass>().ToList();
 
-            Assert.AreEqual(1, ccs.Count);
-            Assert.AreEqual("new", ccs[0].Text);
+            Assert.That(ccs.Count, Is.EqualTo(1));
+            Assert.That(ccs[0].Text, Is.EqualTo("new"));
         }
 
         record VirtualSaveTestRecord
@@ -2906,15 +2973,15 @@ namespace Ganss.Excel.Tests
 
             var ccs = new ExcelMapper("virtualsave.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
 
-            Assert.AreEqual(1, ccs.Count);
-            Assert.AreEqual("test", ccs[0].TextBase);
-            Assert.AreEqual("test", ccs[0].TextNew);
+            Assert.That(ccs.Count, Is.EqualTo(1));
+            Assert.That(ccs[0].TextBase, Is.EqualTo("test"));
+            Assert.That(ccs[0].TextNew, Is.EqualTo("test"));
 
             ccs = new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
 
-            Assert.AreEqual(1, ccs.Count);
-            Assert.AreEqual("base", ccs[0].TextBase);
-            Assert.AreEqual("new", ccs[0].TextNew);
+            Assert.That(ccs.Count, Is.EqualTo(1));
+            Assert.That(ccs[0].TextBase, Is.EqualTo("base"));
+            Assert.That(ccs[0].TextNew, Is.EqualTo("new"));
         }
 
         class NoInheritBase
@@ -2936,8 +3003,8 @@ namespace Ganss.Excel.Tests
             var tm = tf.Create(typeof(NoInheritChild));
             var ccs = new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<NoInheritChild>().ToList();
 
-            Assert.AreEqual(1, ccs.Count);
-            Assert.AreEqual("new", ccs[0].Text);
+            Assert.That(ccs.Count, Is.EqualTo(1));
+            Assert.That(ccs[0].Text, Is.EqualTo("new"));
         }
 
         [Test]
@@ -2950,9 +3017,9 @@ namespace Ganss.Excel.Tests
 
             var ccs = new ExcelMapper("virtualnoinheritsave.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
 
-            Assert.AreEqual(1, ccs.Count);
-            Assert.IsNull(ccs[0].TextBase);
-            Assert.AreEqual("test", ccs[0].TextNew);
+            Assert.That(ccs.Count, Is.EqualTo(1));
+            Assert.That(ccs[0].TextBase, Is.Null);
+            Assert.That(ccs[0].TextNew, Is.EqualTo("test"));
         }
 
         public record RowDef : RowDefInner
@@ -2974,11 +3041,11 @@ namespace Ganss.Excel.Tests
             mapper.Ignore<RowDef>(i => i.CustomOutput);
             var rows = mapper.Fetch<RowDef>().ToList();
 
-            CollectionAssert.AreEqual(new List<RowDef>
+            AssertEquivalent(new List<RowDef>
             {
-                new RowDef { Value = "A", Ignore = true },
-                new RowDef { Value = "B", Ignore = true },
-                new RowDef { Value = "C", Ignore = false },
+                new() { Value = "A", Ignore = true },
+                new() { Value = "B", Ignore = true },
+                new() { Value = "C", Ignore = false },
             }, rows);
         }
 
@@ -3041,9 +3108,121 @@ namespace Ganss.Excel.Tests
                 foreach (var thread in threads)
                     thread.Join();
 
-                Assert.Null(firstException);
-                Assert.AreEqual(0, failures);
+                Assert.That(firstException, Is.Null);
+                Assert.That(failures, Is.EqualTo(0));
             }
+        }
+
+        record DateTimeOffsetProduct(DateTimeOffset OfferEnd);
+
+        [Test]
+        public void DateTimeOffsetTest()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<DateTimeOffsetProduct>().ToList();
+
+            static void AssertProducts(IEnumerable<DateTimeOffsetProduct> products)
+            {
+                AssertEquivalent(new List<DateTimeOffsetProduct>
+                {
+                    new(new DateTime(1970, 01, 01)),
+                    new(new DateTime(2015, 12, 31)),
+                    new(new DateTime(1970, 01, 01)),
+                }, products);
+            }
+
+            AssertProducts(products);
+
+            var file = "DateTimeOffsetProducts.xlsx";
+
+            new ExcelMapper().Save(file, products);
+
+            var savedProducts = new ExcelMapper(file).Fetch<DateTimeOffsetProduct>().ToList();
+
+            AssertProducts(savedProducts);
+        }
+
+        record Customer(int Id, string Phone);
+
+        [Test]
+        public void ErrorTest()
+        {
+            var customers = new ExcelMapper(@"../../../xlsx/Error.xlsx").Fetch<Customer>().ToList();
+
+            AssertEquivalent(new List<Customer>
+            {
+                new(1, "3001333"),
+                new(2, null),
+                new(3, "10031"),
+            }, customers);
+        }
+
+        record DateOnlyProduct(DateOnly OfferEnd);
+
+        [Test]
+        public void DateOnlyTest()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<DateOnlyProduct>().ToList();
+
+            static void AssertProducts(IEnumerable<DateOnlyProduct> products)
+            {
+                AssertEquivalent(new List<DateOnlyProduct>
+                {
+                    new(new DateOnly(1970, 01, 01)),
+                    new(new DateOnly(2015, 12, 31)),
+                    new(new DateOnly(1970, 01, 01)),
+                }, products);
+            }
+
+            AssertProducts(products);
+
+            var file = "DateOnlyProducts.xlsx";
+
+            new ExcelMapper().Save(file, products);
+
+            var savedProducts = new ExcelMapper(file).Fetch<DateOnlyProduct>().ToList();
+
+            AssertProducts(savedProducts);
+        }
+
+        private class ProductSet
+        {
+            public string Name { get; set; }
+
+            public override bool Equals(object obj) =>
+                obj is ProductSet o
+                && o.Name == Name;
+
+            public override int GetHashCode() => HashCode.Combine(Name);
+        }
+
+        [Test]
+        public void SetMappingTest()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductSet>().ToList();
+            var excel = new ExcelMapper { TypeMapperFactory = new TypeMapperFactory() };
+
+            excel.SetMapping<ProductSet>("Name2", p => p.Name);
+            excel.Save("Name2.xlsx", products);
+
+            var products2 = new ExcelMapper("Name2.xlsx").Fetch();
+            var p0 = products2.First() as IDictionary<string, object>;
+
+            Assert.That(p0.ContainsKey("Name"), Is.False);
+        }
+
+        [Test]
+        public void SetMapping2Test()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductSet>().ToList();
+            var excel = new ExcelMapper { TypeMapperFactory = new TypeMapperFactory() };
+
+            excel.SetMapping(typeof(ProductSet), "Name2", "Name");
+            excel.Save("Name2b.xlsx", products);
+
+            var products2 = new ExcelMapper("Name2b.xlsx").Fetch();
+            var p0 = products2.First() as IDictionary<string, object>;
+
+            Assert.That(p0.ContainsKey("Name"), Is.False);
         }
     }
 }

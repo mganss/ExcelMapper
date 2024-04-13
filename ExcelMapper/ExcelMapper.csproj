@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Map POCOs to Excel files</Description>
+    <Description>An Excel to object mapper. Maps POCOs to and from Excel. Configuration via convention, attributes, or fluent methods.</Description>
     <Copyright>Copyright 2015-$([System.DateTime]::Now.Year) Michael Ganss</Copyright>
     <AssemblyTitle>ExcelMapper</AssemblyTitle>
     <AppVeyor_Build_Version Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0</AppVeyor_Build_Version>
@@ -8,15 +8,16 @@
     <FileVersion>$(AppVeyor_Build_Version).0</FileVersion>
     <PackageVersion>$(AppVeyor_Build_Version)</PackageVersion>
     <Authors>Michael Ganss</Authors>
-    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
     <AssemblyName>ExcelMapper</AssemblyName>
     <PackageId>ExcelMapper</PackageId>
     <PackageTags>npoi mapper excel xls xlsx map mapping poco orm linq</PackageTags>
     <PackageProjectUrl>https://github.com/mganss/ExcelMapper</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/mganss/ExcelMapper</RepositoryUrl>
-	  <RootNamespace>Ganss.Excel</RootNamespace>
+	<RootNamespace>Ganss.Excel</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\ExcelMapper.xml</DocumentationFile>
     <SignAssembly>true</SignAssembly>
@@ -25,12 +26,15 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="NPOI" Version="2.5.6" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" Version="6.0.6" />
+    <PackageReference Include="NPOI" Version="2.7.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

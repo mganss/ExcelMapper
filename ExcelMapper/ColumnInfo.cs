@@ -52,7 +52,7 @@ namespace Ganss.Excel
                 && !PropertyType.IsEnum
                 && PropertyType != typeof(decimal)
                 && PropertyType != typeof(string)
-                && PropertyType != typeof(DateTime)
+                && !DateTypes.Contains(PropertyType.FullName)
                 && PropertyType != typeof(Guid)
                 && PropertyType != typeof(byte[]);
         }
@@ -171,7 +171,10 @@ namespace Ganss.Excel
         /// </value>
         public bool Json { get; set; }
 
-        static readonly HashSet<Type> NumericTypes = new()
+        /// <summary>
+        /// Types that map a numeric column.
+        /// </summary>
+        protected static readonly HashSet<Type> NumericTypes = new()
         {
             typeof(decimal),
             typeof(byte), typeof(sbyte),
@@ -182,17 +185,41 @@ namespace Ganss.Excel
         };
 
         /// <summary>
+        /// Types that map to a DateTime column.
+        /// </summary>
+        protected static readonly HashSet<string> DateTypes = new()
+        {
+            typeof(DateTime).FullName,
+            typeof(DateTimeOffset).FullName,
+            "System.DateOnly"
+        };
+
+        static DateTime DateOnlyToDateTime(object date)
+        {
+            var dateOnly = date.GetType();
+            var day = (int)dateOnly.GetProperty("Day").GetValue(date);
+            var month = (int)dateOnly.GetProperty("Month").GetValue(date);
+            var year = (int)dateOnly.GetProperty("Year").GetValue(date);
+
+            return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Unspecified);
+        }
+
+        /// <summary>
         /// Generates the cell setter.
         /// </summary>
         /// <returns>The cell setter.</returns>
         protected Action<ICell, object> GenerateCellSetter()
         {
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType.FullName))
             {
                 return (c, o) =>
                 {
                     if (o == null)
                         c.SetCellValue((string)null);
+                    else if (o is DateTimeOffset dt)
+                        c.SetCellValue(dt.DateTime);
+                    else if (o.GetType().FullName == "System.DateOnly")
+                        c.SetCellValue(DateOnlyToDateTime(o));
                     else
                         c.SetCellValue((DateTime)o);
                 };
@@ -284,8 +311,10 @@ namespace Ganss.Excel
 
         private object ParseEnum(Type t, string s)
         {
-            var name = Enum.GetNames(t).FirstOrDefault(n => n.Equals(s, StringComparison.OrdinalIgnoreCase));
-            return name == null ? Activator.CreateInstance(t) : Enum.Parse(t, name);
+            var name = Array.Find(Enum.GetNames(t), n => n.Equals(s, StringComparison.OrdinalIgnoreCase));
+            return name == null
+                ? throw new ArgumentException($"Did not find a matching enum name for {s} in enum type {t.Name}.", nameof(s))
+                : Enum.Parse(t, name);
         }
 
         /// <summary>
@@ -298,16 +327,23 @@ namespace Ganss.Excel
         public virtual object GetPropertyValue(object o, object val, ICell cell)
         {
             object v;
+
             if (SetProp != null)
                 v = SetProp(o, val, cell);
-            else if (IsNullable && (val == null || (val is string s && s.Length == 0)))
+            else if (IsNullable && val == null)
                 v = null;
+            else if (val is string s && s.Length == 0)
+                v = string.Empty;
             else if (val is string g && PropertyType == typeof(Guid))
                 v = Guid.Parse(g);
             else if (val is string es && PropertyType.IsEnum)
                 v = ParseEnum(PropertyType, es);
             else if (val is string && PropertyType == typeof(byte[]))
                 v = System.Text.Encoding.UTF8.GetBytes(val as string);
+            else if (val is DateTime d && PropertyType == typeof(DateTimeOffset))
+                v = new DateTimeOffset(d);
+            else if (val is DateTime && PropertyType.FullName == "System.DateOnly")
+                v = PropertyType.GetMethod("FromDateTime").Invoke(null, new object[] { val });
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 
@@ -467,7 +503,7 @@ namespace Ganss.Excel
             Property = propertyInfo;
             Directions = direction;
             defaultCellSetter = GenerateCellSetter();
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType.FullName))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
 
@@ -496,7 +532,7 @@ namespace Ganss.Excel
         {
             SetPropertyType(newType);
             defaultCellSetter = GenerateCellSetter();
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType.FullName))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
             else
             {
@@ -537,7 +573,7 @@ namespace Ganss.Excel
             Name = name;
             SetPropertyType(t);
             defaultCellSetter = GenerateCellSetter();
-            if (PropertyType == typeof(DateTime))
+            if (DateTypes.Contains(PropertyType.FullName))
                 BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
 

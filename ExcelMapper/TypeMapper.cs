@@ -34,7 +34,7 @@ namespace Ganss.Excel
         /// <value>
         /// The dictionary of columns by index.
         /// </value>
-        public Dictionary<int, List<ColumnInfo>> ColumnsByIndex { get; set; } = new Dictionary<int, List<ColumnInfo>>();
+        public Dictionary<int, List<ColumnInfo>> ColumnsByIndex { get; set; } = [];
 
         internal Func<string, string> NormalizeName { get; set; }
 
@@ -78,10 +78,10 @@ namespace Ganss.Excel
                 var name = useContentAsName ? col.ToString() : ExcelMapper.IndexToLetter(index + 1);
                 var columnInfo = new DynamicColumnInfo(index, name);
 
-                typeMapper.ColumnsByIndex.Add(index, new List<ColumnInfo> { columnInfo });
+                typeMapper.ColumnsByIndex.Add(index, [columnInfo]);
 
                 if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
-                    typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
+                    typeMapper.ColumnsByName.Add(name, [columnInfo]);
                 else
                     columnInfos.Add(columnInfo);
             }
@@ -123,10 +123,10 @@ namespace Ganss.Excel
 
                     var columnInfo = new DynamicColumnInfo(prop.Key, prop.Value != null ? prop.Value.GetType().ConvertToNullableType() : typeof(string));
 
-                    typeMapper.ColumnsByIndex.Add(ix, new List<ColumnInfo> { columnInfo });
+                    typeMapper.ColumnsByIndex.Add(ix, [columnInfo]);
 
                     if (!typeMapper.ColumnsByName.TryGetValue(name, out var columnInfos))
-                        typeMapper.ColumnsByName.Add(name, new List<ColumnInfo> { columnInfo });
+                        typeMapper.ColumnsByName.Add(name, [columnInfo]);
                     else
                         columnInfos.Add(columnInfo);
                 }
@@ -145,7 +145,7 @@ namespace Ganss.Excel
         {
             var eo = new ExpandoObject();
             var expando = (IDictionary<string, object>)eo;
-            var map = ColumnsByName.ToDictionary(c => c.Key, c => ColumnsByIndex.First(ci => ci.Value.First() == c.Value.First()).Key);
+            var map = ColumnsByName.ToDictionary(c => c.Key, c => ColumnsByIndex.First(ci => ci.Value[0] == c.Value[0]).Key);
 
             expando[IndexMapPropertyName] = map;
 
@@ -166,67 +166,64 @@ namespace Ganss.Excel
         {
             var props = Type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
-            foreach (var prop in props)
+            foreach (var prop in props.Where(p => Attribute.GetCustomAttribute(p, typeof(IgnoreAttribute)) is not IgnoreAttribute))
             {
-                if (!(Attribute.GetCustomAttribute(prop, typeof(IgnoreAttribute)) is IgnoreAttribute))
+                var ci = new ColumnInfo(prop);
+
+                // make sure inherited attributes come before attributes defined on the type itself
+                // so the latter ones can overwrite the inherited ones in the dictionary below
+                // (see #192)
+                var selfAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: false).Cast<ColumnAttribute>();
+                var inheritedAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: true)
+                    .Cast<ColumnAttribute>()
+                    .Where(c => c.Inherit)
+                    .Except(selfAttribs);
+                var attribs = inheritedAttribs.Concat(selfAttribs);
+
+                if (attribs.Any())
                 {
-                    var ci = new ColumnInfo(prop);
-
-                    // make sure inherited attributes come before attributes defined on the type itself
-                    // so the latter ones can overwrite the inherited ones in the dictionary below
-                    // (see #192)
-                    var selfAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: false).Cast<ColumnAttribute>();
-                    var inheritedAttribs = Attribute.GetCustomAttributes(prop, typeof(ColumnAttribute), inherit: true)
-                        .Cast<ColumnAttribute>()
-                        .Where(c => c.Inherit)
-                        .Except(selfAttribs);
-                    var attribs = inheritedAttribs.Concat(selfAttribs);
-
-                    if (attribs.Any())
+                    foreach (var columnAttribute in attribs)
                     {
-                        foreach (var columnAttribute in attribs)
+                        ci = new ColumnInfo(prop);
+                        if (!string.IsNullOrEmpty(columnAttribute.Name))
                         {
-                            ci = new ColumnInfo(prop);
-                            if (!string.IsNullOrEmpty(columnAttribute.Name))
-                            {
-                                if (!ColumnsByName.ContainsKey(columnAttribute.Name))
-                                    ColumnsByName.Add(columnAttribute.Name, new List<ColumnInfo>());
+                            if (!ColumnsByName.ContainsKey(columnAttribute.Name))
+                                ColumnsByName.Add(columnAttribute.Name, []);
 
-                                ColumnsByName[columnAttribute.Name].Add(ci);
-                            }
-                            else if (!ColumnsByName.ContainsKey(prop.Name))
-                                ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
-
-                            if (columnAttribute.Index > 0)
-                            {
-                                var idx = columnAttribute.Index - 1;
-                                if (!ColumnsByIndex.ContainsKey(idx))
-                                    ColumnsByIndex.Add(idx, new List<ColumnInfo>());
-
-                                ColumnsByIndex[idx].Add(ci);
-                            }
-
-                            ci.Directions = columnAttribute.Directions;
+                            ColumnsByName[columnAttribute.Name].Add(ci);
                         }
+                        else if (!ColumnsByName.ContainsKey(prop.Name))
+                            ColumnsByName.Add(prop.Name, [ci]);
+
+                        if (columnAttribute.Index > 0)
+                        {
+                            var idx = columnAttribute.Index - 1;
+                            if (!ColumnsByIndex.ContainsKey(idx))
+                                ColumnsByIndex.Add(idx, []);
+
+                            ColumnsByIndex[idx].Add(ci);
+                        }
+
+                        ci.Directions = columnAttribute.Directions;
                     }
-                    else if (!ColumnsByName.ContainsKey(prop.Name))
-                        ColumnsByName.Add(prop.Name, new List<ColumnInfo>() { ci });
-
-                    if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
-                    {
-                        ci.BuiltinFormat = dataFormatAttribute.BuiltinFormat;
-                        ci.CustomFormat = dataFormatAttribute.CustomFormat;
-                    }
-
-                    if (Attribute.GetCustomAttribute(prop, typeof(FormulaResultAttribute)) is FormulaResultAttribute)
-                        ci.FormulaResult = true;
-
-                    if (Attribute.GetCustomAttribute(prop, typeof(FormulaAttribute)) is FormulaAttribute)
-                        ci.Formula = true;
-
-                    if (Attribute.GetCustomAttribute(prop, typeof(JsonAttribute)) is JsonAttribute)
-                        ci.Json = true;
                 }
+                else if (!ColumnsByName.ContainsKey(prop.Name))
+                    ColumnsByName.Add(prop.Name, [ci]);
+
+                if (Attribute.GetCustomAttribute(prop, typeof(DataFormatAttribute)) is DataFormatAttribute dataFormatAttribute)
+                {
+                    ci.BuiltinFormat = dataFormatAttribute.BuiltinFormat;
+                    ci.CustomFormat = dataFormatAttribute.CustomFormat;
+                }
+
+                if (Attribute.GetCustomAttribute(prop, typeof(FormulaResultAttribute)) is FormulaResultAttribute)
+                    ci.FormulaResult = true;
+
+                if (Attribute.GetCustomAttribute(prop, typeof(FormulaAttribute)) is FormulaAttribute)
+                    ci.Formula = true;
+
+                if (Attribute.GetCustomAttribute(prop, typeof(JsonAttribute)) is JsonAttribute)
+                    ci.Json = true;
             }
 
             var hasDefaultConstructor = Type.IsValueType || Type.GetConstructor(Type.EmptyTypes) != null;
@@ -239,7 +236,7 @@ namespace Ganss.Excel
                 if (Constructor != null)
                 {
                     ConstructorParams = Constructor.GetParameters()
-                        .Select((p, i) => (Param: p, Index: i, HasProp: props.Any(r => string.Equals(r.Name, p.Name, StringComparison.OrdinalIgnoreCase))))
+                        .Select((p, i) => (Param: p, Index: i, HasProp: Array.Exists(props, r => string.Equals(r.Name, p.Name, StringComparison.OrdinalIgnoreCase))))
                         .Where(p => p.HasProp)
                         .ToDictionary(p => p.Param.Name, p => p.Param, StringComparer.OrdinalIgnoreCase);
                 }
