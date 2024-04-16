@@ -1671,7 +1671,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(t);
             var prop = t.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 
-            foreach (var ci in typeMapper.ColumnsByName.Values.Where(c => c.Any(i => i.Property == prop)))
+            foreach (var ci in typeMapper.ColumnsByName.Values.Where(c => c.Exists(i => i.Property == prop)))
                 ci.RemoveAll(i => i.Property == prop);
 
             var columnInfo = AddMapping(t, columnName, propertyName);
@@ -1690,7 +1690,7 @@ namespace Ganss.Excel
             var typeMapper = TypeMapperFactory.Create(typeof(T));
             var prop = GetPropertyInfo(propertyExpression);
 
-            foreach (var ci in typeMapper.ColumnsByName.Values.Where(c => c.Any(i => i.Property == prop)))
+            foreach (var ci in typeMapper.ColumnsByName.Values.Where(c => c.Exists(i => i.Property == prop)))
                 ci.RemoveAll(i => i.Property == prop);
 
             var columnInfo = AddMapping(columnName, propertyExpression);
