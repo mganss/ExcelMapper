@@ -51,8 +51,7 @@ namespace Ganss.Excel
                 PropertyType = propertyType;
             }
 
-            isSubType = PropertyType != null
-                && !PropertyType.IsPrimitive
+            isSubType = !PropertyType.IsPrimitive
                 && !PropertyType.IsEnum
                 && PropertyType != typeof(decimal)
                 && PropertyType != typeof(string)

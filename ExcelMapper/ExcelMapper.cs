@@ -686,7 +686,8 @@ namespace Ganss.Excel
         public async Task<IEnumerable<dynamic>> FetchAsync(string file, string sheetName, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, sheetName, valueParser);
+            ms.Position = 0;
+            return await FetchAsync(ms, sheetName, valueParser);
         }
 
         /// <summary>
@@ -700,7 +701,8 @@ namespace Ganss.Excel
         public async Task<IEnumerable> FetchAsync(string file, Type type, string sheetName, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, type, sheetName, valueParser);
+            ms.Position = 0;
+            return await FetchAsync(ms, type, sheetName, valueParser);
         }
 
         /// <summary>
@@ -714,7 +716,8 @@ namespace Ganss.Excel
         public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, typeof(T), sheetIndex, valueParser).OfType<T>();
+            ms.Position = 0;
+            return (await FetchAsync(ms, typeof(T), sheetIndex, valueParser)).OfType<T>();
         }
 
         /// <summary>
@@ -727,7 +730,8 @@ namespace Ganss.Excel
         public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, sheetIndex, valueParser);
+            ms.Position = 0;
+            return await FetchAsync(ms, sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -741,7 +745,8 @@ namespace Ganss.Excel
         public async Task<IEnumerable> FetchAsync(string file, Type type, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
             using var ms = await ReadAsync(file);
-            return Fetch(ms, type, sheetIndex, valueParser);
+            ms.Position = 0;
+            return await FetchAsync(ms, type, sheetIndex, valueParser);
         }
 
         /// <summary>
@@ -754,8 +759,7 @@ namespace Ganss.Excel
         /// <returns>The objects read from the Excel file.</returns>
         public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
         {
-            using var ms = await ReadAsync(stream);
-            return Fetch(ms, typeof(T), sheetName, valueParser).OfType<T>();
+            return (await FetchAsync(stream, typeof(T), sheetName, valueParser)).OfType<T>();
         }
 
         /// <summary>
@@ -795,8 +799,7 @@ namespace Ganss.Excel
         /// <returns>The objects read from the Excel file.</returns>
         public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0, Func<string, object, object> valueParser = null)
         {
-            using var ms = await ReadAsync(stream);
-            return Fetch(ms, typeof(T), sheetIndex, valueParser).OfType<T>();
+            return (await FetchAsync(stream, typeof(T), sheetIndex, valueParser)).OfType<T>();
         }
 
         /// <summary>
@@ -1153,7 +1156,7 @@ namespace Ganss.Excel
         public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var ms = new MemoryStream();
-            Save(ms, objects, sheetName, xlsx, valueConverter);
+            await SaveAsync(ms, objects, sheetName, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -1169,7 +1172,7 @@ namespace Ganss.Excel
         public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var ms = new MemoryStream();
-            Save(ms, objects, sheetIndex, xlsx, valueConverter);
+            await SaveAsync(ms, objects, sheetIndex, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -1215,7 +1218,7 @@ namespace Ganss.Excel
         public async Task SaveAsync(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var ms = new MemoryStream();
-            Save(ms, sheetName, xlsx, valueConverter);
+            await SaveAsync(ms, sheetName, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
@@ -1229,7 +1232,7 @@ namespace Ganss.Excel
         public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
             using var ms = new MemoryStream();
-            Save(ms, sheetIndex, xlsx, valueConverter);
+            await SaveAsync(ms, sheetIndex, xlsx, valueConverter);
             await SaveAsync(file, ms.ToArray());
         }
 
