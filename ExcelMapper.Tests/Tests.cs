@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using NPOI.SS.Formula.Functions;
 using System.Threading;
 using NUnit.Framework.Internal;
+using System.Security.Cryptography;
 
 namespace Ganss.Excel.Tests
 {
@@ -2730,7 +2731,7 @@ namespace Ganss.Excel.Tests
         public void EnumTestException()
         {
             var excel = new ExcelMapper("../../../xlsx/ProductsExceptionEnum.xlsx");
-            var exception = Assert.Throws<ExcelMapperConvertException > (() => excel.Fetch<EnumProduct>().ToList());
+            var exception = Assert.Throws<ExcelMapperConvertException>(() => excel.Fetch<EnumProduct>().ToList());
 
             Assert.That(exception.Message, Is.EqualTo(@"Unable to convert ""FilinchenError"" from [L:1]:[C:0] to Ganss.Excel.Tests.Tests+NameEnum."));
             Assert.That(exception.InnerException.Message, Is.EqualTo("Did not find a matching enum name for FilinchenError in enum type NameEnum. (Parameter 's')"));
@@ -3181,6 +3182,33 @@ namespace Ganss.Excel.Tests
             var p0 = products2.First() as IDictionary<string, object>;
 
             Assert.That(p0.ContainsKey("Name"), Is.False);
+        }
+
+        record Stato
+        {
+            [Column(1, "stato")]
+            public string A1 { get; set; }
+            [Column(2, "stato2")]
+            public string A2 { get; set; }
+            [Column(3, "stato")]
+            public string A3 { get; set; }
+        }
+
+        [Test]
+        public void StatoTest()
+        {
+            var excel = new ExcelMapper {  CreateMissingHeaders = true, HeaderRow = true };
+
+            var statos = new Stato[]
+            {
+                new() { A1 = "v1", A2 = "v2", A3 = "v3" },
+            };
+
+            excel.Save("stato.xlsx", statos);
+
+            var statos2 = new ExcelMapper("stato.xlsx").Fetch<Stato>().ToList();
+
+            AssertEquivalent(statos, statos2);
         }
     }
 }

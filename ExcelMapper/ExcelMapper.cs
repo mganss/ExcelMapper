@@ -1433,26 +1433,39 @@ namespace Ganss.Excel
                 if (noSubTypeColumns.Any())
                 {
                     var columnIndexes = typeColumnsByIndex.Where(c =>
-                        c.Value.Exists(v => v.Directions != MappingDirections.ExcelToObject && noSubTypeColumns.Exists(n => n.Name == v.Name)))
-                        .Select(c => c.Key);
+                            c.Value.Exists(v => v.Directions != MappingDirections.ExcelToObject && noSubTypeColumns.Exists(n => n == v)))
+                        .Select(c => c.Key)
+                        .ToList();
 
-                    if (columnIndexes.Any())
+                    if (!columnIndexes.Any())
                     {
-                        columnIndex = columnIndexes.First();
+                        columnIndexes = typeColumnsByIndex.Where(c =>
+                            c.Value.Exists(v => v.Directions != MappingDirections.ExcelToObject && noSubTypeColumns.Exists(n => n.Name == v.Name)))
+                        .Select(c => c.Key)
+                        .ToList();
                     }
-                    else
+
+                    if (!columnIndexes.Any())
                     {
                         if (!columnsByIndex.TryGetValue(columnIndex, out var columnInfos))
                             columnsByIndex[columnIndex] = noSubTypeColumns;
                         else
                             columnInfos.AddRange(noSubTypeColumns);
+
+                        columnIndexes = [columnIndex];
                     }
 
-                    var cell = headerRow.GetCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    foreach (var ix in columnIndexes)
+                    {
+                        var cell = headerRow.GetCell(ix, MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
-                    cell.SetCellValue(columns.Key);
+                        cell.SetCellValue(columns.Key);
+                    }
 
-                    columnIndex++;
+                    var nextIndex = columnIndexes.Max() + 1;
+
+                    if (nextIndex > columnIndex)
+                        columnIndex = nextIndex;
                 }
 
                 if (!IgnoreNestedTypes)

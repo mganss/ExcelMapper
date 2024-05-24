@@ -178,25 +178,25 @@ namespace Ganss.Excel
         /// <summary>
         /// Types that map a numeric column.
         /// </summary>
-        protected static readonly HashSet<Type> NumericTypes = new()
-        {
+        protected static readonly HashSet<Type> NumericTypes =
+        [
             typeof(decimal),
             typeof(byte), typeof(sbyte),
             typeof(short), typeof(ushort),
             typeof(int), typeof(uint),
             typeof(long), typeof(ulong),
             typeof(float), typeof(double)
-        };
+        ];
 
         /// <summary>
         /// Types that map to a DateTime column.
         /// </summary>
-        protected static readonly HashSet<string> DateTypes = new()
-        {
+        protected static readonly HashSet<string> DateTypes =
+        [
             typeof(DateTime).FullName,
             typeof(DateTimeOffset).FullName,
             "System.DateOnly"
-        };
+        ];
 
         static DateTime DateOnlyToDateTime(object date)
         {
@@ -347,7 +347,7 @@ namespace Ganss.Excel
             else if (val is DateTime d && PropertyType == typeof(DateTimeOffset))
                 v = new DateTimeOffset(d);
             else if (val is DateTime && PropertyType.FullName == "System.DateOnly")
-                v = PropertyType.GetMethod("FromDateTime").Invoke(null, new object[] { val });
+                v = PropertyType.GetMethod("FromDateTime").Invoke(null, [val]);
             else
                 v = Convert.ChangeType(val, PropertyType, CultureInfo.InvariantCulture);
 
