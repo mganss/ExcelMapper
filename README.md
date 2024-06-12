@@ -256,7 +256,7 @@ If the header cell values are not uniform, perhaps because they contain varying 
 values before mapping to property names. This can be done globally or for specific classes only.
 
 ```c#
-excel.NormalizeUsing(n => Regex.Replace(n, "\w", ""));
+excel.NormalizeUsing(n => Regex.Replace(n, "\s", ""));
 ```
 
 This removes all whitespace so that columns with the string " First Name " map to a property named `FirstName`.
