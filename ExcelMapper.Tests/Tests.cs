@@ -3197,7 +3197,7 @@ namespace Ganss.Excel.Tests
         [Test]
         public void StatoTest()
         {
-            var excel = new ExcelMapper {  CreateMissingHeaders = true, HeaderRow = true };
+            var excel = new ExcelMapper { CreateMissingHeaders = true, HeaderRow = true };
 
             var statos = new Stato[]
             {
@@ -3209,6 +3209,23 @@ namespace Ganss.Excel.Tests
             var statos2 = new ExcelMapper("stato.xlsx").Fetch<Stato>().ToList();
 
             AssertEquivalent(statos, statos2);
+        }
+
+        record IdNumber
+        {
+            [DataFormat(1)]
+            public string IdNo { get; set; }
+        }
+
+        [Test]
+        public void FormatTest()
+        {
+            var rows = new ExcelMapper(@"../../../xlsx/Format.xlsx").Fetch<IdNumber>().ToList();
+            AssertEquivalent(rows, new[]
+            {
+                new IdNumber { IdNo = "8005065137086" },
+                new IdNumber { IdNo = "8402155792088" }
+            });
         }
     }
 }

@@ -1495,7 +1495,18 @@ namespace Ganss.Excel
                 case CellType.Numeric:
                     if (!formulaResult && targetColumn.PropertyType == typeof(string))
                     {
-                        return DataFormatter.FormatCellValue(cell);
+                        if (targetColumn.BuiltinFormat != 0 || targetColumn.CustomFormat != null)
+                        {
+                            var formatIndex = targetColumn.BuiltinFormat != 0 ? targetColumn.BuiltinFormat : cell.CellStyle.DataFormat;
+                            var formatString = targetColumn.BuiltinFormat != 0 ? BuiltinFormats.GetBuiltinFormat(targetColumn.BuiltinFormat)
+                                : targetColumn.CustomFormat ?? cell.CellStyle.GetDataFormatString();
+                            var formattedValue = DataFormatter.FormatRawCellContents(cell.NumericCellValue, formatIndex, formatString);
+                            return formattedValue;
+                        }
+                        else
+                        {
+                            return DataFormatter.FormatCellValue(cell);
+                        }
                     }
                     else if (cell.NumericCellValue <= maxDate && DateUtil.IsCellDateFormatted(cell))
                     {
