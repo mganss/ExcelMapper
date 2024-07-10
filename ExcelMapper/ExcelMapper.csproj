@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>An Excel to object mapper. Maps POCOs to and from Excel. Configuration via convention, attributes, or fluent methods.</Description>
     <Copyright>Copyright 2015-$([System.DateTime]::Now.Year) Michael Ganss</Copyright>
@@ -30,9 +30,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="NPOI" Version="2.7.0" />
+    <PackageReference Include="NPOI" Version="2.7.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="" />
