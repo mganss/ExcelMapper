@@ -3227,5 +3227,20 @@ namespace Ganss.Excel.Tests
                 new IdNumber { IdNo = "8402155792088" }
             });
         }
+
+        record ObjectProduct
+        {
+            public object Name { get; set; }
+            public object Number { get; set; }
+        }
+
+        [Test]
+        public void ObjectTest()
+        {
+            var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ObjectProduct>().ToList();
+            Assert.That(products.Count, Is.EqualTo(3));
+            Assert.That(products[0].Name, Is.EqualTo("Nudossi"));
+            Assert.That(products[0].Number, Is.EqualTo(60));
+        }
     }
 }

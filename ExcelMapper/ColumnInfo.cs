@@ -57,7 +57,8 @@ namespace Ganss.Excel
                 && PropertyType != typeof(string)
                 && !DateTypes.Contains(PropertyType.FullName)
                 && PropertyType != typeof(Guid)
-                && PropertyType != typeof(byte[]);
+                && PropertyType != typeof(byte[])
+                && PropertyType != typeof(object);
         }
 
         /// <summary>
