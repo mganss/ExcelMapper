@@ -1139,7 +1139,7 @@ namespace Ganss.Excel
                 ci.ChangeSetterType(newType);
             }
             ci.SetCellStyle(cell);
-            ci.SetCell(cell, val);
+            ci.SetCell(objInstance, cell, val);
             if (oldType != null)
                 ci.ChangeSetterType(oldType);
         }
