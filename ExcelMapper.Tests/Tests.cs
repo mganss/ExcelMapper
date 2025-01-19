@@ -3242,5 +3242,32 @@ namespace Ganss.Excel.Tests
             Assert.That(products[0].Name, Is.EqualTo("Nudossi"));
             Assert.That(products[0].Number, Is.EqualTo(60));
         }
+
+        record DateProduct(DateTime Date);
+
+        [Test]
+        public void DateFormatTest()
+        {
+            var excel = new ExcelMapper(@"../../../xlsx/dateformat.xlsx");
+            var products = excel.Fetch<DateProduct>().ToList();
+            Assert.That(products.Count, Is.EqualTo(1));
+            Assert.That(products[0].Date, Is.EqualTo(new DateTime(2024, 2, 1)));
+            var fn = "dateformat2.xlsx";
+            excel.Save(fn, new[]
+            {
+                new DateProduct(new DateTime(2021, 1, 1)),
+                new DateProduct(new DateTime(2022, 2, 1)),
+            });
+            var wb = WorkbookFactory.Create(fn);
+            var c0 = wb.GetSheetAt(0).GetRow(0).GetCell(0);
+            var c1 = wb.GetSheetAt(0).GetRow(1).GetCell(0);
+            var c2 = wb.GetSheetAt(0).GetRow(2).GetCell(0);
+            Assert.That(c0.StringCellValue, Is.EqualTo("Date"));
+            Assert.That(((XSSFColor)c0.CellStyle.FillBackgroundColorColor).ARGBHex, Is.EqualTo("FF969696"));
+            Assert.That(c1.DateCellValue, Is.EqualTo(new DateTime(2021, 1, 1)));
+            Assert.That(c2.DateCellValue, Is.EqualTo(new DateTime(2022, 2, 1)));
+            Assert.That(c1.CellStyle.DataFormat, Is.EqualTo(0xa6));
+            Assert.That(c2.CellStyle.DataFormat, Is.EqualTo(0xa6));
+        }
     }
 }

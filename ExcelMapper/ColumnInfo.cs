@@ -198,6 +198,11 @@ namespace Ganss.Excel
             "System.DateOnly"
         ];
 
+        /// <summary>
+        /// Gets a value indicating whether the property maps to a DateTime column.
+        /// </summary>
+        public bool IsDateType => DateTypes.Contains(PropertyType.FullName);
+
         static DateTime DateOnlyToDateTime(object date)
         {
             var dateOnly = date.GetType();
@@ -277,39 +282,6 @@ namespace Ganss.Excel
                     else
                         c.SetCellValue(JsonSerializer.Serialize(o));
                 };
-            }
-        }
-
-        /// <summary>Sets the column style.</summary>
-        /// <param name="sheet">The sheet.</param>
-        /// <param name="columnIndex">Index of the column.</param>
-        public void SetColumnStyle(ISheet sheet, int columnIndex)
-        {
-            if (BuiltinFormat != 0 || CustomFormat != null)
-            {
-                var wb = sheet.Workbook;
-                var cs = wb.CreateCellStyle();
-                if (CustomFormat != null)
-                    cs.DataFormat = wb.CreateDataFormat().GetFormat(CustomFormat);
-                else
-                    cs.DataFormat = BuiltinFormat;
-                sheet.SetDefaultColumnStyle(columnIndex, cs);
-            }
-        }
-
-        /// <summary>Sets the cell style.</summary>
-        /// <param name="c">The cell.</param>
-        public void SetCellStyle(ICell c)
-        {
-            if (BuiltinFormat != 0 || CustomFormat != null)
-            {
-                c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
-                //When it is a dynamic type, after initialization, if the first row is null and the dataformat is not set, the dataformat needs to be repaired again
-                if (c.CellStyle.DataFormat == 0)
-                {
-                    SetColumnStyle(c.Sheet, c.ColumnIndex);
-                    c.CellStyle = c.Sheet.GetColumnStyle(c.ColumnIndex);
-                }
             }
         }
 
@@ -473,8 +445,6 @@ namespace Ganss.Excel
             Property = propertyInfo;
             Directions = direction;
             defaultCellSetter = GenerateCellSetter();
-            if (DateTypes.Contains(PropertyType.FullName))
-                BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
 
         /// <summary>
@@ -502,12 +472,6 @@ namespace Ganss.Excel
         {
             SetPropertyType(newType);
             defaultCellSetter = GenerateCellSetter();
-            if (DateTypes.Contains(PropertyType.FullName))
-                BuiltinFormat = 0x16; // "m/d/yy h:mm"
-            else
-            {
-                BuiltinFormat = 0;
-            }
         }
     }
 
@@ -543,8 +507,6 @@ namespace Ganss.Excel
             Name = name;
             SetPropertyType(t);
             defaultCellSetter = GenerateCellSetter();
-            if (DateTypes.Contains(PropertyType.FullName))
-                BuiltinFormat = 0x16; // "m/d/yy h:mm"
         }
 
         /// <summary>

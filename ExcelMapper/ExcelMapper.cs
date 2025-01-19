@@ -122,6 +122,16 @@ namespace Ganss.Excel
         public DataFormatter DataFormatter { get; set; } = new DataFormatter(CultureInfo.InvariantCulture);
 
         /// <summary>
+        /// Gets or sets the default date format. The initial value is 0x16 (m/d/yy h:mm).
+        /// </summary>
+        public static short DefaultDateFormat = 0x16;
+
+        /// <summary>
+        /// Gets or sets the date format. Default is <see cref="DefaultDateFormat"/>.
+        /// </summary>
+        public short DateFormat { get; set; } = DefaultDateFormat;
+
+        /// <summary>
         /// Occurs before saving and allows the workbook to be manipulated.
         /// </summary>
         public event EventHandler<SavingEventArgs> Saving;
@@ -136,7 +146,22 @@ namespace Ganss.Excel
 
         readonly Dictionary<Type, Func<object>> ObjectFactories = [];
         Dictionary<string, Dictionary<int, object>> Objects { get; set; } = [];
-        IWorkbook Workbook { get; set; }
+
+        Dictionary<short, ICellStyle> CellStyles { get; set; } = [];
+        IWorkbook workbook;
+        IWorkbook Workbook
+        {
+            get => workbook;
+            
+            set
+            {
+                workbook = value;
+                CellStyles.Clear();
+                WorkbookCreated = false;
+            }
+        }
+
+        bool WorkbookCreated { get; set; }
 
         static readonly TypeMapperFactory DefaultTypeMapperFactory = new();
 
@@ -207,6 +232,15 @@ namespace Ganss.Excel
         public void CreateInstance<T>(Func<T> factory)
         {
             ObjectFactories[typeof (T)] = () => factory();
+        }
+
+        void CreateWorkbook(bool xlsx)
+        {
+            if (Workbook == null)
+            {
+                Workbook = xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+                WorkbookCreated = true;
+            }
         }
 
         /// <summary>
@@ -935,7 +969,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            CreateWorkbook(xlsx);
             var sheet = Workbook.GetSheet(sheetName);
             sheet ??= Workbook.CreateSheet(sheetName);
             Save(stream, sheet, objects, valueConverter);
@@ -952,7 +986,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            CreateWorkbook(xlsx);
             ISheet sheet;
             if (Workbook.NumberOfSheets > sheetIndex)
                 sheet = Workbook.GetSheetAt(sheetIndex);
@@ -996,7 +1030,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            CreateWorkbook(xlsx);
             var sheet = Workbook.GetSheet(sheetName);
             sheet ??= Workbook.CreateSheet(sheetName);
             Save(stream, sheet, valueConverter);
@@ -1011,7 +1045,7 @@ namespace Ganss.Excel
         /// <param name="valueConverter">converter receiving property name and value</param>
         public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
         {
-            Workbook ??= xlsx ? (IWorkbook)new XSSFWorkbook() : (IWorkbook)new HSSFWorkbook();
+            CreateWorkbook(xlsx);
             var sheet = Workbook.GetSheetAt(sheetIndex);
             sheet ??= Workbook.CreateSheet();
             Save(stream, sheet, valueConverter);
@@ -1027,8 +1061,6 @@ namespace Ganss.Excel
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             GetColumns(sheet, typeMapper, columnsByIndex);
-
-            SetColumnStyles(sheet, columnsByIndex);
 
             foreach (var o in objects)
             {
@@ -1055,8 +1087,6 @@ namespace Ganss.Excel
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             GetColumns(sheet, typeMapper, columnsByIndex);
-
-            SetColumnStyles(sheet, columnsByIndex);
 
             foreach (var o in objects)
             {
@@ -1098,13 +1128,20 @@ namespace Ganss.Excel
 
             foreach (var col in columnsByIndex)
             {
-                var cell = row.GetCell(col.Key, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-
-                foreach (var ci in col.Value.Where(c => (c is DynamicColumnInfo)
+                var ci = col.Value.Where(c => (c is DynamicColumnInfo)
                     || (c.Directions.HasFlag(MappingDirections.ObjectToExcel)
-                        && (c.Property?.DeclaringType.IsAssignableFrom(typeMapper.Type) == true))))
+                        && (c.Property?.DeclaringType.IsAssignableFrom(typeMapper.Type) == true)))
+                    .FirstOrDefault();
+
+                if (ci != null)
                 {
-                    SetCell(valueConverter, o, cell, ci);
+                    var cell = row.GetCell(col.Key);
+                    var cellExists = cell != null;
+
+                    if (!cellExists)
+                        cell = row.CreateCell(col.Key);
+
+                    SetCell(valueConverter, o, cell, ci, cellExists);
                 }
             }
 
@@ -1123,7 +1160,49 @@ namespace Ganss.Excel
             }
         }
 
-        private static void SetCell<T>(Func<string, object, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci)
+        private void SetCellStyle(ICell cell, ColumnInfo ci, bool cellExisted)
+        {
+            void SetDataFormat(short df)
+            {
+                if (!CellStyles.TryGetValue(df, out var style))
+                {
+                    style = cell.Sheet.Workbook.CreateCellStyle();
+                    style.DataFormat = df;
+                    CellStyles[df] = style;
+                }
+
+                cell.CellStyle = style;
+            }
+
+            if (ci.BuiltinFormat != 0 || ci.CustomFormat != null)
+            {
+                var df = ci.CustomFormat != null ? cell.Sheet.Workbook.CreateDataFormat().GetFormat(ci.CustomFormat) : ci.BuiltinFormat;
+                SetDataFormat(df);
+                return;
+            }
+            else if (!WorkbookCreated && !cellExisted)
+            {
+                for (var r = cell.RowIndex - 1; r >= 0; r--)
+                {
+                    if (!HeaderRow || r != HeaderRowNumber)
+                    {
+                        var c = cell.Sheet.GetRow(r)?.GetCell(cell.ColumnIndex);
+                        if (c != null)
+                        {
+                            cell.CellStyle = c.CellStyle;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (!cellExisted && ci.IsDateType && DateFormat != 0)
+            {
+                SetDataFormat(DateFormat);
+            }
+        }
+
+        private void SetCell<T>(Func<string, object, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci, bool cellExisted)
         {
             Type oldType = null;
             object val = ci.GetProperty(objInstance);
@@ -1131,14 +1210,14 @@ namespace Ganss.Excel
             {
                 val = valueConverter(ci.Name, val);
             }
-            //When the value is a dynamic type or has a specified value conversion function, the type may be inconsistent, and the type needs to be changed
+            // When the value is a dynamic type or has a specified value conversion function, the type may be inconsistent, and the type needs to be changed
             var newType = val?.GetType() ?? ci.PropertyType;
             if (newType != ci.PropertyType)
             {
                 oldType = ci.PropertyType;
                 ci.ChangeSetterType(newType);
             }
-            ci.SetCellStyle(cell);
+            SetCellStyle(cell, ci, cellExisted);
             ci.SetCell(cell, val);
             if (oldType != null)
                 ci.ChangeSetterType(oldType);
@@ -1274,13 +1353,6 @@ namespace Ganss.Excel
         {
             var buf = ms.ToArray();
             await stream.WriteAsync(buf, 0, buf.Length);
-        }
-
-        static void SetColumnStyles(ISheet sheet, Dictionary<int, List<ColumnInfo>> columnsByIndex)
-        {
-            foreach (var col in columnsByIndex)
-                col.Value.Where(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel))
-                    .ToList().ForEach(ci => ci.SetColumnStyle(sheet, col.Key));
         }
 
         void GetColumns(ISheet sheet, TypeMapper typeMapper, Dictionary<int, List<ColumnInfo>> columnsByIndex)
