@@ -3259,10 +3259,10 @@ public class Tests
         var c1 = wb.GetSheetAt(0).GetRow(1).GetCell(0);
         var c2 = wb.GetSheetAt(0).GetRow(2).GetCell(0);
         Assert.That(c0.StringCellValue, Is.EqualTo("Date"));
-        Assert.That(((XSSFColor)c0.CellStyle.FillBackgroundColorColor).ARGBHex, Is.EqualTo("FF969696"));
+        Assert.That(((XSSFColor)c0.CellStyle.FillForegroundColorColor).ARGBHex, Is.EqualTo("FF00B0F0"));
         Assert.That(c1.DateCellValue, Is.EqualTo(new DateTime(2021, 1, 1)));
         Assert.That(c2.DateCellValue, Is.EqualTo(new DateTime(2022, 2, 1)));
-        Assert.That(c1.CellStyle.DataFormat, Is.EqualTo(0xa6));
-        Assert.That(c2.CellStyle.DataFormat, Is.EqualTo(0xa6));
+        Assert.That(c1.CellStyle.DataFormat, Is.EqualTo(0xa4));
+        Assert.That(c2.CellStyle.DataFormat, Is.EqualTo(0xa4));
     }
 }

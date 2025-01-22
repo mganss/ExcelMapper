@@ -1,5 +1,6 @@
 using Ganss.Excel.Exceptions;
 using NPOI.HSSF.UserModel;
+using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
@@ -145,12 +146,12 @@ public class ExcelMapper
     readonly Dictionary<Type, Func<object>> ObjectFactories = [];
     Dictionary<string, Dictionary<int, object>> Objects { get; set; } = [];
 
-    Dictionary<short, ICellStyle> CellStyles { get; set; } = [];
+    Dictionary<int, ICellStyle> CellStyles { get; set; } = [];
     IWorkbook workbook;
     IWorkbook Workbook
     {
         get => workbook;
-        
+
         set
         {
             workbook = value;
@@ -1060,6 +1061,8 @@ public class ExcelMapper
 
         GetColumns(sheet, typeMapper, columnsByIndex);
 
+        SetColumnStyles(sheet, columnsByIndex);
+
         foreach (var o in objects)
         {
             var i = o.Key;
@@ -1085,6 +1088,8 @@ public class ExcelMapper
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
         GetColumns(sheet, typeMapper, columnsByIndex);
+
+        SetColumnStyles(sheet, columnsByIndex);
 
         foreach (var o in objects)
         {
@@ -1117,6 +1122,40 @@ public class ExcelMapper
         Workbook.Write(stream, leaveOpen: true);
     }
 
+    private void SetColumnStyles(ISheet sheet, Dictionary<int, List<ColumnInfo>> columnsByIndex)
+    {
+        if (WorkbookCreated)
+        {
+            foreach (var c in columnsByIndex.Select(c => (c.Key, Value: c.Value.FirstOrDefault(c => c.Directions.HasFlag(MappingDirections.ObjectToExcel))))
+                .Where(c => c.Value != null && (c.Value.CustomFormat != null || c.Value.BuiltinFormat != 0 || c.Value.IsDateType)))
+            {
+                var ci = c.Value;
+                var df = ci switch
+                {
+                    { CustomFormat: not null } => sheet.Workbook.CreateDataFormat().GetFormat(ci.CustomFormat),
+                    { BuiltinFormat: not 0 } => ci.BuiltinFormat,
+                    _ => DateFormat
+                };
+
+                if (sheet.GetColumnStyle(c.Key)?.DataFormat != df)
+                {
+                    var style = sheet.Workbook.CreateCellStyle();
+                    style.DataFormat = df;
+                    sheet.SetDefaultColumnStyle(c.Key, style);
+                }
+            }
+        }
+    }
+
+    private ICell GetCell(IRow row, int col)
+    {
+        var cell = row.GetCell(col, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        var defaultColumnStyle = row.Sheet.GetColumnStyle(col);
+        if (defaultColumnStyle != null)
+            cell.CellStyle = defaultColumnStyle;
+        return cell;
+    }
+
     private void SetCells(TypeMapper typeMapper,
         Dictionary<int, List<ColumnInfo>> columnsByIndex,
         object o, IRow row,
@@ -1132,13 +1171,8 @@ public class ExcelMapper
 
             if (ci != null)
             {
-                var cell = row.GetCell(col.Key);
-                var cellExists = cell != null;
-
-                if (!cellExists)
-                    cell = row.CreateCell(col.Key);
-
-                SetCell(valueConverter, o, cell, ci, cellExists);
+                var cell = GetCell(row, col.Key);
+                SetCell(valueConverter, o, cell, ci);
             }
         }
 
@@ -1157,49 +1191,44 @@ public class ExcelMapper
         }
     }
 
-    private void SetCellStyle(ICell cell, ColumnInfo ci, bool cellExisted)
+    private void ApplyCellStyle(ICell cell, short dataFormat)
     {
-        void SetDataFormat(short df)
+        if (!CellStyles.TryGetValue(cell.ColumnIndex, out var style))
         {
-            if (!CellStyles.TryGetValue(df, out var style))
-            {
-                style = cell.Sheet.Workbook.CreateCellStyle();
-                style.DataFormat = df;
-                CellStyles[df] = style;
-            }
-
-            cell.CellStyle = style;
+            style = cell.Sheet.Workbook.CreateCellStyle();
+            var columnStyle = cell.Sheet.GetColumnStyle(cell.ColumnIndex);
+            if (columnStyle != null)
+                style.CloneStyleFrom(columnStyle);
+            style.DataFormat = dataFormat;
+            CellStyles[cell.ColumnIndex] = style;
         }
+        cell.CellStyle = style;
+    }
 
-        if (ci.BuiltinFormat != 0 || ci.CustomFormat != null)
+    private void SetCellStyle(ICell cell, ColumnInfo ci)
+    {
+        if (!WorkbookCreated)
         {
-            var df = ci.CustomFormat != null ? cell.Sheet.Workbook.CreateDataFormat().GetFormat(ci.CustomFormat) : ci.BuiltinFormat;
-            SetDataFormat(df);
-            return;
-        }
-        else if (!WorkbookCreated && !cellExisted)
-        {
-            for (var r = cell.RowIndex - 1; r >= 0; r--)
+            if (ci.BuiltinFormat != 0 || ci.CustomFormat != null)
             {
-                if (!HeaderRow || r != HeaderRowNumber)
+                var df = ci.CustomFormat != null ? cell.Sheet.Workbook.CreateDataFormat().GetFormat(ci.CustomFormat) : ci.BuiltinFormat;
+
+                if (cell.CellStyle.DataFormat != df)
                 {
-                    var c = cell.Sheet.GetRow(r)?.GetCell(cell.ColumnIndex);
-                    if (c != null)
-                    {
-                        cell.CellStyle = c.CellStyle;
-                        return;
-                    }
+                    ApplyCellStyle(cell, df);
+                }
+            }
+            else if (ci.IsDateType)
+            {
+                if (!DateUtil.IsADateFormat(cell.CellStyle.DataFormat, cell.CellStyle.GetDataFormatString()))
+                {
+                    ApplyCellStyle(cell, DateFormat);
                 }
             }
         }
-
-        if (!cellExisted && ci.IsDateType && DateFormat != 0)
-        {
-            SetDataFormat(DateFormat);
-        }
     }
 
-    private void SetCell<T>(Func<string, object, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci, bool cellExisted)
+    private void SetCell<T>(Func<string, object, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci)
     {
         Type oldType = null;
         object val = ci.GetProperty(objInstance);
@@ -1214,7 +1243,7 @@ public class ExcelMapper
             oldType = ci.PropertyType;
             ci.ChangeSetterType(newType);
         }
-        SetCellStyle(cell, ci, cellExisted);
+        SetCellStyle(cell, ci);
         ci.SetCell(cell, val);
         if (oldType != null)
             ci.ChangeSetterType(oldType);
@@ -1530,7 +1559,6 @@ public class ExcelMapper
                 foreach (var ix in columnIndexes)
                 {
                     var cell = headerRow.GetCell(ix, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-
                     cell.SetCellValue(columns.Key);
                 }
 
