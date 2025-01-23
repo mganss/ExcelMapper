@@ -1130,7 +1130,7 @@ public class ExcelMapper
         }
     }
 
-    private ICell GetCell(IRow row, int col)
+    private static ICell GetCell(IRow row, int col)
     {
         var cell = row.GetCell(col, MissingCellPolicy.CREATE_NULL_AS_BLANK);
         var defaultColumnStyle = row.Sheet.GetColumnStyle(col);
@@ -1200,12 +1200,9 @@ public class ExcelMapper
                 ApplyCellStyle(cell, df);
             }
         }
-        else if (ci.IsDateType)
+        else if (ci.IsDateType && !DateUtil.IsADateFormat(cell.CellStyle.DataFormat, cell.CellStyle.GetDataFormatString()))
         {
-            if (!DateUtil.IsADateFormat(cell.CellStyle.DataFormat, cell.CellStyle.GetDataFormatString()))
-            {
-                ApplyCellStyle(cell, DateFormat);
-            }
+            ApplyCellStyle(cell, DateFormat);
         }
     }
 
