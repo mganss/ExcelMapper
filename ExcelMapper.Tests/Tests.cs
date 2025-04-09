@@ -3265,4 +3265,43 @@ public class Tests
         Assert.That(c1.CellStyle.DataFormat, Is.EqualTo(0xa4));
         Assert.That(c2.CellStyle.DataFormat, Is.EqualTo(0xa4));
     }
+
+    private record NullableValueType(bool? BoolValue, int? IntValue);
+    private record ConvertedNullableValueType(string BoolValue, string IntValue);
+
+    private static object NullableValueTypeToStringCellValueConverter(string cellName, object value) =>
+        value switch
+        {
+            int i => i.ToString().PadLeft(2),
+            bool b => b ? "Yes" : "No", // Simple Yes/No
+            _ => value
+        };
+
+    [Test]
+    public void NullableValueTypeWithValueConverterTest()
+    {
+        var inputItems = new List<NullableValueType> { new(true, null), new(null, 9), new(null, null), new(false, 15) };
+
+        var writeMapper = new ExcelMapper
+        {
+            SkipBlankRows = false
+        };
+        var ms = new MemoryStream(); ;
+        Assert.DoesNotThrow(() => writeMapper.Save(ms, inputItems, valueConverter: NullableValueTypeToStringCellValueConverter));
+
+        ms.Seek(0, SeekOrigin.Begin);
+
+        var readMapper = new ExcelMapper(ms)
+        {
+            SkipBlankRows = false
+        };
+        var resultItems = readMapper.Fetch<ConvertedNullableValueType>().ToList();
+        foreach (var (input, result) in inputItems.Zip(resultItems))
+        {
+            var convertedInputBool = NullableValueTypeToStringCellValueConverter("", input.BoolValue);
+            var convertedInputInt = NullableValueTypeToStringCellValueConverter("", input.IntValue);
+            Assert.That(result.BoolValue, Is.EqualTo(convertedInputBool));
+            Assert.That(result.IntValue, Is.EqualTo(convertedInputInt));
+        }
+    }
 }

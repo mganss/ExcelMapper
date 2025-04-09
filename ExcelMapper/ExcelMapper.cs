@@ -1218,7 +1218,7 @@ public class ExcelMapper
         var newType = val?.GetType() ?? ci.PropertyType;
         if (newType != ci.PropertyType)
         {
-            oldType = ci.PropertyType;
+            oldType = ci.PropertyType.IsValueType && ci.IsNullable ? typeof(Nullable<>).MakeGenericType(ci.PropertyType) : ci.PropertyType;
             ci.ChangeSetterType(newType);
         }
         SetCellStyle(cell, ci, cellStyles);
