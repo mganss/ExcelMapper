@@ -232,7 +232,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<T> Fetch<T>(string file, string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable<T> Fetch<T>(string file, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         return Fetch(file, typeof(T), sheetName, valueParser).OfType<T>();
     }
@@ -245,7 +245,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable Fetch(string file, Type type, string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable Fetch(string file, Type type, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(file);
         return Fetch(type, sheetName, valueParser);
@@ -258,7 +258,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<dynamic> Fetch(string file, string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable<dynamic> Fetch(string file, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(file);
         return Fetch(sheetName, valueParser);
@@ -272,7 +272,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<T> Fetch<T>(string file, int sheetIndex, Func<string, object, object> valueParser = null)
+    public IEnumerable<T> Fetch<T>(string file, int sheetIndex, Func<ValueParserArgs, object> valueParser = null)
     {
         return Fetch(file, typeof(T), sheetIndex, valueParser).OfType<T>();
     }
@@ -285,7 +285,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable Fetch(string file, Type type, int sheetIndex, Func<string, object, object> valueParser = null)
+    public IEnumerable Fetch(string file, Type type, int sheetIndex, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(file);
         return Fetch(type, sheetIndex, valueParser);
@@ -298,7 +298,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<dynamic> Fetch(string file, int sheetIndex, Func<string, object, object> valueParser = null)
+    public IEnumerable<dynamic> Fetch(string file, int sheetIndex, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(file);
         return Fetch(sheetIndex, valueParser);
@@ -312,7 +312,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<T> Fetch<T>(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable<T> Fetch<T>(Stream stream, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         return Fetch(stream, typeof(T), sheetName, valueParser).OfType<T>();
     }
@@ -325,7 +325,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable Fetch(Stream stream, Type type, string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable Fetch(Stream stream, Type type, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(stream);
         return Fetch(type, sheetName, valueParser);
@@ -338,7 +338,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<dynamic> Fetch(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable<dynamic> Fetch(Stream stream, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(stream);
         return Fetch(sheetName, valueParser);
@@ -352,7 +352,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex, Func<string, object, object> valueParser = null)
+    public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex, Func<ValueParserArgs, object> valueParser = null)
     {
         return Fetch(stream, typeof(T), sheetIndex, valueParser).OfType<T>();
     }
@@ -365,7 +365,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable Fetch(Stream stream, Type type, int sheetIndex, Func<string, object, object> valueParser = null)
+    public IEnumerable Fetch(Stream stream, Type type, int sheetIndex, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(stream);
         return Fetch(type, sheetIndex, valueParser);
@@ -378,7 +378,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<dynamic> Fetch(Stream stream, int sheetIndex, Func<string, object, object> valueParser = null)
+    public IEnumerable<dynamic> Fetch(Stream stream, int sheetIndex, Func<ValueParserArgs, object> valueParser = null)
     {
         Workbook = WorkbookFactory.Create(stream);
         return Fetch(sheetIndex, valueParser);
@@ -392,7 +392,7 @@ public class ExcelMapper
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
     /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
-    public IEnumerable<T> Fetch<T>(string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable<T> Fetch<T>(string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         return Fetch(typeof(T), sheetName, valueParser).OfType<T>();
     }
@@ -405,7 +405,7 @@ public class ExcelMapper
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
     /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
-    public IEnumerable Fetch(Type type, string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable Fetch(Type type, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         PrimitiveCheck(type);
 
@@ -420,7 +420,7 @@ public class ExcelMapper
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
     /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
-    public IEnumerable<dynamic> Fetch(string sheetName, Func<string, object, object> valueParser = null)
+    public IEnumerable<dynamic> Fetch(string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         var sheet = Workbook.GetSheet(sheetName) ?? throw new ArgumentOutOfRangeException(nameof(sheetName), sheetName, "Sheet not found");
         return Fetch(sheet, valueParser);
@@ -433,7 +433,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<T> Fetch<T>(int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public IEnumerable<T> Fetch<T>(int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         var sheet = Workbook.GetSheetAt(sheetIndex);
         return Fetch<T>(sheet, valueParser);
@@ -446,7 +446,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable Fetch(Type type, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public IEnumerable Fetch(Type type, int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         PrimitiveCheck(type);
 
@@ -460,18 +460,18 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public IEnumerable<dynamic> Fetch(int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public IEnumerable<dynamic> Fetch(int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         var sheet = Workbook.GetSheetAt(sheetIndex);
         return Fetch(sheet, valueParser);
     }
 
-    IEnumerable<T> Fetch<T>(ISheet sheet, Func<string, object, object> valueParser = null)
+    IEnumerable<T> Fetch<T>(ISheet sheet, Func<ValueParserArgs, object> valueParser = null)
     {
         return Fetch(sheet, typeof(T), valueParser).OfType<T>();
     }
 
-    IEnumerable Fetch(ISheet sheet, Type type, Func<string, object, object> valueParser = null)
+    IEnumerable Fetch(ISheet sheet, Type type, Func<ValueParserArgs, object> valueParser = null)
     {
         var firstRowNumber = HeaderRowNumber;
 
@@ -509,10 +509,10 @@ public class ExcelMapper
         }
     }
 
-    IEnumerable<dynamic> Fetch(ISheet sheet, Func<string, object, object> valueParser = null) =>
+    IEnumerable<dynamic> Fetch(ISheet sheet, Func<ValueParserArgs, object> valueParser = null) =>
         Fetch(sheet, type: null, valueParser).Cast<dynamic>();
 
-    private object MapCells(Type type, Func<string, object, object> valueParser, TypeMapper typeMapper,
+    private object MapCells(Type type, Func<ValueParserArgs, object> valueParser, TypeMapper typeMapper,
         IEnumerable<ICell> cells, ref int objInstanceIdx, IRow row, ISet<Type> callChain)
     {
         var sheet = row.Sheet;
@@ -547,7 +547,12 @@ public class ExcelMapper
                     try
                     {
                         if (valueParser != null)
-                            cellValue = valueParser(string.IsNullOrWhiteSpace(ci.Name) ? columnIndex.ToString() : ci.Name, cellValue);
+                            cellValue = valueParser(new ValueParserArgs()
+                            {
+                                ColumnName = string.IsNullOrWhiteSpace(ci.Name) ? columnIndex.ToString() : ci.Name,
+                                Cell = cell,
+                                CellValue = cellValue
+                            });
 
                         initValues.Add((ci, cellValue, cell, columnIndex));
                     }
@@ -686,7 +691,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<T>> FetchAsync<T>(string file, string sheetName, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<T>> FetchAsync<T>(string file, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         return (await FetchAsync(file, typeof(T), sheetName, valueParser)).OfType<T>();
     }
@@ -698,7 +703,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<dynamic>> FetchAsync(string file, string sheetName, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<dynamic>> FetchAsync(string file, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(file);
         ms.Position = 0;
@@ -713,7 +718,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable> FetchAsync(string file, Type type, string sheetName, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable> FetchAsync(string file, Type type, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(file);
         ms.Position = 0;
@@ -728,7 +733,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(file);
         ms.Position = 0;
@@ -742,7 +747,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(file);
         ms.Position = 0;
@@ -757,7 +762,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable> FetchAsync(string file, Type type, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable> FetchAsync(string file, Type type, int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(file);
         ms.Position = 0;
@@ -772,7 +777,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         return (await FetchAsync(stream, typeof(T), sheetName, valueParser)).OfType<T>();
     }
@@ -784,7 +789,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(stream);
         return Fetch(ms, sheetName, valueParser);
@@ -798,7 +803,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable> FetchAsync(Stream stream, Type type, string sheetName, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable> FetchAsync(Stream stream, Type type, string sheetName, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(stream);
         return Fetch(ms, type, sheetName, valueParser);
@@ -812,7 +817,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         return (await FetchAsync(stream, typeof(T), sheetIndex, valueParser)).OfType<T>();
     }
@@ -824,7 +829,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(stream);
         return Fetch(ms, sheetIndex, valueParser);
@@ -838,7 +843,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="valueParser">Allow value parsing</param>
     /// <returns>The objects read from the Excel file.</returns>
-    public async Task<IEnumerable> FetchAsync(Stream stream, Type type, int sheetIndex = 0, Func<string, object, object> valueParser = null)
+    public async Task<IEnumerable> FetchAsync(Stream stream, Type type, int sheetIndex = 0, Func<ValueParserArgs, object> valueParser = null)
     {
         using var ms = await ReadAsync(stream);
         return Fetch(ms, type, sheetIndex, valueParser);
@@ -918,7 +923,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
         Save(fs, objects, sheetName, xlsx, valueConverter);
@@ -933,7 +938,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
         Save(fs, objects, sheetIndex, xlsx, valueConverter);
@@ -948,7 +953,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         CreateWorkbook(xlsx);
         var sheet = Workbook.GetSheet(sheetName);
@@ -965,7 +970,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         CreateWorkbook(xlsx);
         ISheet sheet;
@@ -983,7 +988,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save(string file, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
         Save(fs, sheetName, xlsx, valueConverter);
@@ -996,7 +1001,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save(string file, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var fs = File.Open(file, FileMode.Create, FileAccess.Write);
         Save(fs, sheetIndex, xlsx, valueConverter);
@@ -1009,7 +1014,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save(Stream stream, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         CreateWorkbook(xlsx);
         var sheet = Workbook.GetSheet(sheetName);
@@ -1024,7 +1029,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public void Save(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         CreateWorkbook(xlsx);
         var sheet = Workbook.GetSheetAt(sheetIndex);
@@ -1032,7 +1037,7 @@ public class ExcelMapper
         Save(stream, sheet, valueConverter);
     }
 
-    void Save(Stream stream, ISheet sheet, Func<string, object, object> valueConverter = null)
+    void Save(Stream stream, ISheet sheet, Func<ValueParserArgs, object> valueConverter = null)
     {
         var objects = Objects[sheet.SheetName];
         var typeMapper = TypeMapperFactory.Create(objects.First().Value);
@@ -1060,7 +1065,7 @@ public class ExcelMapper
         Workbook.Write(stream, leaveOpen: true);
     }
 
-    void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects, Func<string, object, object> valueConverter = null)
+    void Save<T>(Stream stream, ISheet sheet, IEnumerable<T> objects, Func<ValueParserArgs, object> valueConverter = null)
     {
         var firstObject = objects.FirstOrDefault();
         var typeMapper = firstObject is ExpandoObject ? TypeMapperFactory.Create(firstObject) : TypeMapperFactory.Create(typeof(T));
@@ -1143,7 +1148,7 @@ public class ExcelMapper
         Dictionary<int, List<ColumnInfo>> columnsByIndex,
         object o, IRow row,
         Dictionary<int, ICellStyle> cellStyles,
-        Func<string, object, object> valueConverter = null)
+        Func<ValueParserArgs, object> valueConverter = null)
     {
         var columnsByName = typeMapper.ColumnsByName;
 
@@ -1206,13 +1211,18 @@ public class ExcelMapper
         }
     }
 
-    private void SetCell<T>(Func<string, object, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci, Dictionary<int, ICellStyle> cellStyles)
+    private void SetCell<T>(Func<ValueParserArgs, object> valueConverter, T objInstance, ICell cell, ColumnInfo ci, Dictionary<int, ICellStyle> cellStyles)
     {
         Type oldType = null;
         object val = ci.GetProperty(objInstance);
         if (valueConverter != null)
         {
-            val = valueConverter(ci.Name, val);
+            val = valueConverter(new ValueParserArgs()
+            {
+                Cell = cell,
+                ColumnName = ci.Name,
+                CellValue = val
+            });
         }
         // When the value is a dynamic type or has a specified value conversion function, the type may be inconsistent, and the type needs to be changed
         var newType = val?.GetType() ?? ci.PropertyType;
@@ -1236,7 +1246,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync<T>(string file, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         await SaveAsync(ms, objects, sheetName, xlsx, valueConverter);
@@ -1252,7 +1262,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync<T>(string file, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         await SaveAsync(ms, objects, sheetIndex, xlsx, valueConverter);
@@ -1268,7 +1278,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         Save(ms, objects, sheetName, xlsx, valueConverter);
@@ -1284,7 +1294,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync<T>(Stream stream, IEnumerable<T> objects, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         Save(ms, objects, sheetIndex, xlsx, valueConverter);
@@ -1298,7 +1308,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync(string file, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync(string file, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         await SaveAsync(ms, sheetName, xlsx, valueConverter);
@@ -1312,7 +1322,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync(string file, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         await SaveAsync(ms, sheetIndex, xlsx, valueConverter);
@@ -1326,7 +1336,7 @@ public class ExcelMapper
     /// <param name="sheetName">Name of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync(Stream stream, string sheetName, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         Save(ms, sheetName, xlsx, valueConverter);
@@ -1340,7 +1350,7 @@ public class ExcelMapper
     /// <param name="sheetIndex">Index of the sheet.</param>
     /// <param name="xlsx">if set to <c>true</c> saves in .xlsx format; otherwise, saves in .xls format.</param>
     /// <param name="valueConverter">converter receiving property name and value</param>
-    public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<string, object, object> valueConverter = null)
+    public async Task SaveAsync(Stream stream, int sheetIndex = 0, bool xlsx = true, Func<ValueParserArgs, object> valueConverter = null)
     {
         using var ms = new MemoryStream();
         Save(ms, sheetIndex, xlsx, valueConverter);
