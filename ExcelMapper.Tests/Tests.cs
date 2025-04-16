@@ -264,27 +264,27 @@ public class Tests
         var file = @"../../../xlsx/Products.xlsx";
         var excel = new ExcelMapper();
 
-        object valueParser(string colname, object val)
+        object valueParser(ValueParserArgs args)
         {
-            return colname switch
+            return args.ColumnName switch
             {
                 // Readers
-                "Number" when val is double dval => ((int)dval).ToString("X"),
-                "Price" when val is double dval => string.Format(CultureInfo.InvariantCulture, "/{0}/", dval),
-                "Name" when val is string sval => $"-{sval}-",
-                _ => val,
+                "Number" when args.CellValue is double dval => ((int)dval).ToString("X"),
+                "Price" when args.CellValue is double dval => string.Format(CultureInfo.InvariantCulture, "/{0}/", dval),
+                "Name" when args.CellValue is string sval => $"-{sval}-",
+                _ => args.CellValue,
             };
         }
 
-        object valueConverter(string colname, object val)
+        object valueConverter(ValueParserArgs args)
         {
-            return colname switch
+            return args.ColumnName switch
             {
                 // Writers
-                "Number" when val is string sval => int.Parse(sval, NumberStyles.HexNumber),
-                "Price" when val is string sval => decimal.Parse(sval.Replace("/", string.Empty), CultureInfo.InvariantCulture),
-                "Name" when val is string sval && sval[0] == '-' && sval[^1] == '-' => sval.Replace("-", string.Empty),
-                _ => val,
+                "Number" when args.CellValue is string sval => int.Parse(sval, NumberStyles.HexNumber),
+                "Price" when args.CellValue is string sval => decimal.Parse(sval.Replace("/", string.Empty), CultureInfo.InvariantCulture),
+                "Name" when args.CellValue is string sval && sval[0] == '-' && sval[^1] == '-' => sval.Replace("-", string.Empty),
+                _ => args.CellValue,
             };
         }
 
@@ -1398,14 +1398,14 @@ public class Tests
 
         new ExcelMapper().Save(file, products, "Products");
 
-        var productsFetched = new ExcelMapper(file) { SkipBlankCells = false }.Fetch(0, (colnum, value) =>
+        var productsFetched = new ExcelMapper(file) { SkipBlankCells = false }.Fetch(0, (args) =>
         {
             //convert an empty string to null
-            if (value is string && value.ToString().Length == 0 && new string[] { "OfferEnd", "Number", "Offer" }.Contains(colnum))
+            if (args.CellValue is string && args.CellValue.ToString().Length == 0 && new string[] { "OfferEnd", "Number", "Offer" }.Contains(args.ColumnName))
             {
                 return null;
             }
-            return value;
+            return args.CellValue;
         }).ToList();
 
         Assert.That(productsFetched[0].OfferEnd, Is.Null);
@@ -2754,36 +2754,36 @@ public class Tests
 
         var file = "bytesdata.xlsx";
 
-        excel.Save(file, datas, "data", true, (colnum, value) =>
+        excel.Save(file, datas, "data", true, (args) =>
         {
-            if (value != null)
+            if (args.CellValue != null)
             {
-                switch (colnum)
+                switch (args.ColumnName)
                 {
                     case "TextData1":
-                        return Encoding.UTF8.GetString(value as byte[]);
+                        return Encoding.UTF8.GetString(args.CellValue as byte[]);
                     case "RowVersion":
-                        return BitConverter.ToInt32(value as byte[]);
+                        return BitConverter.ToInt32(args.CellValue as byte[]);
 
                 }
             }
-            return value;
+            return args.CellValue;
         });
 
-        var productsFetched = new ExcelMapper(file).Fetch<BytesData>(0, (colnum, value) =>
+        var productsFetched = new ExcelMapper(file).Fetch<BytesData>(0, (args) =>
         {
-            if (value != null && !string.IsNullOrEmpty(value.ToString()))
+            if (args.CellValue != null && !string.IsNullOrEmpty(args.CellValue.ToString()))
             {
-                switch (colnum)
+                switch (args.ColumnName)
                 {
                     case "TextData1":
-                        return Encoding.UTF8.GetBytes(value.ToString());
+                        return Encoding.UTF8.GetBytes(args.CellValue.ToString());
                     case "RowVersion":
-                        return BitConverter.GetBytes(Convert.ToInt32(value.ToString()));
+                        return BitConverter.GetBytes(Convert.ToInt32(args.CellValue.ToString()));
 
                 }
             }
-            return value;
+            return args.CellValue;
         }).ToList();
 
         for (var index = 0; index < datas.Count; index++)
@@ -3269,12 +3269,12 @@ public class Tests
     private record NullableValueType(bool? BoolValue, int? IntValue);
     private record ConvertedNullableValueType(string BoolValue, string IntValue);
 
-    private static object NullableValueTypeToStringCellValueConverter(string cellName, object value) =>
-        value switch
+    private static object NullableValueTypeToStringCellValueConverter(ValueParserArgs args) =>
+        args.CellValue switch
         {
             int i => i.ToString().PadLeft(2),
             bool b => b ? "Yes" : "No", // Simple Yes/No
-            _ => value
+            _ => args.CellValue
         };
 
     [Test]
@@ -3298,8 +3298,18 @@ public class Tests
         var resultItems = readMapper.Fetch<ConvertedNullableValueType>().ToList();
         foreach (var (input, result) in inputItems.Zip(resultItems))
         {
-            var convertedInputBool = NullableValueTypeToStringCellValueConverter("", input.BoolValue);
-            var convertedInputInt = NullableValueTypeToStringCellValueConverter("", input.IntValue);
+            var convertedInputBool = NullableValueTypeToStringCellValueConverter(new ValueParserArgs()
+            {
+                ColumnName = "",
+                Cell = null,
+                CellValue = input.BoolValue
+            });
+            var convertedInputInt = NullableValueTypeToStringCellValueConverter(new ValueParserArgs()
+            {
+                ColumnName = "",
+                Cell = null,
+                CellValue = input.IntValue
+            });
             Assert.That(result.BoolValue, Is.EqualTo(convertedInputBool));
             Assert.That(result.IntValue, Is.EqualTo(convertedInputInt));
         }
