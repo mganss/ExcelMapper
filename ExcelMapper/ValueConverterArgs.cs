@@ -3,7 +3,7 @@
 namespace Ganss.Excel;
 
 /// <summary>
-/// Encapsulation of arguments passed to a Value Parser function.
+/// Encapsulation of arguments passed to a Value Converter function.
 /// </summary>
 public class ValueConverterArgs
 {
