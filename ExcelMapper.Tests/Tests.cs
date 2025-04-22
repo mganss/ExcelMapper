@@ -264,7 +264,7 @@ public class Tests
         var file = @"../../../xlsx/Products.xlsx";
         var excel = new ExcelMapper();
 
-        object valueParser(ValueParserArgs args)
+        object valueParser(ValueConverterArgs args)
         {
             return args.ColumnName switch
             {
@@ -276,7 +276,7 @@ public class Tests
             };
         }
 
-        object valueConverter(ValueParserArgs args)
+        object valueConverter(ValueConverterArgs args)
         {
             return args.ColumnName switch
             {
@@ -3269,7 +3269,7 @@ public class Tests
     private record NullableValueType(bool? BoolValue, int? IntValue);
     private record ConvertedNullableValueType(string BoolValue, string IntValue);
 
-    private static object NullableValueTypeToStringCellValueConverter(ValueParserArgs args) =>
+    private static object NullableValueTypeToStringCellValueConverter(ValueConverterArgs args) =>
         args.CellValue switch
         {
             int i => i.ToString().PadLeft(2),
@@ -3298,13 +3298,13 @@ public class Tests
         var resultItems = readMapper.Fetch<ConvertedNullableValueType>().ToList();
         foreach (var (input, result) in inputItems.Zip(resultItems))
         {
-            var convertedInputBool = NullableValueTypeToStringCellValueConverter(new ValueParserArgs()
+            var convertedInputBool = NullableValueTypeToStringCellValueConverter(new ValueConverterArgs()
             {
                 ColumnName = "",
                 Cell = null,
                 CellValue = input.BoolValue
             });
-            var convertedInputInt = NullableValueTypeToStringCellValueConverter(new ValueParserArgs()
+            var convertedInputInt = NullableValueTypeToStringCellValueConverter(new ValueConverterArgs()
             {
                 ColumnName = "",
                 Cell = null,

@@ -5,7 +5,7 @@ namespace Ganss.Excel;
 /// <summary>
 /// Encapsulation of arguments passed to a Value Parser function.
 /// </summary>
-public class ValueParserArgs
+public class ValueConverterArgs
 {
     /// <summary>
     /// Gets or sets the cell.
