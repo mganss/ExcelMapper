@@ -230,7 +230,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<T> Fetch<T>(string file, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -243,7 +243,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable Fetch(string file, Type type, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -256,7 +256,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<dynamic> Fetch(string file, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -270,7 +270,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<T> Fetch<T>(string file, int sheetIndex, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -283,7 +283,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable Fetch(string file, Type type, int sheetIndex, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -296,7 +296,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<dynamic> Fetch(string file, int sheetIndex, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -310,7 +310,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<T> Fetch<T>(Stream stream, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -323,7 +323,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable Fetch(Stream stream, Type type, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -336,7 +336,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<dynamic> Fetch(Stream stream, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -350,7 +350,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<T> Fetch<T>(Stream stream, int sheetIndex, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -363,7 +363,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable Fetch(Stream stream, Type type, int sheetIndex, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -376,7 +376,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<dynamic> Fetch(Stream stream, int sheetIndex, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -389,7 +389,7 @@ public class ExcelMapper
     /// </summary>
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
     public IEnumerable<T> Fetch<T>(string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
@@ -402,7 +402,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
     public IEnumerable Fetch(Type type, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
@@ -417,7 +417,7 @@ public class ExcelMapper
     /// Fetches objects from the specified sheet name.
     /// </summary>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a sheet is not found</exception>
     public IEnumerable<dynamic> Fetch(string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
@@ -431,7 +431,7 @@ public class ExcelMapper
     /// </summary>
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<T> Fetch<T>(int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -444,7 +444,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="type">The type of objects the Excel file is mapped to</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable Fetch(Type type, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -458,7 +458,7 @@ public class ExcelMapper
     /// Fetches objects from the specified sheet index.
     /// </summary>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public IEnumerable<dynamic> Fetch(int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -689,7 +689,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<T>> FetchAsync<T>(string file, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -701,7 +701,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<dynamic>> FetchAsync(string file, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -716,7 +716,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable> FetchAsync(string file, Type type, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -731,7 +731,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<T>> FetchAsync<T>(string file, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -745,7 +745,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<dynamic>> FetchAsync(string file, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -760,7 +760,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="file">The path to the Excel file.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable> FetchAsync(string file, Type type, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -775,7 +775,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -787,7 +787,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -801,7 +801,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetName">Name of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable> FetchAsync(Stream stream, Type type, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -815,7 +815,7 @@ public class ExcelMapper
     /// <typeparam name="T">The type of objects the Excel file is mapped to.</typeparam>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<T>> FetchAsync<T>(Stream stream, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -827,7 +827,7 @@ public class ExcelMapper
     /// </summary>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
@@ -841,7 +841,7 @@ public class ExcelMapper
     /// <param name="type">The type of objects the Excel file is mapped to.</param>
     /// <param name="stream">The stream the Excel file is read from.</param>
     /// <param name="sheetIndex">Index of the sheet.</param>
-    /// <param name="valueConverter">Allow value parsing</param>
+    /// <param name="valueConverter">Allow value conversion</param>
     /// <returns>The objects read from the Excel file.</returns>
     public async Task<IEnumerable> FetchAsync(Stream stream, Type type, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
