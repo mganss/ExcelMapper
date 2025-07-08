@@ -8,19 +8,14 @@ namespace Ganss.Excel;
 /// Event handler can allow parsing to continue by setting <see cref="CancelEventArgs.Cancel"/> to true,
 /// cancelling the exception.
 /// </summary>
-public class ParsingErrorEventArgs : CancelEventArgs
+/// <remarks>
+/// Initializes a new instance of the <see cref="ParsingErrorEventArgs"/> class.
+/// </remarks>
+/// <param name="error">The error captured.</param>
+public class ParsingErrorEventArgs(ExcelMapperConvertException error) : CancelEventArgs
 {
     /// <summary>
     /// The error captured
     /// </summary>
-    public ExcelMapperConvertException Error { get; private set; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ParsingErrorEventArgs"/> class.
-    /// </summary>
-    /// <param name="error">The error captured.</param>
-    public ParsingErrorEventArgs(ExcelMapperConvertException error)
-    {
-        Error = error;
-    }
+    public ExcelMapperConvertException Error { get; private set; } = error;
 }

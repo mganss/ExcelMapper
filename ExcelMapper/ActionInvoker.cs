@@ -25,7 +25,7 @@ internal class ActionInvoker
     {
         // instantiate concrete generic invoker
         var invokerType = typeof(ActionInvokerImpl<>);
-        Type[] tType = { typeof(T) };
+        Type[] tType = [typeof(T)];
         Type constructed = invokerType.MakeGenericType(tType);
         object invokerInstance = Activator.CreateInstance(constructed, mappingAction);
         return (ActionInvoker)invokerInstance;
@@ -36,22 +36,17 @@ internal class ActionInvoker
 /// Generic form <see cref="ActionInvoker"/>
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal class ActionInvokerImpl<T> : ActionInvoker
+/// <remarks>
+/// Ctor
+/// </remarks>
+/// <param name="mappingAction"></param>
+internal class ActionInvokerImpl<T>(Action<T, int> mappingAction) : ActionInvoker
     where T : class
 {
     /// <summary>
     /// ref to the mapping action.
     /// </summary>
-    internal Action<T, int> mappingAction;
-
-    /// <summary>
-    /// Ctor
-    /// </summary>
-    /// <param name="mappingAction"></param>
-    public ActionInvokerImpl(Action<T, int> mappingAction)
-    {
-        this.mappingAction = mappingAction;
-    }
+    internal Action<T, int> mappingAction = mappingAction;
 
     /// <summary>
     /// Invoke Generic Action
