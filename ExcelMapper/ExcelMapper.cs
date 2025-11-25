@@ -792,6 +792,7 @@ public class ExcelMapper
     public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
         using var ms = await ReadAsync(stream);
+        ms.Position = 0;
         return Fetch(ms, sheetName, valueConverter);
     }
 
@@ -806,6 +807,7 @@ public class ExcelMapper
     public async Task<IEnumerable> FetchAsync(Stream stream, Type type, string sheetName, Func<ValueConverterArgs, object> valueConverter = null)
     {
         using var ms = await ReadAsync(stream);
+        ms.Position = 0;
         return Fetch(ms, type, sheetName, valueConverter);
     }
 
@@ -832,6 +834,7 @@ public class ExcelMapper
     public async Task<IEnumerable<dynamic>> FetchAsync(Stream stream, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
         using var ms = await ReadAsync(stream);
+        ms.Position = 0;
         return Fetch(ms, sheetIndex, valueConverter);
     }
 
@@ -846,6 +849,7 @@ public class ExcelMapper
     public async Task<IEnumerable> FetchAsync(Stream stream, Type type, int sheetIndex = 0, Func<ValueConverterArgs, object> valueConverter = null)
     {
         using var ms = await ReadAsync(stream);
+        ms.Position = 0;
         return Fetch(ms, type, sheetIndex, valueConverter);
     }
 
