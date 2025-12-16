@@ -1532,10 +1532,9 @@ public class ExcelMapper
 
                 if (!columnIndexes.Any())
                 {
-                    columnIndexes = typeColumnsByIndex.Where(c =>
+                    columnIndexes = [.. typeColumnsByIndex.Where(c =>
                         c.Value.Exists(v => v.Directions != MappingDirections.ExcelToObject && noSubTypeColumns.Exists(n => n.Name == v.Name)))
-                    .Select(c => c.Key)
-                    .ToList();
+                    .Select(c => c.Key)];
                 }
 
                 if (!columnIndexes.Any())

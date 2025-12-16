@@ -319,21 +319,21 @@ public class Tests
         AssertEquivalent(expectedResult, productsFetched);
 
         await new ExcelMapper().SaveAsync(filesave, products, valueConverter: valueConverter);
-        productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
+        productsFetched = [.. new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>()];
         AssertEquivalent(expectedResult, productsFetched);
 
         using (var fs = File.OpenWrite(filesave))
         {
             await new ExcelMapper().SaveAsync(fs, products, "Products", valueConverter: valueConverter);
         }
-        productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
+        productsFetched = [.. new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>()];
         AssertEquivalent(expectedResult, productsFetched);
 
         using (var fs = File.OpenWrite(filesave))
         {
             await new ExcelMapper().SaveAsync(fs, products, valueConverter: valueConverter);
         }
-        productsFetched = new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>().ToList();
+        productsFetched = [.. new ExcelMapper(filesave).Fetch<ProductDynamicValueConvertSave>()];
         AssertEquivalent(expectedResult, productsFetched);
     }
 
@@ -856,7 +856,7 @@ public class Tests
     public void FetchValueTest()
     {
         var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch<ProductValue>().ToList();
-        AssertEquivalent([119.4m, 98.67m, 99m], products.Select(p => p.Value).ToList());
+        AssertEquivalent([119.4m, 98.67m, 99m], [.. products.Select(p => p.Value)]);
     }
 
     [Test]
@@ -865,7 +865,7 @@ public class Tests
         var products = new ExcelMapper(@"../../../xlsx/Products.xlsx").Fetch(typeof(ProductValue))
                                                                  .OfType<ProductValue>()
                                                                  .ToList();
-        AssertEquivalent([119.4m, 98.67m, 99m], products.Select(p => p.Value).ToList());
+        AssertEquivalent([119.4m, 98.67m, 99m], [.. products.Select(p => p.Value)]);
     }
 
     private class ProductException : Product
@@ -935,7 +935,7 @@ public class Tests
         };
 
         List<ProductException> listOfProducts = null;
-        Assert.DoesNotThrow(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
+        Assert.DoesNotThrow(() => listOfProducts = [.. excelMapper.Fetch<ProductException>()]);
         Assert.That(numberOfErrors == 5);
         Assert.That(listOfProducts.Count == 6);
     }
@@ -950,7 +950,7 @@ public class Tests
         };
 
         List<ProductException> listOfProducts = null;
-        var ex = Assert.Throws<ExcelMapperConvertException>(() => listOfProducts = excelMapper.Fetch<ProductException>().ToList());
+        var ex = Assert.Throws<ExcelMapperConvertException>(() => listOfProducts = [.. excelMapper.Fetch<ProductException>()]);
         Assert.That(listOfProducts, Is.Null);
     }
 
@@ -1547,7 +1547,7 @@ public class Tests
     public void FormulaResultAttributeTest()
     {
         var products = new ExcelMapper(@"../../../xlsx/ProductsAsString.xlsx").Fetch<ProductValueString>().ToList();
-        AssertEquivalent(["119.4", "98.67", "99"], products.Select(p => p.ValueAsString).ToList());
+        AssertEquivalent(["119.4", "98.67", "99"], [.. products.Select(p => p.ValueAsString)]);
     }
 
     private class ProductFormulaMapped
@@ -1706,25 +1706,25 @@ public class Tests
         var products = (await new ExcelMapper().FetchAsync<Product>(path)).ToList();
         AssertProducts(products);
 
-        products = (await new ExcelMapper().FetchAsync<Product>(path, "Tabelle1")).ToList();
+        products = [.. (await new ExcelMapper().FetchAsync<Product>(path, "Tabelle1"))];
         AssertProducts(products);
 
-        products = (await new ExcelMapper().FetchAsync(path, typeof(Product), "Tabelle1")).OfType<Product>().ToList();
+        products = [.. (await new ExcelMapper().FetchAsync(path, typeof(Product), "Tabelle1")).OfType<Product>()];
         AssertProducts(products);
 
-        products = (await new ExcelMapper().FetchAsync(path, typeof(Product))).OfType<Product>().ToList();
+        products = [.. (await new ExcelMapper().FetchAsync(path, typeof(Product))).OfType<Product>()];
         AssertProducts(products);
 
-        products = (await new ExcelMapper().FetchAsync<Product>(File.OpenRead(path))).ToList();
+        products = [.. (await new ExcelMapper().FetchAsync<Product>(File.OpenRead(path)))];
         AssertProducts(products);
 
-        products = (await new ExcelMapper().FetchAsync<Product>(File.OpenRead(path), "Tabelle1")).ToList();
+        products = [.. (await new ExcelMapper().FetchAsync<Product>(File.OpenRead(path), "Tabelle1"))];
         AssertProducts(products);
 
-        products = (await new ExcelMapper().FetchAsync(File.OpenRead(path), typeof(Product), "Tabelle1")).OfType<Product>().ToList();
+        products = [.. (await new ExcelMapper().FetchAsync(File.OpenRead(path), typeof(Product), "Tabelle1")).OfType<Product>()];
         AssertProducts(products);
 
-        products = (await new ExcelMapper().FetchAsync(File.OpenRead(path), typeof(Product))).OfType<Product>().ToList();
+        products = [.. (await new ExcelMapper().FetchAsync(File.OpenRead(path), typeof(Product))).OfType<Product>()];
         AssertProducts(products);
     }
 
@@ -1745,19 +1745,19 @@ public class Tests
         AssertEquivalent(products, productsFetched);
 
         await new ExcelMapper().SaveAsync(file, products);
-        productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+        productsFetched = [.. new ExcelMapper(file).Fetch<Product>()];
         AssertEquivalent(products, productsFetched);
 
         var fs = File.OpenWrite(file);
         await new ExcelMapper().SaveAsync(fs, products, "Products");
         fs.Close();
-        productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+        productsFetched = [.. new ExcelMapper(file).Fetch<Product>()];
         AssertEquivalent(products, productsFetched);
 
         fs = File.OpenWrite(file);
         await new ExcelMapper().SaveAsync(fs, products);
         fs.Close();
-        productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+        productsFetched = [.. new ExcelMapper(file).Fetch<Product>()];
         AssertEquivalent(products, productsFetched);
 
         var path = @"../../../xlsx/Products.xlsx";
@@ -1765,29 +1765,29 @@ public class Tests
         var mapper = new ExcelMapper() { TrackObjects = true };
         var tracked = (await mapper.FetchAsync<Product>(path)).ToList();
         await mapper.SaveAsync(file, "Tabelle1");
-        productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+        productsFetched = [.. new ExcelMapper(file).Fetch<Product>()];
         AssertEquivalent(tracked, productsFetched);
 
         mapper = new ExcelMapper() { TrackObjects = true };
-        tracked = (await mapper.FetchAsync<Product>(path)).ToList();
+        tracked = [.. (await mapper.FetchAsync<Product>(path))];
         await mapper.SaveAsync(file);
-        productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+        productsFetched = [.. new ExcelMapper(file).Fetch<Product>()];
         AssertEquivalent(tracked, productsFetched);
 
         mapper = new ExcelMapper() { TrackObjects = true };
-        tracked = (await mapper.FetchAsync<Product>(path)).ToList();
+        tracked = [.. (await mapper.FetchAsync<Product>(path))];
         fs = File.OpenWrite(file);
         await mapper.SaveAsync(fs, "Tabelle1");
         fs.Close();
-        productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+        productsFetched = [.. new ExcelMapper(file).Fetch<Product>()];
         AssertEquivalent(tracked, productsFetched);
 
         mapper = new ExcelMapper() { TrackObjects = true };
-        tracked = (await mapper.FetchAsync<Product>(path)).ToList();
+        tracked = [.. (await mapper.FetchAsync<Product>(path))];
         fs = File.OpenWrite(file);
         await mapper.SaveAsync(fs);
         fs.Close();
-        productsFetched = new ExcelMapper(file).Fetch<Product>().ToList();
+        productsFetched = [.. new ExcelMapper(file).Fetch<Product>()];
         AssertEquivalent(tracked, productsFetched);
     }
 
@@ -2528,7 +2528,7 @@ public class Tests
 
         excel = new ExcelMapper(file);
 
-        productsFetched = excel.Fetch<GuidProduct>().ToList();
+        productsFetched = [.. excel.Fetch<GuidProduct>()];
 
         AssertEquivalent(expectedProducts, productsFetched);
     }
@@ -2932,7 +2932,7 @@ public class Tests
         Assert.That(ccs[0].TextBase, Is.EqualTo("test"));
         Assert.That(ccs[0].TextNew, Is.EqualTo("test"));
 
-        ccs = new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<VirtualSaveTestRecord>().ToList();
+        ccs = [.. new ExcelMapper("../../../xlsx/virtual.xlsx").Fetch<VirtualSaveTestRecord>()];
 
         Assert.That(ccs.Count, Is.EqualTo(1));
         Assert.That(ccs[0].TextBase, Is.EqualTo("base"));
