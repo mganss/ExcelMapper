@@ -1609,7 +1609,6 @@ public class ExcelMapper
             case CellType.Error:
                 var targetType = targetColumn.PropertyType;
                 return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
-            case CellType.Unknown:
             case CellType.Blank:
             case CellType.String:
             default:

@@ -9,7 +9,7 @@ static class Extensions
 {
     internal static IEnumerable<IRow> Rows(this ISheet sheet)
     {
-        var e = sheet.GetRowEnumerator();
+        var e = sheet.GetEnumerator();
         while (e.MoveNext())
             yield return e.Current as IRow;
     }
