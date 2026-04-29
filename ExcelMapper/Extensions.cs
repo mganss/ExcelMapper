@@ -11,7 +11,7 @@ static class Extensions
     {
         var e = sheet.GetEnumerator();
         while (e.MoveNext())
-            yield return e.Current as IRow;
+            yield return e.Current;
     }
 
     internal static bool IsIdenticalTo(this MemberInfo memberInfo, MemberInfo other)

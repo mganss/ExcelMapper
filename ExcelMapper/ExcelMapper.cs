@@ -566,16 +566,15 @@ public class ExcelMapper
 
         if (!IgnoreNestedTypes)
         {
-            foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value).Where(c => c.IsSubType))
+            foreach (var ci in typeMapper.ColumnsByName.SelectMany(c => c.Value)
+                .Where(c => c.IsSubType
+                    && !callChain.Contains(c.PropertyType) // check for cycle in type hierarchy
+                    && !initValues.Exists(v => v.Col.Property.IsIdenticalTo(c.Property)))) // map subtypes only if not already mapped
             {
-                if (!callChain.Contains(ci.PropertyType) // check for cycle in type hierarchy
-                    && !initValues.Exists(v => v.Col.Property.IsIdenticalTo(ci.Property))) // map subtypes only if not already mapped
-                {
-                    callChain.Add(ci.PropertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
-                    var subObject = MapCells(ci.PropertyType, valueConverter, subTypeMapper, cells, ref objInstanceIdx, row, callChain);
-                    initValues.Add((ci, subObject, null, -1));
-                }
+                callChain.Add(ci.PropertyType);
+                var subTypeMapper = TypeMapperFactory.Create(ci.PropertyType);
+                var subObject = MapCells(ci.PropertyType, valueConverter, subTypeMapper, cells, ref objInstanceIdx, row, callChain);
+                initValues.Add((ci, subObject, null, -1));
             }
         }
 
@@ -1421,14 +1420,12 @@ public class ExcelMapper
         if (!IgnoreNestedTypes)
         {
             foreach (var propertyType in columnsByName.SelectMany(c => c.Value.Where(c => c.Directions != MappingDirections.ExcelToObject && c.IsSubType))
-                .Select(c => c.PropertyType))
+                .Select(c => c.PropertyType)
+                .Where(p => !callChain.Contains(p)))
             {
-                if (!callChain.Contains(propertyType))
-                {
-                    callChain.Add(propertyType);
-                    var subTypeMapper = TypeMapperFactory.Create(propertyType);
-                    GatherColumnIndexes(subTypeMapper, columnsByIndex, callChain);
-                }
+                callChain.Add(propertyType);
+                var subTypeMapper = TypeMapperFactory.Create(propertyType);
+                GatherColumnIndexes(subTypeMapper, columnsByIndex, callChain);
             }
         }
     }
