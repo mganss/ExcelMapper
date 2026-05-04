@@ -1408,9 +1408,12 @@ public class Tests
             return args.CellValue;
         }).ToList();
 
-        Assert.That(productsFetched[0].OfferEnd, Is.Null);
-        Assert.That(productsFetched[1].Number, Is.Null);
-        Assert.That(productsFetched[1].Offer, Is.Null);
+        object offerEnd = productsFetched[0].OfferEnd;
+        Assert.That(offerEnd, Is.Null);
+        object number = productsFetched[1].Number;
+        Assert.That(number, Is.Null);
+        object offer = productsFetched[1].Offer;
+        Assert.That(offer, Is.Null);
     }
 
     private class DataFormatProduct
