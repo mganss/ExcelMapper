@@ -12,10 +12,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="NUnit" Version="5.0.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="6.3.1" />
-	<PackageReference Include="SkiaSharp" Version="4.152.0" />
+	<PackageReference Include="SkiaSharp" Version="4.154.0" />
+	<PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+	<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.14" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ExcelMapper\ExcelMapper.csproj" />
