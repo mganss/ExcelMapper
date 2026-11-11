@@ -35,7 +35,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.403" PrivateAssets="All" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.14" />
-    <PackageReference Include="System.Text.Json" Version="10.0.14" />
+    <PackageReference Include="System.Text.Json" Version="11.0.0" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="" />
