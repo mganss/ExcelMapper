@@ -1,8 +1,9 @@
 # ExcelMapper
 
 [![NuGet version](https://badge.fury.io/nu/ExcelMapper.svg)](http://badge.fury.io/nu/ExcelMapper)
-[![Build status](https://ci.appveyor.com/api/projects/status/tyyg8905i24qv9pg/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/excelmapper/branch/master)
-[![codecov.io](https://codecov.io/github/mganss/ExcelMapper/coverage.svg?branch=master)](https://codecov.io/github/mganss/ExcelMapper?branch=master)
+[![Build status](https://github.com/mganss/ExcelMapper/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/mganss/ExcelMapper/actions/workflows/build.yml)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mganss_ExcelMapper&metric=coverage)](https://sonarcloud.io/dashboard?id=mganss_ExcelMapper)
+[![Sonarcloud Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=mganss_ExcelMapper&metric=alert_status)](https://sonarcloud.io/dashboard?id=mganss_ExcelMapper)
 [![netstandard2.0](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)
 [![net462](https://img.shields.io/badge/net-462-brightgreen.svg)](https://img.shields.io/badge/net-462-brightgreen.svg)
 [![Discord](https://img.shields.io/badge/Chat-Discord-d82679.svg?logo=discord&logoColor=white)](https://discord.gg/rABUseUHme)
